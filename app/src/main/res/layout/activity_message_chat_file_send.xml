@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:background="@color/gray_e2"
+        />
+
+    <com.wewin.hichat.androidlib.widget.CustomTabLayout
+        android:id="@+id/ctl_message_file_type"
+        android:layout_width="wrap_content"
+        android:layout_height="32dp"
+        app:ctlUnderlineColor="@color/blue_main"
+        app:ctlTextColor="@color/black_33"
+        app:ctlTextSize="12"
+        app:ctlHorizontalSpace="80"
+        android:layout_gravity="center_horizontal"
+        >
+
+    </com.wewin.hichat.androidlib.widget.CustomTabLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:background="@color/gray_divide_main"
+        />
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/vp_message_file_send"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </android.support.v4.view.ViewPager>
+
+
+</LinearLayout>

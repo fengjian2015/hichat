@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/sv_contact_friend_info_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/gray_f1"
+    android:orientation="vertical"
+    android:overScrollMode="never"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp">
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:background="@color/white">
+
+            <com.wewin.hichat.androidlib.widget.CircleImageView
+                android:id="@+id/civ_contact_friend_info_avatar"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="15dp"
+                android:src="@drawable/img_avatar_default"
+                app:shape_type="round" />
+
+            <TextView
+                android:id="@+id/tv_contact_friend_info_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="95dp"
+                android:layout_marginTop="26dp"
+                android:textColor="@color/black_00"
+                android:textSize="@dimen/font_size_16"
+                tools:text="name" />
+
+            <TextView
+                android:id="@+id/tv_contact_friend_info_phone_num"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="95dp"
+                android:layout_marginTop="51dp"
+                android:textColor="@color/black_00"
+                android:textSize="@dimen/font_size_14"
+                tools:text="phoneNum" />
+
+            <ImageView
+                android:id="@+id/iv_contact_friend_info_chat"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_marginRight="17dp"
+                android:padding="5dp"
+                android:src="@drawable/icon_con_blue" />
+
+            <ImageView
+                android:id="@+id/iv_contact_friend_info_call"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_marginRight="72dp"
+                android:padding="5dp"
+                android:src="@drawable/voice_blue" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/divider_height"
+                android:layout_alignParentBottom="true"
+                android:layout_marginLeft="22dp"
+                android:background="@color/gray_f1" />
+
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/tv_contact_friend_info_sign"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:gravity="center_vertical"
+            android:paddingLeft="22dp"
+            android:paddingTop="10dp"
+            android:paddingRight="22dp"
+            android:paddingBottom="10dp"
+            android:textColor="@color/black_00"
+            android:textSize="@dimen/font_size_14"
+            tools:text="sign" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginTop="10dp"
+            android:background="@color/white"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="22dp"
+                android:layout_marginTop="6dp"
+                android:text="@string/nickname"
+                android:textColor="@color/gray_be"
+                android:textSize="@dimen/font_size_11" />
+
+            <TextView
+                android:id="@+id/tv_contact_friend_info_nickname"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="22dp"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/black_00"
+                android:textSize="@dimen/font_size_14"
+                tools:text="name" />
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/divider_height"
+            android:layout_marginLeft="22dp"
+            android:background="@color/gray_f1" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:background="@color/white"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="22dp"
+                android:layout_marginTop="6dp"
+                android:text="@string/sex"
+                android:textColor="@color/gray_be"
+                android:textSize="@dimen/font_size_11" />
+
+            <TextView
+                android:id="@+id/tv_contact_friend_info_sex"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="22dp"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/black_00"
+                android:textSize="@dimen/font_size_14"
+                tools:text="name" />
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/divider_height"
+            android:layout_marginLeft="22dp"
+            android:background="@color/gray_f1" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:background="@color/white"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="22dp"
+                android:layout_marginTop="6dp"
+                android:text="@string/state"
+                android:textColor="@color/gray_be"
+                android:textSize="@dimen/font_size_11" />
+
+            <TextView
+                android:id="@+id/tv_contact_friend_info_online_state"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="22dp"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/black_00"
+                android:textSize="@dimen/font_size_14"
+                tools:text="name" />
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/divider_height"
+            android:layout_marginLeft="22dp"
+            android:background="@color/gray_f1" />
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginTop="10dp"
+            android:background="@color/white"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="22dp"
+                android:layout_marginTop="6dp"
+                android:text="@string/remark"
+                android:textColor="@color/gray_be"
+                android:textSize="@dimen/font_size_11" />
+
+            <TextView
+                android:id="@+id/tv_contact_friend_info_edit_friend_note"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="22dp"
+                android:layout_marginRight="22dp"
+                android:background="@null"
+                android:gravity="center_vertical"
+                android:hint="@string/remark_edit"
+                android:maxLength="10"
+                android:maxLines="1"
+                android:textColor="@color/black_00"
+                android:textColorHint="@color/blue_main"
+                android:textSize="@dimen/font_size_14" />
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/divider_height"
+            android:layout_marginLeft="22dp"
+            android:background="@color/gray_f1" />
+
+        <FrameLayout
+            android:id="@+id/fl_contact_friend_info_move_grouping"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:background="@color/white">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="22dp"
+                android:text="@string/move_grouping"
+                android:textColor="@color/black_00"
+                android:textSize="@dimen/font_size_14" />
+
+            <ImageView
+                android:layout_width="8dp"
+                android:layout_height="15dp"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginRight="22dp"
+                android:src="@drawable/arrow_right_black" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/divider_height"
+                android:layout_gravity="bottom"
+                android:layout_marginLeft="22dp"
+                android:background="@color/gray_f1" />
+
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/fl_contact_friend_info_make_top"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:background="@color/white">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="22dp"
+                android:text="@string/make_top_conversation"
+                android:textColor="@color/black_00"
+                android:textSize="@dimen/font_size_14" />
+
+            <CheckBox
+                android:id="@+id/cb_contact_friend_info_make_top"
+                android:layout_width="33dp"
+                android:layout_height="17dp"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginRight="22dp"
+                android:background="@drawable/check_corner_img_slide"
+                android:button="@null" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/divider_height"
+                android:layout_gravity="bottom"
+                android:layout_marginLeft="22dp"
+                android:background="@color/gray_f1" />
+
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/fl_contact_friend_info_shield"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:background="@color/white">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="22dp"
+                android:text="@string/shield_conversation"
+                android:textColor="@color/black_00"
+                android:textSize="@dimen/font_size_14" />
+
+            <CheckBox
+                android:id="@+id/cb_contact_friend_info_shield"
+                android:layout_width="33dp"
+                android:layout_height="17dp"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginRight="22dp"
+                android:background="@drawable/check_corner_img_slide"
+                android:button="@null" />
+
+        </FrameLayout>
+
+
+        <TextView
+            android:id="@+id/tv_contact_friend_info_add_friend"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/press_rectangle_white_gray"
+            android:gravity="center"
+            android:text="@string/make_friend"
+            android:textColor="@color/blue_main"
+            android:textSize="@dimen/font_size_14" />
+
+
+        <TextView
+            android:id="@+id/tv_contact_friend_info_clear_conversation"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/press_rectangle_white_gray"
+            android:gravity="center"
+            android:text="@string/clear_conversation"
+            android:textColor="@color/red_light2"
+            android:textSize="@dimen/font_size_14" />
+
+
+        <TextView
+            android:id="@+id/tv_contact_friend_info_pull_blacklist"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/press_rectangle_white_gray"
+            android:gravity="center"
+            android:text="@string/pull_black_list"
+            android:textColor="@color/red_light2"
+            android:textSize="@dimen/font_size_14" />
+
+
+        <TextView
+            android:id="@+id/tv_contact_friend_info_delete_friend"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/press_rectangle_white_gray"
+            android:gravity="center"
+            android:text="@string/delete_friend"
+            android:textColor="@color/red_light2"
+            android:textSize="@dimen/font_size_14" />
+
+    </LinearLayout>
+
+
+</ScrollView>

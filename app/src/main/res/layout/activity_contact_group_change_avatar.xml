@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/black_00">
+
+    <ImageView
+        android:id="@+id/iv_contact_group_change_avatar_back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/nav_arrow_left_white"
+        android:padding="15dp"
+        />
+
+    <FrameLayout
+        android:id="@+id/fl_contact_group_avatar_container"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="98dp"
+        >
+
+        <ImageView
+            android:id="@+id/iv_contact_group_change_avatar"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:src="@drawable/img_group"
+            android:scaleType="fitXY"
+            />
+
+        <ImageView
+            android:id="@+id/iv_contact_group_avatar_delete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/but_img_del"
+            android:layout_gravity="end|bottom"
+            android:paddingRight="15dp"
+            android:paddingBottom="15dp"
+            />
+
+    </FrameLayout>
+
+
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_below="@+id/fl_contact_group_avatar_container"
+        android:layout_marginTop="15dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        >
+
+        <ImageView
+            android:id="@+id/iv_contact_group_avatar_history_left"
+            android:layout_width="80dp"
+            android:layout_height="60dp"
+            android:src="@drawable/img_group"
+            android:scaleType="fitXY"
+            />
+
+        <ImageView
+            android:id="@+id/iv_contact_group_avatar_history_center"
+            android:layout_width="80dp"
+            android:layout_height="60dp"
+            tools:src="@drawable/img_group"
+            android:scaleType="fitXY"
+            android:layout_marginLeft="5dp"
+            android:visibility="gone"
+            />
+
+        <ImageView
+            android:id="@+id/iv_contact_group_avatar_history_right"
+            android:layout_width="80dp"
+            android:layout_height="60dp"
+            tools:src="@drawable/img_group"
+            android:scaleType="fitXY"
+            android:layout_marginLeft="5dp"
+            android:visibility="gone"
+            />
+
+        <ImageView
+            android:id="@+id/iv_contact_group_avatar_add"
+            android:layout_width="80dp"
+            android:layout_height="60dp"
+            android:src="@drawable/but_img_plus"
+            android:scaleType="fitXY"
+            android:layout_marginLeft="5dp"
+            />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btn_contact_group_change_avatar_commit"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        style="@style/btn_corner_blue_blue"
+        android:text="@string/set_group_avatar"
+        android:layout_marginBottom="15dp"
+        />
+
+</RelativeLayout>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--CircleImageView-->
+    <declare-styleable name="CircleImageView">
+        <attr name="press_alpha" format="integer" />
+        <attr name="press_color" format="color" />
+        <attr name="radius" format="dimension"/>
+        <attr name="border_width" format="dimension" />
+        <attr name="border_color" format="color"/>
+        <attr name="shape_type" format="enum">
+            <enum name="round" value="0"/>
+            <enum name="rectangle" value="1" />
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="CustomTabLayout">
+        <attr name="ctlTextSize" format="integer"/>
+        <attr name="ctlTextColor" format="color"/>
+        <attr name="ctlTvBackground" format="color"/>
+        <attr name="ctlTextStyle" format="enum">
+            <enum name="normal" value="0"/>
+            <enum name="bold" value="1"/>
+        </attr>
+        <attr name="ctlUnderlineWidth" format="integer"/>
+        <attr name="ctlUnderlineHeight" format="integer"/>
+        <attr name="ctlUnderlineColor" format="color"/>
+        <attr name="ctlCheckedTextColor" format="color"/>
+        <attr name="ctlUnderlineDuration" format="integer"/>
+        <attr name="ctlHorizontalSpace" format="integer"/>
+    </declare-styleable>
+
+    <declare-styleable name="ViewPagerIndicator">
+        <attr name="tabTextSize" format="dimension"/>
+        <attr name="nomalTextColor" format="color"/>
+        <attr name="selectedTextColor" format="color"/>
+        <attr name="indicatorColor" format="color"/>
+        <attr name="indicatorHeight" format="dimension"/>
+        <attr name="indicatorWidth" format="dimension"/>
+        <attr name="indicatorPaddingBottom" format="dimension"/>
+    </declare-styleable>
+
+</resources>

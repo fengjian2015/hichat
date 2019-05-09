@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/ll_item_contact_friend_group_container">
+
+    <ImageView
+        android:id="@+id/iv_item_contact_friend_group_indicator"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:src="@drawable/arrow_right_black"
+        android:layout_marginLeft="15dp"
+        />
+
+    <TextView
+        android:id="@+id/tv_contact_friend_type_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="9dp"
+        tools:text="name"
+        android:textColor="@color/black_00"
+        android:textSize="@dimen/font_size_14"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp"
+        android:layout_centerVertical="true"/>
+
+    <TextView
+        android:id="@+id/tv_contact_friend_type_num"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="num"
+        android:textColor="@color/black_33"
+        android:textSize="@dimen/font_size_12"
+        android:layout_marginLeft="6dp"
+        />
+
+</LinearLayout>

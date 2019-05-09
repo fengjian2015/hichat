@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="69dp"
+    android:background="@color/white"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <CheckBox
+        android:id="@+id/cb_item_conversation_check"
+        android:layout_width="17dp"
+        android:layout_height="17dp"
+        android:layout_marginLeft="12dp"
+        android:background="@drawable/check_corner_img_hook"
+        android:button="@null"
+        android:checked="false"
+        android:enabled="false"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:visibility="gone" />
+
+    <FrameLayout
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:layout_marginLeft="12dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp">
+
+        <com.wewin.hichat.androidlib.widget.CircleImageView
+            android:id="@+id/iv_item_conversation_avatar"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:scaleType="fitXY"
+            app:shape_type="round"
+            tools:src="@drawable/img_avatar_default" />
+
+        <ImageView
+            android:id="@+id/iv_item_conversation_shield_alpha"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/white_alpha_60"
+            android:visibility="invisible" />
+
+        <ImageView
+            android:id="@+id/iv_item_conversation_shield_icon"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_gravity="end|bottom"
+            android:src="@drawable/con_shield_friend"
+            android:visibility="invisible" />
+
+
+    </FrameLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="11dp">
+
+        <TextView
+            android:id="@+id/tv_item_conversation_temporary_chat_tag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="7dp"
+            android:text="@string/temporary_chat"
+            android:textColor="@color/blue_main"
+            android:textSize="@dimen/font_size_16"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tv_item_conversation_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="7dp"
+            android:layout_toRightOf="@+id/tv_item_conversation_temporary_chat_tag"
+            android:textColor="@color/black_33"
+            android:textSize="@dimen/font_size_16"
+            tools:text="name" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_item_conversation_name"
+            android:layout_alignParentLeft="true"
+            android:layout_toLeftOf="@+id/tv_item_conversation_unread_msg_num"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tv_item_conversation_message_server"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/tv_item_conversation_name"
+                android:layout_alignParentLeft="true"
+                android:layout_marginTop="5dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/red_light2"
+                android:textSize="@dimen/font_size_13"
+                tools:text="server"
+                android:visibility="gone"/>
+
+            <TextView
+                android:id="@+id/tv_item_conversation_message_content"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/tv_item_conversation_name"
+                android:layout_marginTop="5dp"
+                android:layout_marginRight="15dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/gray_92"
+                android:textSize="@dimen/font_size_13"
+                tools:text="msg" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_item_conversation_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="6dp"
+            android:layout_marginRight="15dp"
+            android:textColor="@color/gray_99"
+            android:textSize="@dimen/font_size_12"
+            android:visibility="visible"
+            tools:text="time" />
+
+        <ImageView
+            android:id="@+id/iv_item_conversation_top_mark"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:layout_marginTop="11dp"
+            android:layout_marginRight="5dp"
+            android:layout_toLeftOf="@+id/tv_item_conversation_time"
+            android:src="@drawable/icon_topping" />
+
+        <TextView
+            android:id="@+id/tv_item_conversation_unread_msg_num"
+            android:layout_width="wrap_content"
+            android:layout_height="24dp"
+            android:layout_below="@+id/tv_item_conversation_time"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="15dp"
+            android:background="@drawable/corner_blue_18"
+            android:gravity="center"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:textColor="@color/white"
+            android:textSize="@dimen/font_size_14"
+            android:visibility="visible"
+            tools:text="99"
+
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/divider_height"
+            android:layout_alignParentBottom="true"
+            android:background="@color/gray_f1" />
+
+    </RelativeLayout>
+
+</LinearLayout>

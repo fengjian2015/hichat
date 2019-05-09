@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/gray_f2">
+
+    <RelativeLayout
+        android:id="@+id/rl_setting_state_manage_online"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:background="@color/white"
+        android:layout_marginTop="10dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/online_state"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/black_33"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="15dp"
+            />
+        
+        <ImageView
+            android:id="@+id/iv_setting_state_manage_online_hook"
+            android:layout_width="16dp"
+            android:layout_height="11dp"
+            android:src="@drawable/icon_select_correct"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="15dp"
+            />
+
+    </RelativeLayout>
+
+    <include layout="@layout/layout_divider_2"/>
+
+    <RelativeLayout
+        android:id="@+id/rl_setting_state_manage_stealth"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:background="@color/white">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/stealth_state"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/black_33"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="15dp"
+            />
+
+        <ImageView
+            android:id="@+id/iv_setting_state_manage_stealth_hook"
+            android:layout_width="16dp"
+            android:layout_height="11dp"
+            android:src="@drawable/icon_select_correct"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="15dp"
+            android:visibility="invisible"
+            />
+
+    </RelativeLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <Button
+            android:id="@+id/btn_setting_state_manage_logout"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            style="@style/btn_corner_blue_blue"
+            android:layout_gravity="bottom"
+            android:layout_marginBottom="50dp"
+            android:text="@string/logout_current_account"
+            />
+
+    </FrameLayout>
+
+</LinearLayout>

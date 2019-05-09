@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/gray_f2">
+
+    <EditText
+        android:id="@+id/et_contact_group_announcement"
+        android:layout_width="match_parent"
+        android:layout_height="210dp"
+        android:background="@color/white"
+        android:hint="@string/please_input_announcement"
+        android:textSize="@dimen/font_size_14"
+        android:textColor="@color/black_33"
+        android:textColorHint="@color/gray_99"
+        android:gravity="start"
+        android:padding="15dp"
+        android:maxLength="200"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/word_num_limit_200"
+        android:layout_gravity="end"
+        android:textSize="@dimen/font_size_12"
+        android:textColor="@color/gray_99"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="15dp"
+        />
+
+</LinearLayout>

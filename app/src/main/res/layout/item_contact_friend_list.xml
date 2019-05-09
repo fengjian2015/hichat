@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical">
+
+    <com.wewin.hichat.androidlib.widget.CircleImageView
+        android:id="@+id/civ_item_contact_friend_avatar"
+        android:layout_width="43dp"
+        android:layout_height="43dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="6dp"
+        android:layout_marginLeft="12dp"
+        android:src="@drawable/img_avatar_default"
+        app:shape_type="round"
+        />
+
+    <TextView
+        android:id="@+id/tv_item_contact_friend_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="name"
+        android:textSize="@dimen/font_size_16"
+        android:textColor="@color/black_00"
+        android:layout_marginLeft="66dp"
+        android:layout_marginTop="6dp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        />
+
+    <TextView
+        android:id="@+id/tv_item_contact_friend_sign"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="sign"
+        android:textSize="@dimen/font_size_12"
+        android:textColor="@color/gray_92"
+        android:layout_marginLeft="66dp"
+        android:layout_marginTop="28dp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:background="@color/gray_f1"
+        android:layout_marginTop="55dp"
+        android:layout_marginLeft="66dp"
+        />
+
+</FrameLayout>

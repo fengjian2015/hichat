@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/none_color">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginLeft="22dp"
+        android:layout_marginRight="22dp">
+
+        <TextView
+            android:id="@+id/tv_dialog_sex_keep_secret"
+            android:layout_width="match_parent"
+            android:layout_height="49dp"
+            android:text="@string/keep_secret"
+            android:gravity="center"
+            android:textSize="@dimen/font_size_18"
+            android:textColor="@color/black_00"
+            android:background="@drawable/press_corner_white_gray_top_left_right_4"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/divider_height"
+            android:background="@color/gray_f1"
+            />
+
+        <TextView
+            android:id="@+id/tv_dialog_sex_male"
+            android:layout_width="match_parent"
+            android:layout_height="49dp"
+            android:text="@string/male"
+            android:textSize="@dimen/font_size_18"
+            android:textColor="@color/black_00"
+            android:gravity="center"
+            android:background="@drawable/press_rectangle_white_gray"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/divider_height"
+            android:background="@color/gray_f1"
+            />
+
+        <TextView
+            android:id="@+id/tv_dialog_sex_female"
+            android:layout_width="match_parent"
+            android:layout_height="49dp"
+            android:text="@string/female"
+            android:gravity="center"
+            android:textSize="@dimen/font_size_18"
+            android:textColor="@color/black_00"
+            android:background="@drawable/press_corner_white_gray_bot_left_right_4"
+            />
+
+        <TextView
+            android:id="@+id/tv_dialog_sex_cancel"
+            android:layout_width="match_parent"
+            android:layout_height="49dp"
+            android:text="@string/cancel"
+            android:gravity="center"
+            android:textSize="@dimen/font_size_18"
+            android:textColor="@color/black_00"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/press_corner_white_gray_4"
+            />
+
+    </LinearLayout>
+
+</RelativeLayout>

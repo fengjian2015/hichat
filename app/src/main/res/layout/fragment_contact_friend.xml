@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/ll_contact_friend_create_grouping"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:layout_width="15dp"
+            android:layout_height="15dp"
+            android:src="@drawable/con_plus_01"
+            android:layout_marginLeft="15dp"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/create_grouping"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/blue_main"
+            android:layout_marginLeft="10dp"
+            android:background="@drawable/press_rectangle_white_gray"
+            />
+
+    </LinearLayout>
+
+    <ExpandableListView
+        android:id="@+id/elv_contact_friend_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:divider="@color/none_color"
+        android:dividerHeight="0dp"
+        android:scrollbars="none"
+        android:groupIndicator="@null"
+        android:overScrollMode="never"
+        >
+
+    </ExpandableListView>
+
+
+</LinearLayout>

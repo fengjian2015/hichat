@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/gray_f2">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:background="@color/white"
+        android:layout_marginTop="10dp">
+
+        <EditText
+            android:id="@+id/et_contact_group_name_edit"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:background="@null"
+            android:layout_marginRight="80dp"
+            android:paddingLeft="15dp"
+            android:hint="@string/input_group_name"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/black_33"
+            android:textColorHint="@color/gray_99"
+            />
+
+        <ImageView
+            android:id="@+id/iv_contact_group_name_clear"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/but_search_delete"
+            android:layout_gravity="right|center_vertical"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            android:visibility="invisible"
+            />
+
+    </FrameLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/word_num_limit"
+        android:textSize="@dimen/font_size_12"
+        android:textColor="@color/gray_99"
+        android:layout_marginTop="64dp"
+        android:layout_gravity="right"
+        android:layout_marginRight="15dp"
+        />
+
+</FrameLayout>

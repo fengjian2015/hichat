@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    >
+
+    <TextView
+        android:id="@+id/tv_login_register_verify_code_divide"
+        android:layout_width="35dp"
+        android:layout_height="1dp"
+        android:background="@color/black_00"
+        android:layout_gravity="center"
+        />
+
+    <TextView
+        android:id="@+id/tv_login_register_verify_code_num"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="8"
+        android:textSize="@dimen/font_size_26"
+        android:textColor="@color/black_00"
+        android:textStyle="bold"
+        android:layout_gravity="center"
+        android:visibility="invisible"
+        />
+
+</FrameLayout>

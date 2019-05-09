@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp">
+
+        <TextView
+            android:id="@+id/tv_more_login_record_device_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="name"
+            android:textSize="@dimen/font_size_15"
+            android:textColor="@color/black_00"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="22dp"
+            />
+
+        <TextView
+            android:id="@+id/tv_more_login_record_device_ip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="ip"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/black_00"
+            android:layout_marginLeft="119dp"
+            android:layout_centerVertical="true"
+            />
+
+        <TextView
+            android:id="@+id/tv_more_login_record_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="date"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/black_00"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="12dp"
+            android:layout_centerVertical="true"
+            />
+
+        <TextView
+            android:id="@+id/tv_more_login_record_abnormal_prompt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/abnormal_login"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/red_light2"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="12dp"
+            android:visibility="invisible"
+            />
+
+    </RelativeLayout>
+
+
+</LinearLayout>

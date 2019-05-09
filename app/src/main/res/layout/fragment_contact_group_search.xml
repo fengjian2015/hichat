@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:background="@color/gray_f9">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="27dp"
+        android:background="@drawable/rectangle_stroke_gray_f1"
+        android:layout_marginLeft="22dp"
+        android:layout_marginRight="22dp"
+        >
+
+        <EditText
+            android:id="@+id/et_contact_group_search_num_input"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@null"
+            android:layout_marginRight="30dp"
+            android:hint="@string/group_id"
+            android:textSize="@dimen/font_size_14"
+            android:textColorHint="@color/gray_be"
+            android:textColor="@color/black_00"
+            android:paddingLeft="5dp"
+            />
+
+        <ImageView
+            android:id="@+id/iv_contact_group_search_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/find_blue"
+            android:layout_alignParentRight="true"
+            android:padding="7dp"
+            />
+
+        <TextView
+            android:layout_width="@dimen/divider_height"
+            android:layout_height="match_parent"
+            android:background="@color/gray_f1"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="27dp"
+            />
+
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/tv_contact_group_search_prompt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="prompt"
+        android:textSize="@dimen/font_size_14"
+        android:textColor="@color/black_00"
+        android:layout_marginTop="40dp"
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone"
+        />
+
+    <LinearLayout
+        android:id="@+id/ll_contact_group_search_result_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="30dp"
+        android:visibility="gone"
+        >
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/divider_height"
+            android:background="@color/gray_f1"
+            />
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            >
+
+            <com.wewin.hichat.androidlib.widget.CircleImageView
+                android:id="@+id/iv_contact_group_search_result_avatar"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginLeft="25dp"
+                android:src="@drawable/img_avatar_default"
+                app:shape_type="round"
+                />
+
+            <TextView
+                android:id="@+id/tv_contact_group_search_result_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="name"
+                android:textSize="@dimen/font_size_14"
+                android:textColor="@color/black_00"
+                android:layout_marginLeft="85dp"
+                android:layout_marginTop="6dp"
+                />
+
+            <TextView
+                android:id="@+id/tv_contact_group_search_result_sign"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="sign"
+                android:textSize="11dp"
+                android:textColor="@color/gray_92"
+                android:layout_marginLeft="85dp"
+                android:layout_below="@+id/tv_contact_group_search_result_name"
+                />
+
+        </RelativeLayout>
+
+        <FrameLayout
+            android:id="@+id/fl_contact_group_search_result_verify_container"
+            android:layout_width="match_parent"
+            android:layout_height="47dp"
+            android:background="@drawable/rectangle_stroke_gray_f1"
+            android:layout_marginLeft="22dp"
+            android:layout_marginRight="22dp"
+            android:layout_marginTop="5dp">
+
+            <EditText
+                android:id="@+id/et_contact_group_search_result_verify_input"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@null"
+                android:hint="@string/verify_msg"
+                android:textSize="@dimen/font_size_14"
+                android:textColorHint="@color/gray_c7"
+                android:textColor="@color/black_00"
+                android:gravity="start"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:paddingTop="7dp"
+                android:paddingBottom="7dp"
+                tools:text=""
+                android:maxLength="50"
+                />
+
+            <TextView
+                android:id="@+id/tv_contact_group_search_verify_input_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0/50"
+                android:textSize="@dimen/font_size_11"
+                android:textColor="@color/gray_c3"
+                android:layout_gravity="end|bottom"
+                android:layout_marginRight="5dp"
+                android:layout_marginBottom="5dp"
+                />
+
+        </FrameLayout>
+
+        <Button
+            android:id="@+id/btn_contact_group_search_result_apply"
+            android:layout_width="match_parent"
+            android:layout_height="35dp"
+            style="@style/btn_corner_blue_blue"
+            android:layout_marginTop="30dp"
+            android:layout_marginLeft="22dp"
+            android:layout_marginRight="22dp"
+            android:text="@string/send_apply"
+            />
+
+    </LinearLayout>
+
+</LinearLayout>

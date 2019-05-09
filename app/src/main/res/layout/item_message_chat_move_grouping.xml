@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="44dp"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/white"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    >
+
+    <CheckBox
+        android:id="@+id/cb_item_contact_move_grouping_check"
+        android:layout_width="17dp"
+        android:layout_height="17dp"
+        android:button="@null"
+        android:background="@drawable/check_corner_img_hook"
+        android:layout_marginLeft="20dp"
+        android:layout_centerVertical="true"
+        />
+
+    <TextView
+        android:id="@+id/tv_item_contact_move_grouping_name"
+        android:layout_width="wrap_content"
+        android:layout_height="44dp"
+        android:layout_marginLeft="66dp"
+        android:scrollbarSize="@dimen/font_size_14"
+        tools:text="subgroup"
+        android:gravity="center"
+        android:textColor="@color/black_00"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:background="@color/gray_f1"
+        android:layout_marginLeft="66dp"
+        android:layout_alignParentBottom="true"
+        />
+
+</RelativeLayout>

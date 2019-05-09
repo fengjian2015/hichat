@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal">
+    
+    <FrameLayout
+        android:layout_width="241dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        >
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/rcv_login_register_verify_code_input"
+            android:layout_width="241dp"
+            android:layout_height="35dp"
+            >
+
+        </android.support.v7.widget.RecyclerView>
+
+        <EditText
+            android:id="@+id/et_login_register_verify_code_bg"
+            android:layout_width="1dp"
+            android:layout_height="1dp"
+            android:background="@null"
+            android:inputType="number"
+            android:maxLength="6"
+            android:textColor="@color/gray_c3"
+            android:cursorVisible="false"
+            android:imeOptions="actionDone"
+            />
+
+        <TextView
+            android:id="@+id/tv_login_register_verify_code_focus"
+            android:layout_width="match_parent"
+            android:layout_height="35dp"
+            />
+
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tv_login_register_phone_num"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="phoneNum"
+        android:textSize="@dimen/font_size_17"
+        android:textColor="@color/blue_main"
+        android:layout_marginTop="20dp"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/please_input_verify_code"
+        android:textSize="@dimen/font_size_13"
+        android:textColor="@color/gray_b8"
+        android:layout_marginTop="5dp"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/please_try_as_below"
+        android:textSize="@dimen/font_size_13"
+        android:textColor="@color/gray_b8"
+        />
+
+
+    <RelativeLayout
+        android:id="@+id/rl_login_register_resend_verify_code_parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        >
+
+        <TextView
+            android:id="@+id/tv_login_register_resend_verify_code"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/resend_verify_code"
+            android:textSize="@dimen/font_size_12"
+            android:textColor="@color/gray_92"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/divider_height"
+            android:background="@color/gray_92"
+            android:layout_alignLeft="@+id/tv_login_register_resend_verify_code"
+            android:layout_alignRight="@+id/tv_login_register_resend_verify_code"
+            android:layout_below="@+id/tv_login_register_resend_verify_code"
+            />
+
+    </RelativeLayout>
+
+    <Button
+        android:id="@+id/btn_login_register_next_step"
+        android:layout_width="match_parent"
+        android:layout_height="49dp"
+        android:text="@string/next_step"
+        style="@style/btn_corner_blue_blue"
+        android:layout_marginTop="134dp"
+        android:enabled="false"
+        />
+
+
+</LinearLayout>

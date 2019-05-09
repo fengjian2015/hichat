@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:background="@color/gray_f9">
+
+    <RelativeLayout
+        android:id="@+id/rl_contact_add_country_container"
+        android:layout_width="match_parent"
+        android:layout_height="27dp"
+        android:background="@drawable/rectangle_stroke_gray_f1"
+        android:layout_marginLeft="22dp"
+        android:layout_marginRight="22dp"
+        >
+
+        <TextView
+            android:id="@+id/tv_contact_add_friend_country"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="name"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/black_00"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="5dp"
+            />
+
+        <TextView
+            android:id="@+id/tv_contact_add_friend_code"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="+86"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/gray_c7"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="10dp"
+            android:layout_toRightOf="@+id/tv_contact_add_friend_country"
+            />
+
+        <ImageView
+            android:layout_width="5dp"
+            android:layout_height="9dp"
+            android:src="@drawable/arrow_right_gray"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="11dp"
+            />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="27dp"
+        android:background="@drawable/rectangle_stroke_gray_f1"
+        android:layout_marginLeft="22dp"
+        android:layout_marginRight="22dp"
+        android:layout_marginTop="5dp">
+
+        <EditText
+            android:id="@+id/et_contact_add_friend_phone_input"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@null"
+            android:layout_marginRight="30dp"
+            android:hint="@string/phone_num"
+            android:textSize="@dimen/font_size_14"
+            android:textColorHint="@color/gray_be"
+            android:textColor="@color/black_00"
+            android:paddingLeft="5dp"
+            android:inputType="phone"
+            />
+
+        <ImageView
+            android:id="@+id/iv_contact_add_friend_search"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/find_blue"
+            android:layout_alignParentRight="true"
+            android:padding="7dp"
+            />
+
+        <TextView
+            android:layout_width="@dimen/divider_height"
+            android:layout_height="match_parent"
+            android:background="@color/gray_f1"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="27dp"
+            />
+
+    </RelativeLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:background="@color/gray_f1"
+        android:layout_marginTop="15dp"
+        />
+
+    <FrameLayout
+        android:id="@+id/fl_contact_friend_search_phone_contact"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:background="@color/white">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/add_phone_contact_friend"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/black_00"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="27dp"
+            />
+
+        <ImageView
+            android:layout_width="8dp"
+            android:layout_height="15dp"
+            android:src="@drawable/arrow_right_black"
+            android:layout_gravity="center_vertical|right"
+            android:layout_marginRight="32dp"
+            />
+
+    </FrameLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:background="@color/gray_f1"
+        />
+
+    <TextView
+        android:id="@+id/tv_contact_friend_search_prompt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="prompt"
+        android:textSize="@dimen/font_size_14"
+        android:textColor="@color/black_00"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="40dp"
+        android:visibility="gone"
+        />
+
+    <LinearLayout
+        android:id="@+id/ll_contact_friend_search_result_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="25dp"
+            android:layout_marginTop="15dp">
+
+            <com.wewin.hichat.androidlib.widget.CircleImageView
+                android:id="@+id/civ_contact_friend_search_result_avatar"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@drawable/img_avatar_default"
+                app:shape_type="round"
+                />
+
+            <TextView
+                android:id="@+id/tv_contact_friend_search_result_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="name"
+                android:textSize="@dimen/font_size_14"
+                android:textColor="@color/black_00"
+                android:layout_toRightOf="@+id/civ_contact_friend_search_result_avatar"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="5dp"
+                />
+
+            <TextView
+                android:id="@+id/tv_contact_friend_search_result_sign"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="sign"
+                android:textSize="@dimen/font_size_11"
+                android:textColor="@color/gray_92"
+                android:layout_toRightOf="@+id/civ_contact_friend_search_result_avatar"
+                android:layout_below="@+id/tv_contact_friend_search_result_name"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginRight="32dp"
+                />
+
+        </RelativeLayout>
+
+        <FrameLayout
+            android:id="@+id/fl_contact_friend_search_result_grouping"
+            android:layout_width="match_parent"
+            android:layout_height="27dp"
+            android:background="@drawable/rectangle_stroke_gray_f1"
+            android:layout_marginLeft="22dp"
+            android:layout_marginRight="22dp"
+            android:layout_marginTop="10dp"
+            android:visibility="visible">
+
+            <TextView
+                android:id="@+id/tv_contact_friend_search_result_grouping_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/my_friend"
+                android:textSize="@dimen/font_size_14"
+                android:textColor="@color/black_00"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="5dp"
+                />
+
+            <ImageView
+                android:layout_width="5dp"
+                android:layout_height="9dp"
+                android:src="@drawable/arrow_right_gray"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginRight="12dp"
+                />
+
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/fl_contact_friend_search_verify_container"
+            android:layout_width="match_parent"
+            android:layout_height="47dp"
+            android:background="@drawable/rectangle_stroke_gray_f1"
+            android:layout_marginLeft="22dp"
+            android:layout_marginRight="22dp"
+            android:layout_marginTop="5dp"
+            android:visibility="visible">
+
+            <EditText
+                android:id="@+id/et_contact_friend_search_result_verify_info"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@null"
+                android:hint="@string/verify_msg"
+                android:textSize="@dimen/font_size_14"
+                android:textColorHint="@color/gray_c7"
+                android:textColor="@color/black_00"
+                android:gravity="start"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:paddingTop="7dp"
+                android:paddingBottom="7dp"
+                tools:text=""
+                android:maxLength="50"
+                />
+
+            <TextView
+                android:id="@+id/tv_contact_friend_search_result_verify_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0/50"
+                android:textSize="@dimen/font_size_11"
+                android:textColor="@color/gray_c3"
+                android:layout_gravity="end|bottom"
+                android:layout_marginRight="5dp"
+                android:layout_marginBottom="5dp"
+                />
+
+        </FrameLayout>
+
+        <Button
+            android:id="@+id/btn_contact_friend_search_result_apply"
+            android:layout_width="match_parent"
+            android:layout_height="35dp"
+            style="@style/btn_corner_blue_blue"
+            android:layout_marginTop="5dp"
+            android:layout_marginLeft="22dp"
+            android:layout_marginRight="22dp"
+            android:text="@string/send_apply"
+            />
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <TextView
+        android:id="@+id/tv_item_conversation_record_item_content"
+        android:layout_width="wrap_content"
+        android:layout_height="45dp"
+        tools:text="content"
+        android:textSize="@dimen/font_size_13"
+        android:textColor="@color/gray_92"
+        android:gravity="center_vertical"
+        android:layout_marginRight="100dp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        />
+
+    <TextView
+        android:id="@+id/tv_item_conversation_record_item_time"
+        android:layout_width="wrap_content"
+        android:layout_height="45dp"
+        tools:text="time"
+        android:textSize="@dimen/font_size_11"
+        android:textColor="@color/gray_c3"
+        android:layout_alignParentRight="true"
+        android:gravity="center_vertical"
+        android:layout_marginRight="12dp"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:background="@color/gray_f1"
+        android:layout_below="@+id/tv_item_conversation_record_item_content"
+        />
+
+</RelativeLayout>

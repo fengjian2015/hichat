@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:background="@color/white">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.wewin.hichat.androidlib.widget.CircleImageView
+            android:id="@+id/civ_item_more_notify_avatar"
+            android:layout_width="53dp"
+            android:layout_height="53dp"
+            app:shape_type="round"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="15dp"
+            android:src="@drawable/img_avatar_default"
+            />
+
+        <TextView
+            android:id="@+id/tv_more_notify_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="name"
+            android:textSize="@dimen/font_size_15"
+            android:textColor="@color/black_00"
+            android:layout_marginLeft="79dp"
+            android:layout_marginTop="18dp"
+            />
+
+        <TextView
+            android:id="@+id/tv_more_notify_info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="content"
+            android:textSize="@dimen/font_size_13"
+            android:textColor="@color/black_00"
+            android:layout_marginLeft="79dp"
+            android:layout_marginTop="42dp"
+            android:maxLines="2"
+            android:maxWidth="170dp"
+            />
+
+        <TextView
+            android:id="@+id/tv_more_notify_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="date"
+            android:textSize="@dimen/font_size_11"
+            android:textColor="@color/gray_be"
+            android:layout_marginLeft="79dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginTop="2dp"
+            android:layout_below="@+id/tv_more_notify_info"
+            />
+
+        <TextView
+            android:id="@+id/tv_item_more_notify_state"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="state"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="22dp"
+            />
+
+        <Button
+            android:id="@+id/btn_item_more_notify_refuse"
+            android:layout_width="49dp"
+            android:layout_height="27dp"
+            style="@style/btn_corner_stroke_gray_white_gray"
+            android:text="@string/refuse"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/red_light2"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="12dp"
+            />
+
+        <Button
+            android:id="@+id/btn_item_more_notify_agree"
+            android:layout_width="49dp"
+            android:layout_height="27dp"
+            style="@style/btn_corner_stroke_gray_white_gray"
+            android:text="@string/agree"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/blue_main"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="69dp"
+            />
+
+    </RelativeLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:background="@color/gray_f1"
+        android:layout_marginLeft="79dp"
+        />
+
+    <TextView
+        android:id="@+id/tv_more_notify_extra_msg"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        tools:text="message"
+        android:textSize="@dimen/font_size_14"
+        android:textColor="@color/gray_92"
+        android:gravity="center_vertical"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:background="@color/gray_f9"
+        />
+
+
+</LinearLayout>

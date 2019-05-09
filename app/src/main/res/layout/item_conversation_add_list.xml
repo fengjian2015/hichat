@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:background="@color/white">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:background="@color/gray_f1"
+        android:visibility="invisible"
+        />
+    
+    <TextView
+        android:id="@+id/tv_conversation_add_item_letter"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        tools:text="A"
+        android:textSize="@dimen/font_size_12"
+        android:textColor="@color/gray_92"
+        android:paddingLeft="12dp"
+        android:gravity="center_vertical"
+        android:background="@color/gray_f9"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:background="@color/gray_f1"
+        android:visibility="invisible"
+        />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="55dp">
+
+        <com.wewin.hichat.androidlib.widget.CircleImageView
+            android:id="@+id/civ_conversation_add_item_avatar"
+            android:layout_width="43dp"
+            android:layout_height="43dp"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="12dp"
+            android:src="@drawable/img_avatar_default"
+            app:shape_type="round"
+            />
+
+        <TextView
+            android:id="@+id/tv_conversation_add_item_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="name"
+            android:textSize="@dimen/font_size_16"
+            android:textColor="@color/black_33"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="61dp"
+            />
+
+        <TextView
+            android:id="@+id/tv_conversation_add_item_sign"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="sign"
+            android:textSize="@dimen/font_size_12"
+            android:textColor="@color/gray_92"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="12dp"
+            />
+
+    </RelativeLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:background="@color/gray_f1"
+        android:layout_marginLeft="61dp"
+        />
+
+</LinearLayout>

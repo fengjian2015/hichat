@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="28dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginLeft="12dp"
+        android:layout_marginRight="12dp"
+        android:layout_marginTop="7dp"
+        android:background="@drawable/corner_gray_e9_4"
+        >
+
+        <ImageView
+            android:layout_width="13dp"
+            android:layout_height="13dp"
+            android:src="@drawable/find_gray"
+            android:layout_marginLeft="10dp"
+            />
+
+        <EditText
+            android:id="@+id/et_search_contact_friend_phone_contact_search_input"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@null"
+            android:hint="@string/search"
+            android:textSize="@dimen/font_size_14"
+            android:textColorHint="@color/gray_99"
+            android:textColor="@color/black_00"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="10dp"
+            android:maxLines="1"
+            />
+
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/lv_search_contact_friend_phone_contact_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:divider="@color/none_color"
+        android:dividerHeight="0dp"
+        android:layout_marginTop="42dp"
+        android:scrollbars="none">
+
+    </ListView>
+
+    <com.wewin.hichat.androidlib.widget.SideBarView
+        android:id="@+id/sbv_contact_friend_phone_contact_side"
+        android:layout_width="30dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="100dp"
+        android:layout_marginBottom="30dp"
+        />
+
+    <TextView
+        android:id="@+id/tv_contact_friend_phone_contact_dialog"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:textColor="@color/gray_99"
+        android:textSize="48sp"
+        android:visibility="invisible" />
+
+
+</RelativeLayout>

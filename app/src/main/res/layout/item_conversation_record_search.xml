@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <RelativeLayout
+        android:id="@+id/rl_item_conversation_record_search_first_item"
+        android:layout_width="match_parent"
+        android:layout_height="69dp">
+
+        <com.wewin.hichat.androidlib.widget.CircleImageView
+            android:id="@+id/iv_item_conversation_record_search_avatar"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:layout_marginLeft="12dp"
+            app:shape_type="round"
+            android:src="@drawable/img_avatar_default"
+            android:layout_centerVertical="true"
+            />
+
+        <TextView
+            android:id="@+id/tv_item_conversation_record_search_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="name"
+            android:textSize="@dimen/font_size_16"
+            android:textColor="@color/black_00"
+            android:layout_toRightOf="@+id/iv_item_conversation_record_search_avatar"
+            android:layout_marginLeft="11dp"
+            android:layout_marginTop="10dp"
+            />
+
+        <TextView
+            android:id="@+id/tv_item_conversation_record_search_content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="敬礼敬礼敬礼敬礼敬礼敬礼敬礼敬礼"
+            android:textSize="@dimen/font_size_13"
+            android:textColor="@color/gray_92"
+            android:layout_toRightOf="@+id/iv_item_conversation_record_search_avatar"
+            android:layout_below="@+id/tv_item_conversation_record_search_name"
+            android:layout_marginLeft="11dp"
+            android:layout_marginTop="3dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:layout_marginRight="100dp"
+            />
+
+        <TextView
+            android:id="@+id/tv_item_conversation_record_search_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="time"
+            android:textSize="@dimen/font_size_11"
+            android:textColor="@color/gray_c3"
+            android:layout_alignBottom="@+id/tv_item_conversation_record_search_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="12dp"
+            />
+
+    </RelativeLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:background="@color/gray_f1"
+        android:layout_marginLeft="78dp"
+        />
+
+    <com.wewin.hichat.androidlib.widget.NoScrollListView
+        android:id="@+id/lv_item_conversation_record_search_more"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="78dp"
+        android:dividerHeight="0dp"
+        android:divider="@color/none_color">
+
+    </com.wewin.hichat.androidlib.widget.NoScrollListView>
+
+    <TextView
+        android:id="@+id/tv_item_conversation_record_item_prompt"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="@string/check_more_record"
+        android:textSize="@dimen/font_size_13"
+        android:textColor="@color/blue_main"
+        android:gravity="center"
+        android:visibility="gone"
+        />
+
+</LinearLayout>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="28dp"
+        android:background="@drawable/corner_gray_e9_4"
+        android:layout_marginLeft="12dp"
+        android:layout_marginRight="12dp"
+        android:layout_marginTop="7dp"
+        >
+
+        <ImageView
+            android:layout_width="13dp"
+            android:layout_height="13dp"
+            android:src="@drawable/find_gray"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="10dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            />
+
+        <EditText
+            android:id="@+id/et_conversation_add_new_search_input"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="@string/conversation_search_hint"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/black_00"
+            android:textColorHint="@color/gray_99"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="31dp"
+            android:background="@null"
+            tools:text=""
+            android:maxLines="1"
+            android:maxLength="30"
+            android:gravity="center_vertical"
+            android:layout_marginRight="40dp"
+            />
+
+        <ImageView
+            android:id="@+id/iv_conversation_search_clear"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/empty_btn_gray"
+            android:layout_gravity="end"
+            android:paddingRight="10dp"
+            android:paddingLeft="10dp"
+            android:visibility="invisible"
+            />
+
+    </FrameLayout>
+    
+    <LinearLayout
+        android:id="@+id/ll_conversation_add_group_conversation"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:layout_width="21dp"
+            android:layout_height="21dp"
+            android:src="@drawable/group_icon"
+            android:layout_marginLeft="23dp"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/add_group_conversation"
+            android:textSize="@dimen/font_size_12"
+            android:textColor="@color/blue_main"
+            android:layout_marginLeft="22dp"
+            />
+
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/lv_conversation_add_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:divider="@null"
+        android:dividerHeight="0dp">
+
+    </ListView>
+
+</LinearLayout>

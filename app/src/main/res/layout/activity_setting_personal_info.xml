@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="254dp">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="219dp"
+            android:background="@drawable/img_personal"
+            />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="44dp">
+
+            <ImageView
+                android:id="@+id/iv_setting_personal_info_back"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:src="@drawable/nav_back"
+                android:paddingLeft="15dp"
+                android:paddingRight="15dp"
+                />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/personal_info"
+                android:layout_centerInParent="true"
+                android:textSize="@dimen/font_size_17"
+                android:textColor="@color/black_00"
+                />
+
+        </RelativeLayout>
+
+        <com.wewin.hichat.androidlib.widget.CircleImageView
+            android:id="@+id/civ_setting_personal_info_avatar"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:src="@drawable/img_avatar_default"
+            app:shape_type="round"
+            />
+
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/tv_setting_personal_info_nickname"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="name"
+        android:textSize="@dimen/font_size_14"
+        android:textColor="@color/black_33"
+        android:layout_marginTop="15dp"
+        android:layout_gravity="center_horizontal"
+        />
+
+    <LinearLayout
+        android:id="@+id/ll_setting_person_info_edit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="20dp"
+        android:layout_marginTop="20dp"
+        android:gravity="center_vertical"
+        android:padding="5dp"
+        android:layout_gravity="center_horizontal">
+
+        <ImageView
+            android:layout_width="13dp"
+            android:layout_height="13dp"
+            android:src="@drawable/icon_edit"
+            />
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginLeft="5dp">
+
+            <TextView
+                android:id="@+id/tv_setting_edit_info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/edit_info"
+                android:textSize="@dimen/font_size_14"
+                android:textColor="@color/blue_main"
+                />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="1dp"
+                android:layout_alignLeft="@+id/tv_setting_edit_info"
+                android:layout_below="@+id/tv_setting_edit_info"
+                android:layout_alignRight="@+id/tv_setting_edit_info"
+                android:background="@color/blue_main"
+                />
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+    <include layout="@layout/layout_divider_2"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/account"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/black_33"
+            android:layout_marginLeft="15dp"
+            />
+
+        <TextView
+            android:id="@+id/tv_setting_personal_info_account"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="account"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/black_33"
+            android:layout_marginLeft="30dp"
+            />
+
+    </LinearLayout>
+
+    <include layout="@layout/layout_divider_2"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/sex"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/black_33"
+            android:layout_marginLeft="15dp"
+            />
+
+        <TextView
+            android:id="@+id/tv_setting_personal_info_sex"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="nan"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/black_33"
+            android:layout_marginLeft="30dp"
+            />
+
+    </LinearLayout>
+
+    <include layout="@layout/layout_divider_2"/>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <Button
+            android:id="@+id/btn_setting_personal_info"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            style="@style/btn_corner_blue_blue"
+            android:text="@string/personal_setting"
+            android:layout_gravity="bottom"
+            android:layout_marginBottom="35dp"
+            />
+
+    </FrameLayout>
+
+</LinearLayout>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="45dp"
+    android:layout_height="35dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    >
+
+    <com.wewin.hichat.androidlib.widget.CircleImageView
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        app:shape_type="round"
+        android:src="@drawable/img_avatar_default"
+        android:id="@+id/iv_contact_manage_manager_item_avatar"
+        android:layout_marginRight="10dp"
+        />
+
+
+</RelativeLayout>

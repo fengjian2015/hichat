@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:background="@color/white">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:background="@color/gray_f7">
+
+        <LinearLayout
+            android:id="@+id/ll_contact_group_invite_left_cancel_container"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="0dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingRight="15dp">
+
+            <ImageView
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:layout_marginLeft="12dp"
+                android:src="@drawable/cancel_black"
+                />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="7dp"
+                android:textColor="@color/black_00"
+                android:textSize="@dimen/font_size_16"
+                android:text="@string/cancel" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_contact_group_invite_center_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="@string/invite_new_member"
+            android:textColor="@color/black_00"
+            android:textStyle="bold"
+            android:textSize="@dimen/font_size_16" />
+
+        <TextView
+            android:id="@+id/tv_contact_group_invite_sum"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="(1人)"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/gray_92"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@+id/tv_contact_group_invite_center_title"
+            android:layout_marginLeft="5dp"
+            />
+
+        <TextView
+            android:id="@+id/tv_contact_group_invite_confirm"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            android:layout_alignParentRight="true"
+            android:gravity="center"
+            android:textColor="@color/enable_blue_gray"
+            android:textSize="@dimen/font_size_17"
+            android:visibility="visible"
+            android:text="@string/invite"
+            android:enabled="false"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/divider_height"
+            android:background="@color/gray_divide_title"
+            android:layout_alignParentBottom="true"
+            />
+
+    </RelativeLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="28dp"
+        android:background="@drawable/corner_gray_e9_4"
+        android:layout_marginLeft="12dp"
+        android:layout_marginRight="12dp"
+        android:layout_marginTop="7dp"
+        android:layout_marginBottom="7dp"
+        >
+
+        <ImageView
+            android:layout_width="13dp"
+            android:layout_height="13dp"
+            android:src="@drawable/find_gray"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="10dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            />
+
+        <EditText
+            android:id="@+id/et_contact_group_invite_search_input"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="@string/friend"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/black_00"
+            android:textColorHint="@color/gray_99"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="31dp"
+            android:background="@null"
+            android:maxLines="1"
+            android:maxLength="30"
+            android:gravity="center_vertical"
+            android:layout_marginRight="40dp"
+            />
+
+        <ImageView
+            android:id="@+id/iv_contact_group_invite_search_input_clear"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/empty_btn_gray"
+            android:layout_gravity="end"
+            android:paddingRight="10dp"
+            android:paddingLeft="10dp"
+            android:visibility="invisible"
+            />
+
+    </FrameLayout>
+
+    <ListView
+        android:id="@+id/lv_contact_group_invite_search_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:divider="@null"
+        android:dividerHeight="0dp"
+        android:scrollbars="none">
+
+    </ListView>
+
+
+</LinearLayout>

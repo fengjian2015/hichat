@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/rl_head_view"
+    android:background="#f5f2f2">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_alignParentBottom="true"
+        >
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            >
+
+            <TextView
+                android:id="@+id/tv_refresh_state"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="#363636"
+                android:textSize="14sp"
+                android:layout_centerInParent="true"
+                />
+
+            <ImageView
+                android:id="@+id/iv_pull_refresh"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/pull_load_down_icon"
+                android:layout_centerVertical="true"
+                android:layout_toLeftOf="@id/tv_refresh_state"
+                android:visibility="gone"
+                />
+
+            <ImageView
+                android:id="@+id/iv_refreshing"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/pull_load_up_icon"
+                android:visibility="visible"
+                android:layout_centerInParent="true"
+                />
+
+            <ImageView
+                android:id="@+id/iv_refresh_state"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_toLeftOf="@id/tv_refresh_state"
+                android:layout_marginRight="15dp"
+                android:visibility="gone"
+                android:layout_centerVertical="true"
+                />
+
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+</RelativeLayout>

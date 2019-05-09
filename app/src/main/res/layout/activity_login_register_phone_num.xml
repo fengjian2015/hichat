@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/please_confirm_your_country_phone_num"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="35dp"
+        android:textSize="@dimen/font_size_15"
+        android:textColor="@color/black_00"
+        />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginLeft="25dp"
+        android:layout_marginRight="25dp"
+        >
+
+        <TextView
+            android:id="@+id/tv_login_register_country"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:text="@string/china"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/blue_main"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            />
+
+        <ImageView
+            android:layout_width="7dp"
+            android:layout_height="13dp"
+            android:src="@drawable/arrow_right_gray"
+            android:layout_gravity="right|center_vertical"
+            />
+
+    </FrameLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:background="@color/gray_divide_main"
+        android:layout_marginLeft="25dp"
+        android:layout_marginRight="25dp"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="43dp"
+        android:orientation="horizontal"
+        android:layout_marginLeft="25dp"
+        android:layout_marginRight="25dp">
+
+        <TextView
+            android:id="@+id/tv_login_register_code"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="+86"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/black_33"
+            />
+
+        <EditText
+            android:id="@+id/et_login_register_phone_num"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="30dp"
+            android:hint="@string/phone_num"
+            android:textColorHint="@color/gray_e2"
+            android:textSize="@dimen/font_size_14"
+            android:background="@null"
+            android:inputType="phone"
+            android:textColor="@color/black_33"
+            android:imeOptions="actionDone"
+            />
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:background="@color/gray_divide_main"
+        android:layout_marginLeft="25dp"
+        android:layout_marginRight="25dp"
+        />
+
+    <Button
+        android:id="@+id/btn_register_verify_num"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        style="@style/btn_corner_blue_blue"
+        android:layout_marginTop="165dp"
+        android:text="@string/verify_phone_num"
+        android:enabled="false"
+        />
+
+
+</LinearLayout>

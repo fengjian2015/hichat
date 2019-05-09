@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/gray_f2">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/group_owner"
+        android:textSize="@dimen/font_size_14"
+        android:textColor="@color/gray_99"
+        android:layout_marginTop="15dp"
+        android:layout_marginLeft="15dp"
+        />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:background="@color/white">
+
+        <com.wewin.hichat.androidlib.widget.CircleImageView
+            android:id="@+id/iv_contact_group_manager_owner_avatar"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="15dp"
+            android:src="@drawable/img_avatar_default"
+            app:shape_type="round"
+            />
+
+        <TextView
+            android:id="@+id/tv_contact_group_manager_owner_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="name"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/black_33"
+            android:layout_marginLeft="60dp"
+            android:layout_centerVertical="true"
+            />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/icon_arrow_right"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="15dp"
+            />
+
+        <TextView
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/prompt_verify_message"
+            android:textSize="@dimen/font_size_12"
+            android:textColor="@color/gray_99"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="33dp"
+            android:layout_centerVertical="true"
+            />
+
+    </RelativeLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="管理员(1/10)"
+        android:layout_marginTop="15dp"
+        android:layout_marginLeft="15dp"
+        />
+
+    <com.wewin.hichat.androidlib.widget.NoScrollListView
+        android:id="@+id/lv_contact_group_manager_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:dividerHeight="@dimen/divider_height"
+        android:divider="@color/gray_divide_main">
+
+
+    </com.wewin.hichat.androidlib.widget.NoScrollListView>
+
+</LinearLayout>

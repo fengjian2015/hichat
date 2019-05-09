@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:background="@color/white">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="90dp">
+
+        <FrameLayout
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginLeft="15dp"
+            android:layout_gravity="center_vertical">
+
+            <com.wewin.hichat.androidlib.widget.CircleImageView
+                android:id="@+id/civ_login_register_personal_info_avatar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:shape_type="round"
+                android:background="@drawable/corner_gray"
+                />
+
+            <ImageView
+                android:id="@+id/iv_login_register_personal_info_camera_icon"
+                android:layout_width="18dp"
+                android:layout_height="15dp"
+                android:src="@drawable/camera_registered_blue"
+                android:layout_gravity="center"
+                />
+
+        </FrameLayout>
+
+        <EditText
+            android:id="@+id/et_login_register_personal_info_nickname"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@null"
+            android:hint="@string/nickname"
+            android:textSize="@dimen/font_size_14"
+            android:textColorHint="@color/gray_92"
+            android:textColor="@color/black_00"
+            android:layout_marginLeft="100dp"
+            android:maxLines="1"
+            android:maxLength="7"
+            />
+
+        <TextView
+            android:id="@+id/tv_login_register_personal_info_nickname_text_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0/7"
+            android:textSize="@dimen/font_size_11"
+            android:textColor="@color/gray_c3"
+            android:layout_marginRight="12dp"
+            android:layout_marginBottom="5dp"
+            android:layout_gravity="end|bottom"
+            android:maxLength="7"
+            />
+
+    </FrameLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:background="@color/gray_divide_main"
+        android:layout_marginLeft="22dp"
+        />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp">
+
+        <EditText
+            android:id="@+id/et_login_register_personal_info_sign"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:background="@null"
+            android:gravity="start"
+            android:hint="@string/introduce_yourself_simply"
+            android:textColorHint="@color/gray_c3"
+            android:textColor="@color/black_00"
+            android:textSize="@dimen/font_size_12"
+            android:maxLength="120"
+            android:paddingLeft="22dp"
+            android:paddingTop="10dp"
+            android:paddingRight="22dp"
+             />
+
+        <TextView
+            android:id="@+id/tv_login_register_personal_info_sign_text_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0/120"
+            android:textSize="@dimen/font_size_11"
+            android:textColor="@color/gray_c3"
+            android:layout_gravity="end|bottom"
+            android:layout_marginBottom="5dp"
+            android:layout_marginRight="12dp"
+            />
+
+    </FrameLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:background="@color/gray_divide_main"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/sex_2"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/black_00"
+            android:layout_marginLeft="22dp"
+            />
+
+        <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+            
+            <RadioButton
+                android:id="@+id/rb_login_register_personal_info_male"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:button="@null"
+                android:background="@null"
+                android:drawableLeft="@drawable/check_corner_img_hook"
+                android:text="@string/male"
+                android:paddingLeft="22dp"
+                android:paddingRight="22dp"
+                android:layout_marginLeft="13dp"
+                android:drawablePadding="5dp"
+                android:checked="true"
+                />
+
+            <RadioButton
+                android:id="@+id/rb_login_register_personal_info_female"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:button="@null"
+                android:background="@null"
+                android:drawableLeft="@drawable/check_corner_img_hook"
+                android:text="@string/female"
+                android:paddingLeft="22dp"
+                android:paddingRight="22dp"
+                android:layout_marginLeft="13dp"
+                android:drawablePadding="5dp"
+                />
+
+            <RadioButton
+                android:id="@+id/rb_login_register_personal_info_secret"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:button="@null"
+                android:background="@null"
+                android:drawableLeft="@drawable/check_corner_img_hook"
+                android:text="@string/keep_secret"
+                android:paddingLeft="22dp"
+                android:paddingRight="22dp"
+                android:layout_marginLeft="13dp"
+                android:drawablePadding="5dp"
+                />
+            
+        </RadioGroup>
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:background="@color/gray_divide_main"
+        android:layout_marginLeft="22dp"
+
+        />
+
+    <Button
+        android:id="@+id/btn_login_register_personal_info_finish"
+        android:layout_width="match_parent"
+        android:layout_height="49dp"
+        style="@style/btn_corner_blue_blue"
+        android:enabled="false"
+        android:text="@string/finish"
+        android:layout_marginTop="40dp"
+        />
+
+
+</LinearLayout>

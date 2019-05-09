@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/gray_f9">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/title"
+        android:textSize="@dimen/font_size_11"
+        android:textColor="@color/gray_be"
+        android:layout_marginLeft="17dp"
+        android:layout_marginTop="15dp"
+        />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@color/white"
+        android:layout_marginTop="4dp"
+        >
+
+        <EditText
+            android:id="@+id/et_contact_group_announcement_title"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:background="@color/white"
+            android:paddingLeft="17dp"
+            android:paddingRight="17dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:hint="@string/announcement_title_hint"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/black_00"
+            android:textColorHint="@color/gray_99"
+            android:maxLength="40"
+            android:gravity="start"
+            />
+
+        <TextView
+            android:id="@+id/tv_contact_group_announcement_title_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0/40"
+            android:textSize="@dimen/font_size_11"
+            android:textColor="@color/gray_c3"
+            android:layout_gravity="end|bottom"
+            android:layout_marginRight="12dp"
+            android:layout_marginBottom="10dp"
+            />
+
+    </FrameLayout>
+    
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/content"
+        android:textSize="@dimen/font_size_11"
+        android:textColor="@color/gray_be"
+        android:layout_marginLeft="17dp"
+        android:layout_marginTop="15dp"
+        />
+    
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="120dp">
+
+        <EditText
+            android:id="@+id/et_contact_group_announcement_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/white"
+            android:hint="@string/announcement_content_hint"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/black_33"
+            android:textColorHint="@color/gray_99"
+            android:gravity="start"
+            android:maxLength="500"
+            android:paddingLeft="17dp"
+            android:paddingRight="17dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="20dp"
+            />
+
+        <TextView
+            android:id="@+id/tv_contact_group_announcement_content_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0/500"
+            android:textSize="@dimen/font_size_11"
+            android:textColor="@color/gray_c3"
+            android:layout_gravity="end|bottom"
+            android:layout_marginRight="12dp"
+            android:layout_marginBottom="10dp"
+            />
+
+    </FrameLayout>
+
+
+
+
+
+</LinearLayout>

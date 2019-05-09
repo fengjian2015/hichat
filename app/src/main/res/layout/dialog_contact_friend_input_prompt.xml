@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:background="@drawable/corner_white_4"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp">
+
+        <TextView
+            android:id="@+id/tv_dialog_prompt_input_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="title"
+            android:textSize="@dimen/font_size_13"
+            android:textColor="@color/gray_99"
+            android:layout_marginTop="20dp"
+            />
+
+        <EditText
+            android:id="@+id/et_dialog_prompt_input"
+            android:layout_width="match_parent"
+            android:layout_height="28dp"
+            android:background="@drawable/rectangle_stroke_gray_f1"
+            android:hint="@string/prompt_input_hint"
+            android:textSize="@dimen/font_size_13"
+            android:textColorHint="@color/gray_c3"
+            android:textColor="@color/black_00"
+            android:gravity="center"
+            android:layout_marginTop="15dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal"
+            android:layout_marginTop="10dp">
+
+            <TextView
+                android:id="@+id/tv_dialog_prompt_input_cancel"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="@string/cancel"
+                android:textSize="@dimen/font_size_16"
+                android:textColor="@color/blue_main"
+                android:gravity="center"
+                />
+
+            <TextView
+                android:layout_width="@dimen/divider_height"
+                android:layout_height="25dp"
+                android:background="@color/gray_divide_main"
+                android:gravity="center_vertical"
+                />
+
+            <TextView
+                android:id="@+id/tv_dialog_prompt_input_confirm"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="@string/confirm"
+                android:textSize="@dimen/font_size_16"
+                android:textColor="@color/blue_main"
+                android:gravity="center"
+                />
+
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>

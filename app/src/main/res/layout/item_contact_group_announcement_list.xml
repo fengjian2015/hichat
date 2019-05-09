@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/white"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="43dp"
+            android:layout_marginTop="10dp"
+            >
+
+            <com.wewin.hichat.androidlib.widget.CircleImageView
+                android:id="@+id/civ_item_contact_group_announcement_avatar"
+                android:layout_width="43dp"
+                android:layout_height="43dp"
+                android:src="@drawable/img_avatar_default"
+                app:shape_type="round"
+                android:layout_marginLeft="17dp"
+                />
+
+            <TextView
+                android:id="@+id/tv_item_contact_group_announcement_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="name"
+                android:textSize="@dimen/font_size_17"
+                android:textColor="@color/black_00"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="72dp"
+                />
+
+            <ImageView
+                android:id="@+id/iv_item_contact_group_announcement_more"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:src="@drawable/announcement_edit"
+                android:paddingRight="17dp"
+                android:paddingLeft="17dp"
+                android:paddingTop="13dp"
+                android:paddingBottom="13dp"
+                android:layout_alignParentRight="true"
+                />
+
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/tv_item_contact_group_announcement_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="title"
+            android:textSize="@dimen/font_size_15"
+            android:textColor="@color/black_00"
+            android:layout_marginLeft="17dp"
+            android:layout_marginTop="30dp"
+            />
+
+        <TextView
+            android:id="@+id/tv_item_contact_group_announcement_content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/gray_92"
+            android:layout_marginLeft="17dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginRight="17dp"
+            android:maxLines="6"
+            android:maxLength="500"
+            android:ellipsize="end"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/divider_height"
+            android:background="@color/gray_c7"
+            android:layout_marginLeft="17dp"
+            android:layout_marginTop="15dp"
+            />
+
+        <TextView
+            android:id="@+id/tv_item_contact_group_announcement_time"
+            android:layout_width="match_parent"
+            android:layout_height="25dp"
+            tools:text="time"
+            android:textSize="@dimen/font_size_12"
+            android:textColor="@color/gray_be"
+            android:gravity="center_vertical"
+            android:paddingLeft="17dp"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            android:background="@color/gray_f9"
+            />
+
+    </LinearLayout>
+
+</RelativeLayout>

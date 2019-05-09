@@ -1,0 +1,125 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/white">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_alignParentTop="true"
+        android:background="@color/white"
+        android:clickable="true">
+
+        <ImageView
+            android:id="@+id/btn_cancel"
+            android:layout_width="44dp"
+            android:layout_height="match_parent"
+            android:padding="12dp"
+            android:src="@drawable/nav_arrow_left_black"
+            />
+
+        <Button
+            android:id="@+id/btn_ok"
+            android:layout_width="75dp"
+            android:layout_height="30dp"
+            style="@style/btn_corner_blue_blue"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:text="确定"
+            android:textSize="14sp"
+            android:layout_marginRight="12dp"
+            android:textColor="@color/white"
+            android:visibility="visible"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="相册"
+            android:layout_centerInParent="true"
+            android:textSize="@dimen/font_size_16"
+            android:textColor="@color/black_33"
+            />
+
+        <!--
+                <TextView
+                    android:id="@+id/id_total_count"
+                    android:layout_width="50dip"
+                    android:layout_height="match_parent"
+                    android:layout_centerVertical="true"
+                    android:layout_toLeftOf="@id/btn_ok"
+                    android:gravity="center"
+                    android:text="0张"
+                    android:textColor="@android:color/white" />
+                <TextView
+                        android:layout_toRightOf="@+id/btn_ok"
+                        android:id="@+id/tv_look"
+                        android:layout_width="50dip"
+                        android:layout_height="match_parent"
+                        android:layout_alignParentRight="true"
+                        android:layout_centerVertical="true"
+                        android:gravity="center"
+                        android:text="预览"
+                        android:textColor="@android:color/white" />-->
+    </RelativeLayout>
+
+    <GridView
+        android:id="@+id/id_gridView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="44dp"
+        android:layout_marginBottom="49dp"
+        android:cacheColorHint="@android:color/transparent"
+        android:clipChildren="true"
+        android:gravity="center"
+        android:horizontalSpacing="3dip"
+        android:listSelector="@android:color/transparent"
+        android:numColumns="3"
+        android:stretchMode="columnWidth"
+        android:verticalSpacing="3dip">
+
+    </GridView>
+
+    <RelativeLayout
+        android:id="@+id/id_bottom_ly"
+        android:layout_width="match_parent"
+        android:layout_height="49dp"
+        android:layout_alignParentBottom="true"
+        android:background="@color/white"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/id_choose_dir"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="全部图片"
+            android:layout_marginLeft="12dp"
+            android:textColor="@color/red_main"
+            />
+
+        <ImageView
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:src="@drawable/but_arrow_down"
+            android:layout_toRightOf="@id/id_choose_dir"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="3dp"
+            />
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:gravity="center"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:text="预览"
+            android:textColor="@color/red_main"
+            android:visibility="gone"
+            />
+
+    </RelativeLayout>
+
+</RelativeLayout>

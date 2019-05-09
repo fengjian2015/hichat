@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rl_load_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#f5f2f2" >
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_alignParentTop="true"
+        >
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true" >
+
+            <TextView
+                android:id="@+id/tv_load_state"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text=""
+                android:textColor="#363636"
+                android:textSize="14sp" />
+
+            <ImageView
+                android:id="@+id/iv_pull_load"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_toLeftOf="@id/tv_load_state"
+                android:src="@drawable/pull_load_up_icon"
+                android:visibility="gone"
+                />
+
+            <ImageView
+                android:id="@+id/iv_loading"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/pull_load_down_icon"
+                android:visibility="visible"
+                android:layout_centerInParent="true"
+                />
+
+            <ImageView
+                android:id="@+id/iv_load_state"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_centerVertical="true"
+                android:layout_toLeftOf="@id/tv_load_state"
+                android:layout_marginRight="15dp"
+                android:visibility="gone" />
+        </RelativeLayout>
+    </RelativeLayout>
+
+</RelativeLayout>

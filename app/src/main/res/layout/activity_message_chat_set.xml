@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:background="@color/gray_f2">
+
+    <RelativeLayout
+        android:id="@+id/rl_message_chat_set_friend_info"
+        android:layout_width="match_parent"
+        android:layout_height="77dp"
+        android:background="@color/white"
+        android:layout_marginTop="20dp">
+
+        <com.wewin.hichat.androidlib.widget.CircleImageView
+            android:id="@+id/iv_message_chat_set_avatar"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="15dp"
+            android:src="@drawable/img_avatar_default"
+            app:shape_type="round"
+            />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="85dp">
+
+            <TextView
+                android:id="@+id/tv_message_chat_set_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="name"
+                android:textSize="@dimen/font_size_14"
+                android:textColor="@color/black_33"
+                />
+
+            <TextView
+                android:id="@+id/tv_message_chat_set_sign"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="sign"
+                android:textSize="@dimen/font_size_11"
+                android:textColor="@color/gray_99"
+                android:layout_marginTop="8dp"
+                />
+
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="8dp"
+            android:layout_height="15dp"
+            android:src="@drawable/icon_arrow_right"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="15dp"
+            />
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/ll_message_chat_set_create_group_chat"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:orientation="horizontal"
+        android:layout_marginTop="5dp"
+        android:background="@color/white"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@drawable/but_create_group"
+            android:layout_marginLeft="31dp"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/create_group_chat"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/blue_main"
+            android:layout_marginLeft="32dp"
+            />
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/fl_message_chat_set_local_chat_log"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:background="@color/white"
+        android:layout_marginTop="15dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/local_chat_log"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/black_33"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="15dp"
+            />
+
+        <ImageView
+            android:layout_width="8dp"
+            android:layout_height="15dp"
+            android:src="@drawable/icon_arrow_right"
+            android:layout_gravity="center_vertical|end"
+            android:layout_marginRight="15dp"
+            />
+
+    </FrameLayout>
+
+    <include layout="@layout/layout_divider_2"/>
+
+    <FrameLayout
+        android:id="@+id/fl_message_chat_set_server_chat_log"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:background="@color/white"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/server_chat_log"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/black_33"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="15dp"
+            />
+
+        <ImageView
+            android:layout_width="8dp"
+            android:layout_height="15dp"
+            android:src="@drawable/icon_arrow_right"
+            android:layout_gravity="center_vertical|end"
+            android:layout_marginRight="15dp"
+            />
+
+    </FrameLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <Button
+            android:id="@+id/btn_message_chat_set_delete"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            style="@style/btn_corner_red_red"
+            android:layout_alignParentBottom="true"
+            android:text="@string/delete_friend"
+            android:layout_marginBottom="100dp"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/deport_this_user"
+            android:textSize="@dimen/font_size_12"
+            android:textColor="@color/blue_main"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="68dp"
+            android:layout_centerHorizontal="true"
+            android:padding="9dp"
+            />
+
+    </RelativeLayout>
+
+
+</LinearLayout>

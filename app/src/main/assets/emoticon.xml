@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PopoEmoticons>
+    <Catalog Title="emoticon">
+        <Emoticon name="emoticon_00.png" id="emoticon_00">face[微笑]</Emoticon>
+        <Emoticon name="emoticon_01.png" id="emoticon_01">face[嘻嘻]</Emoticon>
+        <Emoticon name="emoticon_02.png" id="emoticon_02">face[哈哈]</Emoticon>
+        <Emoticon name="emoticon_03.png" id="emoticon_03">face[可爱]</Emoticon>
+        <Emoticon name="emoticon_04.png" id="emoticon_04">face[可怜]</Emoticon>
+        <Emoticon name="emoticon_05.png" id="emoticon_05">face[挖鼻]</Emoticon>
+        <Emoticon name="emoticon_06.png" id="emoticon_06">face[吃惊]</Emoticon>
+        <Emoticon name="emoticon_07.png" id="emoticon_07">face[害羞]</Emoticon>
+        <Emoticon name="emoticon_08.png" id="emoticon_08">face[挤眼]</Emoticon>
+        <Emoticon name="emoticon_09.png" id="emoticon_09">face[闭嘴]</Emoticon>
+        <Emoticon name="emoticon_10.png" id="emoticon_10">face[鄙视]</Emoticon>
+        <Emoticon name="emoticon_11.png" id="emoticon_11">face[爱你]</Emoticon>
+        <Emoticon name="emoticon_12.png" id="emoticon_12">face[泪]</Emoticon>
+        <Emoticon name="emoticon_13.png" id="emoticon_13">face[偷笑]</Emoticon>
+        <Emoticon name="emoticon_14.png" id="emoticon_14">face[亲亲]</Emoticon>
+        <Emoticon name="emoticon_15.png" id="emoticon_15">face[生病]</Emoticon>
+        <Emoticon name="emoticon_16.png" id="emoticon_16">face[太开心]</Emoticon>
+        <Emoticon name="emoticon_17.png" id="emoticon_17">face[白眼]</Emoticon>
+        <Emoticon name="emoticon_18.png" id="emoticon_18">face[右哼哼]</Emoticon>
+        <Emoticon name="emoticon_19.png" id="emoticon_19">face[左哼哼]</Emoticon>
+        <Emoticon name="emoticon_20.png" id="emoticon_20">face[嘘]</Emoticon>
+        <Emoticon name="emoticon_21.png" id="emoticon_21">face[衰]</Emoticon>
+        <Emoticon name="emoticon_22.png" id="emoticon_22">face[委屈]</Emoticon>
+        <Emoticon name="emoticon_23.png" id="emoticon_23">face[吐]</Emoticon>
+        <Emoticon name="emoticon_24.png" id="emoticon_24">face[哈欠]</Emoticon>
+        <Emoticon name="emoticon_25.png" id="emoticon_25">face[抱抱]</Emoticon>
+        <Emoticon name="emoticon_26.png" id="emoticon_26">face[怒]</Emoticon>
+        <Emoticon name="emoticon_27.png" id="emoticon_27">face[疑问]</Emoticon>
+        <Emoticon name="emoticon_28.png" id="emoticon_28">face[馋嘴]</Emoticon>
+        <Emoticon name="emoticon_29.png" id="emoticon_29">face[拜拜]</Emoticon>
+        <Emoticon name="emoticon_30.png" id="emoticon_30">face[怒骂]</Emoticon>
+        <Emoticon name="emoticon_31.png" id="emoticon_31">face[汗]</Emoticon>
+        <Emoticon name="emoticon_32.png" id="emoticon_32">face[困]</Emoticon>
+        <Emoticon name="emoticon_33.png" id="emoticon_33">face[睡]</Emoticon>
+        <Emoticon name="emoticon_34.png" id="emoticon_34">face[钱]</Emoticon>
+        <Emoticon name="emoticon_35.png" id="emoticon_35">face[失望]</Emoticon>
+        <Emoticon name="emoticon_36.png" id="emoticon_36">face[酷]</Emoticon>
+        <Emoticon name="emoticon_37.png" id="emoticon_37">face[色]</Emoticon>
+        <Emoticon name="emoticon_38.png" id="emoticon_38">face[哼]</Emoticon>
+        <Emoticon name="emoticon_39.png" id="emoticon_39">face[鼓掌]</Emoticon>
+        <Emoticon name="emoticon_40.png" id="emoticon_40">face[晕]</Emoticon>
+        <Emoticon name="emoticon_41.png" id="emoticon_41">face[悲伤]</Emoticon>
+        <Emoticon name="emoticon_42.png" id="emoticon_42">face[抓狂]</Emoticon>
+        <Emoticon name="emoticon_43.png" id="emoticon_43">face[黑线]</Emoticon>
+        <Emoticon name="emoticon_44.png" id="emoticon_44">face[阴险]</Emoticon>
+        <Emoticon name="emoticon_45.png" id="emoticon_45">face[心]</Emoticon>
+        <Emoticon name="emoticon_46.png" id="emoticon_46">face[伤心]</Emoticon>
+        <Emoticon name="emoticon_47.png" id="emoticon_47">face[猪头]</Emoticon>
+        <Emoticon name="emoticon_48.png" id="emoticon_48">face[ok]</Emoticon>
+        <Emoticon name="emoticon_49.png" id="emoticon_49">face[耶]</Emoticon>
+        <Emoticon name="emoticon_50.png" id="emoticon_50">face[good]</Emoticon>
+        <Emoticon name="emoticon_51.png" id="emoticon_51">face[NO]</Emoticon>
+        <Emoticon name="emoticon_52.png" id="emoticon_52">face[弱]</Emoticon>
+        <Emoticon name="emoticon_53.png" id="emoticon_53">face[来]</Emoticon>
+    </Catalog>
+</PopoEmoticons>
+
+

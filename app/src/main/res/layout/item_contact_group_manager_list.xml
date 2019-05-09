@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/white">
+
+    <com.wewin.hichat.androidlib.widget.CircleImageView
+        android:id="@+id/iv_contact_group_manager_avatar"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:layout_marginLeft="15dp"
+        android:layout_centerVertical="true"
+        app:shape_type="round"
+        android:src="@drawable/img_avatar_default"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        />
+
+    <TextView
+        android:id="@+id/tv_contact_group_manager_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="name"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="60dp"
+        android:textSize="@dimen/font_size_14"
+        android:textColor="@color/black_33"
+        />
+
+    <ImageView
+        android:layout_width="8dp"
+        android:layout_height="15dp"
+        android:src="@drawable/icon_arrow_right"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="15dp"
+        />
+
+    <TextView
+        android:id="@+id/tv_contact_group_manager_notice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/prompt_verify_message"
+        android:textSize="@dimen/font_size_12"
+        android:textColor="@color/gray_99"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="33dp"
+        />
+
+</RelativeLayout>

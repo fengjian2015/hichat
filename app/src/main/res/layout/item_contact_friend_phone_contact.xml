@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tv_contact_friend_phone_contact_item_letter"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:background="@color/gray_f9"
+        android:gravity="center_vertical"
+        android:paddingLeft="12dp"
+        android:textColor="@color/gray_92"
+        android:textSize="@dimen/font_size_12"
+        tools:text="A" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:layout_centerVertical="true"
+            >
+
+            <ImageView
+                android:id="@+id/iv_contact_friend_phone_contact_item_avatar"
+                android:layout_width="43dp"
+                android:layout_height="43dp"
+                android:scaleType="centerCrop"
+                />
+
+            <TextView
+                android:id="@+id/tv_contact_friend_phone_contact_item_avatar_name"
+                android:layout_width="43dp"
+                android:layout_height="43dp"
+                tools:text="A"
+                android:textSize="@dimen/font_size_25"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:gravity="center"
+                />
+
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/tv_contact_friend_phone_contact_item_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="66dp"
+            android:textColor="@color/black_00"
+            android:textSize="@dimen/font_size_16"
+            android:layout_marginTop="5dp"
+            tools:text="name" />
+
+        <TextView
+            android:id="@+id/tv_contact_friend_phone_contact_item_num"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="phone"
+            android:textSize="@dimen/font_size_13"
+            android:textColor="@color/black_00"
+            android:layout_alignLeft="@+id/tv_contact_friend_phone_contact_item_name"
+            android:layout_below="@+id/tv_contact_friend_phone_contact_item_name"
+            />
+
+        <TextView
+            android:id="@+id/tv_contact_friend_phone_contact_item_right"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            tools:text="@string/invite"
+            android:textSize="@dimen/font_size_14"
+            android:textColor="@color/enable_blue_gray"
+            android:layout_alignParentRight="true"
+            android:gravity="center"
+            android:paddingRight="23dp"
+            android:paddingLeft="23dp"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/divider_height"
+            android:background="@color/gray_f1"
+            android:layout_alignParentBottom="true"
+            android:layout_marginLeft="66dp"
+            />
+
+    </RelativeLayout>
+
+
+</LinearLayout>
