@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="40dp"
+        android:layout_marginRight="40dp"
+        android:background="@drawable/corner_white_4"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:text="@string/discover_new_version"
+            android:textColor="@color/black_00"
+            android:textSize="@dimen/font_size_15"
+            android:textStyle="bold" />
+        <include layout="@layout/layout_divider_2" />
+        <TextView
+            android:id="@+id/tv_dialog_version_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxHeight="180dp"
+            android:paddingLeft="30dp"
+            android:paddingTop="25dp"
+            android:paddingRight="30dp"
+            android:paddingBottom="25dp"
+            android:scrollbars="vertical"
+            android:textColor="@color/black_00"
+            android:textSize="@dimen/font_size_14"
+            tools:text="content" />
+
+        <include layout="@layout/layout_divider_2" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tv_dialog_version_cancel"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/talk_about_later"
+                android:textColor="@color/blue_main"
+                android:textSize="@dimen/font_size_16"
+                android:visibility="visible" />
+
+            <TextView
+                android:id="@+id/tv_dialog_version_bot_divider"
+                android:layout_width="@dimen/divider_height"
+                android:layout_height="match_parent"
+                android:background="@color/gray_divide_main"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tv_dialog_version_confirm"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/update_immediately"
+                android:textColor="@color/blue_main"
+                android:textSize="@dimen/font_size_16" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+</RelativeLayout>

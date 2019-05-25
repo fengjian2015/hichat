@@ -55,14 +55,14 @@
                 android:layout_marginRight="22dp"
                 android:background="@null"
                 android:layout_centerVertical="true"
-                android:maxLength="20"
+                android:maxLength="12"
                 />
 
             <TextView
                 android:id="@+id/tv_contact_group_create_name_count"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="0/20"
+                android:text="0/12"
                 android:textSize="@dimen/font_size_11"
                 android:textColor="@color/gray_c3"
                 android:layout_alignParentRight="true"

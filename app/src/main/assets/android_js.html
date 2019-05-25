@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>JS交互demo</title>
+    <script>
+        //***************以下代码Android调用JS代码*********************
+
+        function appGetUserInfo(msg){
+            alert("Android调用了JS的callJS方法"+msg);
+        }
+
+        //***************以下代码JS调用Android代码*********************
+
+         function jsGetUserInfo(){
+             app.jsGetUserInfo();
+         }
+
+         function jsNewActivity(){
+             app.jsNewActivity("http://testzhibo.wewin18.net");
+         }
+
+         function jsPlay(){
+            var s='{"title":"直播或视频标题","pull_url":"https://www.zhibo18.live/upload/20190227/2ff6f690c09ac85419a8858009e4e61a.mp4","html_url":"http://testzhibo.wewin18.net","adscontent":"跑马灯文本","wximage":"左上角图标","wechat":"微信号"}';
+             app.jsPlay(s);
+         }
+
+          function jsPlayOrLogin(){
+          var s='{"title":"直播或视频标题","pull_url":"https://www.zhibo18.live/upload/20190227/2ff6f690c09ac85419a8858009e4e61a.mp4","html_url":"http://testzhibo.wewin18.net","adscontent":"跑马灯文本","wximage":"左上角图标","wechat":"微信号"}';
+             app.jsPlayOrLogin(s);
+         }
+
+         function jsLogin(){
+             app.jsLogin();
+         }
+
+         function jsSignOut(){
+             app.jsSignOut();
+         }
+
+        function jsShowDialog(){
+             app.jsShowDialog("提示内容");
+         }
+
+         function jsShowDialog1(){
+             app.jsShowDialog("提示内容11","确定刷新");
+         }
+
+        function jsScrollChanged(){
+             app.jsScrollChanged("1","2");
+         }
+         function jsAnimation(){
+             app.jsAnimation("https://assets2.lottiefiles.com/temp/lf20_hT22rr.json","lf20_hT22rr");
+         }
+         function jsIsShowShare(){
+           var s='{"share_url":"http://testzhibo.wewin18.net","share_title":"标题","share_content":"测试分享的内容","share_image":"http://www.sxzf.org.cn/wp-content/uploads/2019/04/201904011554159980.jpg"}';
+             app.jsIsShowShare(1,s);
+         }
+
+         function jsAnimationGif(){
+             app.jsAnimationGif("http://tong.wewin18.net/upload/20190503/1.gif","1");
+         }
+    </script>
+</head>
+<body>
+<button type="button" id="button1" onclick="jsGetUserInfo()">获取用户信息uid和token</button>
+<button type="button" id="button2" onclick="jsNewActivity()">跳转另外一个界面进行H5展示</button>
+
+<button type="button" id="button3" onclick="jsPlay()">跳转播放器页面</button>
+<button type="button" id="button5" onclick="jsPlayOrLogin()">跳转播放器页面,需要登录</button>
+<button type="button" id="button4" onclick="jsLogin()">当用户未登录时，跳转登录页面</button>
+<button type="button" id="button6" onclick="jsSignOut()">清空用户数据，退出登录</button>
+
+<button type="button" id="button7" onclick="jsShowDialog()">弹出提示</button>
+<button type="button" id="button8" onclick="jsShowDialog1()">弹出提示，重新加载</button>
+
+<button type="button" id="button9" onclick="jsScrollChanged()">滚动获取按下位置，和滚动位置</button>
+
+<button type="button" id="button10" onclick="jsAnimation()">传递Json动画信息</button>
+<button type="button" id="button12" onclick="jsAnimationGif()">传递Gif动画信息</button>
+<button type="button" id="button11" onclick="jsIsShowShare()">是否显示分享</button>
+</body>
+</html>

@@ -1,4 +1,4 @@
-package com.wewin.hichat.model.db.dbHelper;
+package com.wewin.hichat.model.db.dbhelper;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -20,7 +20,7 @@ import com.wewin.hichat.model.db.dao.UserDao;
 public class SQLiteHelper extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "HiChat.db"; //数据库名称
-    private static final int VERSION = 1; //版本
+    private static final int VERSION = 2; //版本
 
     public SQLiteHelper(Context context){
         super(context, DB_NAME, null, VERSION);
@@ -54,7 +54,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             + MessageDao.GROUP_ID + " varchar, "
             + MessageDao.CONTENT_TYPE + " varchar, "
             + MessageDao.CONTENT + " varchar, "
-            + MessageDao.CREATE_TIMESTAMP + " float, "
+            + MessageDao.CREATE_TIMESTAMP + " bigint, "
             + MessageDao.CREATE_TIME + " varchar, "
             + MessageDao.REPLY_MSG_ID + " bigint, "
             + MessageDao.UN_SYNC_MSG_ID + " bigint, "
@@ -74,10 +74,16 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             + MessageDao.SERVER_ACTION_TYPE + " varchar, "
             + MessageDao.SENDER_NAME + " varchar, "
             + MessageDao.SENDER_AVATAR + " varchar, "
+            + MessageDao.RECEIVER_NAME + " varchar, "
+            + MessageDao.RECEIVER_AVATAR + " varchar, "
             + MessageDao.TAPE_UNREAD_MARK + " varchar, "
             + MessageDao.SEND_STATE + " integer, "
+            + MessageDao.EMO_MARK + " integer, "
+            + MessageDao.PHONE_MARK + " integer, "
+            + MessageDao.URL_MARK + " integer, "
             + MessageDao.SHOW_MARK + " integer, "
             + MessageDao.FRIENDSHIP_MARK + " integer, "
+            + MessageDao.DELETE_MARK + " integer, "
             + MessageDao.USER_ID + " varchar);";
 
     private final String TABLE_MESSAGE_SENDING = "create table "
@@ -113,6 +119,9 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             + MessageSendingDao.SENDER_AVATAR + " varchar, "
             + MessageSendingDao.TAPE_UNREAD_MARK + " varchar, "
             + MessageSendingDao.SEND_STATE + " integer, "
+            + MessageSendingDao.EMO_MARK + " integer, "
+            + MessageSendingDao.PHONE_MARK + " integer, "
+            + MessageSendingDao.URL_MARK + " integer, "
             + MessageSendingDao.USER_ID + " varchar);";
 
     private final String TABLE_CHAT_ROOM = "create table "
@@ -122,6 +131,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             + ChatRoomDao.ROOM_TYPE + " varchar, "
             + ChatRoomDao.LOCAL_MSG_ID + " varchar, "
             + ChatRoomDao.LAST_MSG_ID + " varchar, "
+            + ChatRoomDao.LAST_MSG_TIME + " bigint, "
             + ChatRoomDao.TOP_MARK + " varchar, "
             + ChatRoomDao.SHIELD_MARK + " varchar, "
             + ChatRoomDao.UNREAD_NUM + " varchar, "
@@ -165,6 +175,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             + GroupDao.TOP_MARK + " varchar, "
             + GroupDao.SHIELD_MARK + " varchar, "
             + GroupDao.MEMBER_GRADE + " varchar, "
+            + GroupDao.ALLOW_ADD_MARK + " integer, "
             + GroupDao.USER_ID + " varchar);";
 
     private final String TABLE_PHONE_CONTACT = "create table "
@@ -197,6 +208,8 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             + ContactUserDao.CONTACT_NAME + " varchar, "
             + ContactUserDao.CONTACT_NOTE + " varchar, "
             + ContactUserDao.CONTACT_AVATAR + " varchar, "
+            + ContactUserDao.TOP_MARK + " integer, "
+            + ContactUserDao.SHIELD_MARK + " integer, "
             + ContactUserDao.USER_ID + " varchar);";
 
 
@@ -215,7 +228,14 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+        switch (oldVersion) {
+            case 1:
+                db.execSQL("ALTER TABLE "+MessageDao.TABLE_NAME +" ADD "+ MessageDao.DELETE_MARK+" INTEGER DEFAULT 0");
+                db.execSQL("ALTER TABLE "+GroupDao.TABLE_NAME +" ADD "+ GroupDao.ALLOW_ADD_MARK+" INTEGER DEFAULT 0");
+                break;
+            default:
+                break;
+        }
     }
 
 }

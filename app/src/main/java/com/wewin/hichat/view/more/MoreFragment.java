@@ -1,6 +1,7 @@
 package com.wewin.hichat.view.more;
 
 import android.content.Intent;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.FrameLayout;
@@ -9,6 +10,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.alibaba.fastjson.JSON;
+import com.wewin.hichat.MainActivity;
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.event.EventTrans;
 import com.wewin.hichat.androidlib.event.EventMsg;
@@ -18,14 +20,19 @@ import com.wewin.hichat.androidlib.impl.HttpCallBack;
 import com.wewin.hichat.androidlib.utils.ImgUtil;
 import com.wewin.hichat.androidlib.utils.LogUtil;
 import com.wewin.hichat.androidlib.utils.TransUtil;
+import com.wewin.hichat.androidlib.utils.VersionUtil;
 import com.wewin.hichat.component.base.BaseFragment;
+import com.wewin.hichat.component.constant.ContactCons;
+import com.wewin.hichat.component.constant.HttpCons;
 import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.component.dialog.PromptDialog;
 import com.wewin.hichat.component.dialog.SexDialog;
 import com.wewin.hichat.model.db.dao.UserDao;
 import com.wewin.hichat.model.db.entity.LoginUser;
+import com.wewin.hichat.model.db.entity.VersionBean;
 import com.wewin.hichat.model.http.HttpLogin;
 import com.wewin.hichat.model.http.HttpMore;
+import com.wewin.hichat.view.conversation.DocViewActivity;
 import com.wewin.hichat.view.login.LoginActivity;
 
 /**
@@ -35,14 +42,11 @@ import com.wewin.hichat.view.login.LoginActivity;
 public class MoreFragment extends BaseFragment {
 
     private RelativeLayout personalRl;
-    private ImageView avatarIv, notifyRedPointIv;
-    private TextView nameTv, signTv, phoneNumTv, genderTv, stateTv, logoutTv;
-    private FrameLayout audioRemindFl, vibrateRemindFl, notifyFl, modifyPwdFl, loginRecordFl, aboutFl,
-            genderFl, stateFl;
-    private CheckBox audioRemindCb, vibrateRemindCb;
+    private ImageView avatarIv, notifyRedPointIv, audioRemindCheckIv, vibrateRemindCheckIv;
+    private TextView nameTv, signTv, phoneNumTv, genderTv, logoutTv, versionTv, newTv;
+    private FrameLayout audioRemindFl, vibrateRemindFl, notifyFl, modifyPwdFl, loginRecordFl,
+            aboutFl, genderFl, checkFl;
     private SexDialog sexDialog;
-    private boolean isAudioRemindOpen = false;
-    private boolean isVibrateRemindOpen = false;
     private int genderType;
 
     @Override
@@ -58,7 +62,6 @@ public class MoreFragment extends BaseFragment {
         signTv = parentView.findViewById(R.id.tv_more_personal_sign);
         phoneNumTv = parentView.findViewById(R.id.tv_more_personal_phone_num);
         genderTv = parentView.findViewById(R.id.tv_more_personal_gender);
-        stateTv = parentView.findViewById(R.id.tv_more_personal_state);
         logoutTv = parentView.findViewById(R.id.tv_more_personal_logout);
         audioRemindFl = parentView.findViewById(R.id.fl_more_personal_audio_remind);
         vibrateRemindFl = parentView.findViewById(R.id.fl_more_personal_vibrate_remind);
@@ -67,28 +70,29 @@ public class MoreFragment extends BaseFragment {
         loginRecordFl = parentView.findViewById(R.id.fl_more_personal_login_record);
         aboutFl = parentView.findViewById(R.id.fl_more_personal_about);
         genderFl = parentView.findViewById(R.id.fl_more_personal_gender_container);
-        stateFl = parentView.findViewById(R.id.fl_more_personal_state_container);
-        audioRemindCb = parentView.findViewById(R.id.cb_more_personal_audio_remind);
-        vibrateRemindCb = parentView.findViewById(R.id.cb_more_personal_vibrate_remind);
+        audioRemindCheckIv = parentView.findViewById(R.id.iv_more_personal_audio_remind);
+        vibrateRemindCheckIv = parentView.findViewById(R.id.iv_more_personal_vibrate_remind);
         notifyRedPointIv = parentView.findViewById(R.id.iv_more_new_notify_res_point);
+        versionTv = parentView.findViewById(R.id.tv_more_personal_version);
+        newTv = parentView.findViewById(R.id.tv_more_personal_new);
+        checkFl = parentView.findViewById(R.id.fl_more_personal_check);
     }
 
     @Override
     protected void initViewsData() {
         setViewData();
-        if (SpCons.getNotifyRedPointVisible(getHostActivity())) {
-            notifyRedPointIv.setVisibility(View.VISIBLE);
-        } else {
-            notifyRedPointIv.setVisibility(View.INVISIBLE);
-        }
     }
 
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
-            genderType = UserDao.user.getGender();
-            LogUtil.i("genderType", genderType);
+            if (SpCons.getNotifyRedPointVisible(getHostActivity())) {
+                notifyRedPointIv.setVisibility(View.VISIBLE);
+            } else {
+                notifyRedPointIv.setVisibility(View.INVISIBLE);
+            }
+            genderType = SpCons.getUser(getHostActivity()).getGender();
             getPersonalInfo();
         }
     }
@@ -97,7 +101,6 @@ public class MoreFragment extends BaseFragment {
     protected void setListener() {
         personalRl.setOnClickListener(this);
         genderFl.setOnClickListener(this);
-        stateFl.setOnClickListener(this);
         audioRemindFl.setOnClickListener(this);
         vibrateRemindFl.setOnClickListener(this);
         notifyFl.setOnClickListener(this);
@@ -105,8 +108,7 @@ public class MoreFragment extends BaseFragment {
         loginRecordFl.setOnClickListener(this);
         aboutFl.setOnClickListener(this);
         logoutTv.setOnClickListener(this);
-        audioRemindCb.setOnClickListener(this);
-        vibrateRemindCb.setOnClickListener(this);
+        checkFl.setOnClickListener(this);
     }
 
     @Override
@@ -120,20 +122,14 @@ public class MoreFragment extends BaseFragment {
                 showSexDialog();
                 break;
 
-            case R.id.cb_more_personal_audio_remind:
             case R.id.fl_more_personal_audio_remind:
-                isAudioRemindOpen = !isAudioRemindOpen;
-                audioRemindCb.setChecked(isAudioRemindOpen);
-                modifyAccountInfo(TransUtil.booleanToInt(isAudioRemindOpen), genderType,
-                        TransUtil.booleanToInt(isVibrateRemindOpen));
+                modifyAccountInfo(1 - SpCons.getUser(getHostActivity()).getAudioCues(), genderType,
+                        SpCons.getUser(getHostActivity()).getVibratesCues());
                 break;
 
-            case R.id.cb_more_personal_vibrate_remind:
             case R.id.fl_more_personal_vibrate_remind:
-                isVibrateRemindOpen = !isVibrateRemindOpen;
-                vibrateRemindCb.setChecked(isVibrateRemindOpen);
-                modifyAccountInfo(TransUtil.booleanToInt(isAudioRemindOpen), genderType,
-                        TransUtil.booleanToInt(isVibrateRemindOpen));
+                modifyAccountInfo(SpCons.getUser(getHostActivity()).getAudioCues(), genderType,
+                        1 - SpCons.getUser(getHostActivity()).getVibratesCues());
                 break;
 
             case R.id.fl_more_personal_notify:
@@ -149,32 +145,51 @@ public class MoreFragment extends BaseFragment {
                 break;
 
             case R.id.fl_more_personal_about:
-
+                Intent intent = new Intent(getActivity(), DocViewActivity.class);
+                intent.putExtra(ContactCons.EXTRA_MESSAGE_CHAT_WEB_PATH, HttpCons.PATH_MORE_ABOUT);
+                startActivity(intent);
                 break;
 
             case R.id.tv_more_personal_logout:
                 showPromptDialog();
                 break;
+            case R.id.fl_more_personal_check:
+                if (getHostActivity() instanceof MainActivity){
+                    ((MainActivity)getHostActivity()).checkVersion();
+                }
+                break;
+            default:
+                break;
         }
     }
 
     private void setViewData() {
-        if (UserDao.user != null) {
-            ImgUtil.load(getActivity(), UserDao.user.getAvatar(), avatarIv);
-            nameTv.setText(UserDao.user.getUsername());
-            signTv.setText(UserDao.user.getSign());
-            phoneNumTv.setText(UserDao.user.getPhone());
-            if (UserDao.user.getGender() == 0) {
-                genderTv.setText(getString(R.string.female));
-            } else if (UserDao.user.getGender() == 1) {
-                genderTv.setText(getString(R.string.male));
-            } else {
-                genderTv.setText(getString(R.string.keep_secret));
+        ImgUtil.load(getActivity(), SpCons.getUser(getHostActivity()).getAvatar(), avatarIv);
+        nameTv.setText(SpCons.getUser(getHostActivity()).getUsername());
+        signTv.setText(SpCons.getUser(getHostActivity()).getSign());
+        phoneNumTv.setText(SpCons.getUser(getHostActivity()).getPhone());
+        if (SpCons.getUser(getHostActivity()).getGender() == 0) {
+            genderTv.setText(getString(R.string.female));
+        } else if (SpCons.getUser(getHostActivity()).getGender() == 1) {
+            genderTv.setText(getString(R.string.male));
+        } else {
+            genderTv.setText(getString(R.string.keep_secret));
+        }
+        audioRemindCheckIv.setSelected(TransUtil.intToBoolean(SpCons.getUser(getHostActivity()).getAudioCues()));
+        vibrateRemindCheckIv.setSelected(TransUtil.intToBoolean(SpCons.getUser(getHostActivity()).getVibratesCues()));
+        try {
+            versionTv.setText("V"+VersionUtil.getVersionName(getHostActivity()));
+            String version=SpCons.getString(getHostActivity(), SpCons.VERSION_CONTENT);
+            if (!TextUtils.isEmpty(version)) {
+                VersionBean versionBean = JSON.parseObject(version, VersionBean.class);
+                if (VersionUtil.getVersionCode(getHostActivity()) < versionBean.getVersionCode()) {
+                    newTv.setVisibility(View.VISIBLE);
+                } else {
+                    newTv.setVisibility(View.GONE);
+                }
             }
-            audioRemindCb.setChecked(TransUtil.intToBoolean(UserDao.user.getAudioCues()));
-            vibrateRemindCb.setChecked(TransUtil.intToBoolean(UserDao.user.getVibratesCues()));
-            isAudioRemindOpen = audioRemindCb.isChecked();
-            isVibrateRemindOpen = vibrateRemindCb.isChecked();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -198,24 +213,24 @@ public class MoreFragment extends BaseFragment {
                 public void secretClick() {
                     genderTv.setText(getString(R.string.keep_secret));
                     genderType = 2;
-                    modifyAccountInfo(TransUtil.booleanToInt(isAudioRemindOpen), genderType,
-                            TransUtil.booleanToInt(isVibrateRemindOpen));
+                    modifyAccountInfo(SpCons.getUser(getHostActivity()).getAudioCues(), genderType,
+                            SpCons.getUser(getHostActivity()).getVibratesCues());
                 }
 
                 @Override
                 public void maleClick() {
                     genderTv.setText(getString(R.string.male));
                     genderType = 1;
-                    modifyAccountInfo(TransUtil.booleanToInt(isAudioRemindOpen), genderType,
-                            TransUtil.booleanToInt(isVibrateRemindOpen));
+                    modifyAccountInfo(SpCons.getUser(getHostActivity()).getAudioCues(), genderType,
+                            SpCons.getUser(getHostActivity()).getVibratesCues());
                 }
 
                 @Override
                 public void femaleClick() {
                     genderTv.setText(getString(R.string.female));
                     genderType = 0;
-                    modifyAccountInfo(TransUtil.booleanToInt(isAudioRemindOpen), genderType,
-                            TransUtil.booleanToInt(isVibrateRemindOpen));
+                    modifyAccountInfo(SpCons.getUser(getHostActivity()).getAudioCues(), genderType,
+                            SpCons.getUser(getHostActivity()).getVibratesCues());
                 }
             }).create();
         }
@@ -223,22 +238,26 @@ public class MoreFragment extends BaseFragment {
     }
 
     private void modifyAccountInfo(final int audioCues, final int gender, final int vibratesCues) {
-        HttpMore.modifyAccountInfo(audioCues, gender, UserDao.user.getId(), UserDao.user.getSign(),
-                UserDao.user.getUsername(), vibratesCues, new HttpCallBack(getActivity(), ClassUtil.classMethodName()) {
+        HttpMore.modifyAccountInfo(audioCues, gender, SpCons.getUser(getHostActivity()).getId(),
+                SpCons.getUser(getHostActivity()).getSign(),
+                SpCons.getUser(getHostActivity()).getUsername(), vibratesCues,
+                new HttpCallBack(getActivity(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
-                        UserDao.user.setGender(gender);
-                        UserDao.user.setAudioCues(audioCues);
-                        UserDao.user.setVibratesCues(vibratesCues);
-                        UserDao.setUser(UserDao.user);
-                        LogUtil.i("saveAccountInfo", UserDao.user);
+                        LoginUser user = SpCons.getUser(getHostActivity());
+                        user.setGender(gender);
+                        user.setAudioCues(audioCues);
+                        user.setVibratesCues(vibratesCues);
+                        SpCons.setUser(getHostActivity(), user);
+                        UserDao.setUser(user);
+                        LogUtil.i("saveAccountInfo", SpCons.getUser(getHostActivity()));
                         EventTrans.post(EventMsg.MORE_PERSONAL_INFO_REFRESH);
                     }
                 });
     }
 
     private void getPersonalInfo() {
-        HttpMore.getPersonalInfo(new HttpCallBack(getActivity(), ClassUtil.classMethodName()) {
+        HttpMore.getPersonalInfo(getActivity(), new HttpCallBack(getActivity(), ClassUtil.classMethodName()) {
             @Override
             public void success(Object data, int count) {
                 if (data == null) {
@@ -249,7 +268,7 @@ public class MoreFragment extends BaseFragment {
                     LogUtil.i("getPersonalInfo", loginUser);
                     if (loginUser != null) {
                         UserDao.setUser(loginUser);
-                        UserDao.user = loginUser;
+                        SpCons.setUser(getHostActivity(), loginUser);
                         setViewData();
                     }
                 } catch (Exception e) {
@@ -271,11 +290,12 @@ public class MoreFragment extends BaseFragment {
         });
     }
 
+
     @Override
     public void onEventTrans(EventMsg msg) {
         if (msg.getKey() == EventMsg.MORE_PERSONAL_INFO_REFRESH
                 || msg.getKey() == EventMsg.MORE_PERSONAL_AVATAR_REFRESH) {
-            initViewsData();
+            setViewData();
 
         } else if (msg.getKey() == EventMsg.CONTACT_NOTIFY_REFRESH) {
             if (SpCons.getNotifyRedPointVisible(getHostActivity())) {

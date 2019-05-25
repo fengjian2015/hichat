@@ -14,6 +14,7 @@ import com.wewin.hichat.androidlib.utils.ClassUtil;
 import com.wewin.hichat.androidlib.utils.PwdUtil;
 import com.wewin.hichat.androidlib.utils.ToastUtil;
 import com.wewin.hichat.component.base.BaseActivity;
+import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.model.db.dao.UserDao;
 import com.wewin.hichat.androidlib.impl.HttpCallBack;
 import com.wewin.hichat.model.http.HttpLogin;
@@ -105,7 +106,7 @@ public class PasswordModifyActivity extends BaseActivity {
     }
 
     private void modifyPassword(String newPwd, String oldPwd) {
-        HttpLogin.modifyPassword(newPwd, oldPwd, UserDao.user.getPhone(), 0,
+        HttpLogin.modifyPassword(newPwd, oldPwd, SpCons.getUser(getAppContext()).getPhone(), 0,
                 new HttpCallBack(getApplicationContext(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {

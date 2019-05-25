@@ -15,7 +15,9 @@ import com.alibaba.fastjson.JSON;
 import com.wewin.hichat.MainActivity;
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.event.EventMsg;
+import com.wewin.hichat.androidlib.utils.EmoticonUtil;
 import com.wewin.hichat.androidlib.utils.EntityUtil;
+import com.wewin.hichat.androidlib.utils.HyperLinkUtil;
 import com.wewin.hichat.component.manager.ChatRoomManager;
 import com.wewin.hichat.androidlib.utils.ClassUtil;
 import com.wewin.hichat.androidlib.impl.HttpCallBack;
@@ -25,13 +27,12 @@ import com.wewin.hichat.component.base.BaseRcvAdapter;
 import com.wewin.hichat.component.adapter.ConversationListRcvAdapter;
 import com.wewin.hichat.component.dialog.SelectDialog;
 import com.wewin.hichat.model.db.dao.ChatRoomDao;
+import com.wewin.hichat.model.db.dao.ContactUserDao;
 import com.wewin.hichat.model.db.dao.FriendDao;
 import com.wewin.hichat.model.db.dao.GroupDao;
 import com.wewin.hichat.model.db.dao.MessageDao;
 import com.wewin.hichat.model.db.entity.ChatMsg;
 import com.wewin.hichat.model.db.entity.ChatRoom;
-import com.wewin.hichat.model.db.entity.FriendInfo;
-import com.wewin.hichat.model.db.entity.GroupInfo;
 import com.wewin.hichat.model.db.entity.ServerConversation;
 import com.wewin.hichat.model.db.entity.ServerConversation.DeleteConversation;
 import com.wewin.hichat.model.db.entity.ServerConversation.UpdateConversation;
@@ -84,7 +85,8 @@ public class ConversationFragment extends BaseFragment {
     protected void initViewsData() {
         initRecyclerView();
         setViewByCache();
-        getServerConversationList();
+        //同步服务器会话列表
+        ChatRoomManager.syncServerConversationList();
     }
 
     @Override
@@ -117,10 +119,6 @@ public class ConversationFragment extends BaseFragment {
                 setEditCancelView();
                 break;
 
-            case R.id.iv_conversation_new_message:
-                startActivity(new Intent(getHostActivity(), ConversationAddActivity.class));
-                break;
-
             case R.id.tv_conversation_select_all:
                 if (!isSelectAll) {
                     for (ChatRoom chatRoom : mRoomList) {
@@ -149,7 +147,7 @@ public class ConversationFragment extends BaseFragment {
                         if (ChatRoom.TYPE_SINGLE.equals(chatRoom.getRoomType())) {
                             makeTopFriend(chatRoom, topMark);
 
-                        } else if ("group".equals(chatRoom.getRoomType())) {
+                        } else if (ChatRoom.TYPE_GROUP.equals(chatRoom.getRoomType())) {
                             makeTopGroup(chatRoom, topMark);
                         }
                         break;
@@ -164,6 +162,9 @@ public class ConversationFragment extends BaseFragment {
             case R.id.fl_conversation_search:
                 startActivity(new Intent(getHostActivity(), ChatRecordSearchActivity.class));
                 break;
+
+            default:
+                break;
         }
     }
 
@@ -177,7 +178,8 @@ public class ConversationFragment extends BaseFragment {
             public void itemClick(int position) {
                 if (!isEditMode) {
                     if (ChatRoom.TYPE_SINGLE.equals(mRoomList.get(position).getRoomType())) {
-                        ChatRoomManager.startSingleRoomActivity(getHostActivity(), mRoomList.get(position).getRoomId());
+                        ChatRoomManager.startSingleRoomActivity(getHostActivity(),
+                                mRoomList.get(position).getRoomId());
 
                     } else if (ChatRoom.TYPE_GROUP.equals(mRoomList.get(position).getRoomType())) {
                         ChatRoomManager.startGroupRoomActivity(getHostActivity(),
@@ -227,6 +229,8 @@ public class ConversationFragment extends BaseFragment {
     private void setEditCancelView() {
         if (isEditMode) {
             isEditMode = false;
+            isSelectAll = false;
+            selectAllTv.setText(getString(R.string.select_all));
             ((MainActivity) getHostActivity()).botContainerFl.setVisibility(View.VISIBLE);
             botEditContainerRl.setVisibility(View.GONE);
             editTv.setVisibility(View.VISIBLE);
@@ -240,22 +244,27 @@ public class ConversationFragment extends BaseFragment {
     }
 
     private void setViewByCache() {
-        List<ChatRoom> roomList = ChatRoomDao.getRoomList();
-        LogUtil.i("setViewByCache", roomList);
-        if (roomList != null) {
-            mRoomList.clear();
-            mRoomList.addAll(roomList);
-            updateRcv();
-        }
+        mRoomList.clear();
+        mRoomList.addAll(ChatRoomDao.getRoomList());
+        updateRcv();
+        LogUtil.i("setViewByCache", ChatRoomDao.getRoomList());
     }
 
     private void processMakeTopResult(ChatRoom chatRoom, int topMark) {
-        chatRoom.setTopMark(topMark);
+        if (chatRoom == null) {
+            return;
+        }
         ChatRoomDao.updateTopMark(chatRoom.getRoomId(), chatRoom.getRoomType(), topMark);
+        if (ChatRoom.TYPE_SINGLE.equals(chatRoom.getRoomType())) {
+            FriendDao.updateTopMark(chatRoom.getRoomId(), topMark);
+            ContactUserDao.updateTopMark(chatRoom.getRoomId(), topMark);
+        } else if (ChatRoom.TYPE_GROUP.equals(chatRoom.getRoomType())) {
+            GroupDao.updateTopMark(chatRoom.getRoomId(), topMark);
+        }
+        chatRoom.setTopMark(topMark);
         for (ChatRoom room : mRoomList) {
             room.setChecked(false);
         }
-        LogUtil.i("makeTop", mRoomList);
         setEditCancelView();
     }
 
@@ -275,28 +284,54 @@ public class ConversationFragment extends BaseFragment {
                                     mRoomList.remove(i);
                                 }
                             }
-                            MessageDao.updateRoomShowMarkList(deleteList);
-                            ChatRoomDao.deleteRoomList(deleteList);
-                            setEditCancelView();
+                            deleteMultiConversation(deleteList);
                         }
                     }
                 }).create();
         deleteDialog.show();
     }
 
+    //批量删除会话
+    private void deleteMultiConversation(final List<ChatRoom> deleteList) {
+        if (deleteList == null || deleteList.isEmpty()) {
+            return;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (ChatRoom chatRoom : deleteList) {
+            sb.append(chatRoom.getRoomId()).append("_").append(chatRoom.getRoomType()).append(",");
+        }
+        String idStr = sb.toString().substring(0, sb.toString().length() - 1);
+        HttpMessage.deleteMultiConversation(idStr,
+                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
+                    @Override
+                    public void success(Object data, int count) {
+                        MessageDao.updateRoomShowMarkList(deleteList);
+                        ChatRoomDao.deleteRoomList(deleteList);
+                        setEditCancelView();
+                        if (getHostActivity() instanceof MainActivity) {
+                            ((MainActivity) getHostActivity()).setUnreadNumView();
+                        }
+                    }
+                });
+    }
+
     private void makeTopFriend(final ChatRoom chatRoom, final int topMark) {
-        HttpContact.makeTopFriend(chatRoom.getRoomId(), topMark,FriendDao.findFriendshipMark(chatRoom.getRoomId()),
+        if (chatRoom == null) {
+            return;
+        }
+        HttpContact.makeTopFriend(chatRoom.getRoomId(), topMark, FriendDao.findFriendshipMark(chatRoom.getRoomId()),
                 new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
                         processMakeTopResult(chatRoom, topMark);
-                        LogUtil.i("chatId", chatRoom.getRoomId());
-                        LogUtil.i("topMark", topMark);
                     }
                 });
     }
 
     private void makeTopGroup(final ChatRoom chatRoom, final int topMark) {
+        if (chatRoom == null) {
+            return;
+        }
         HttpContact.makeTopGroup(chatRoom.getRoomId(), topMark,
                 new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
                     @Override
@@ -306,84 +341,11 @@ public class ConversationFragment extends BaseFragment {
                 });
     }
 
-    //增量获取会话列表进行同步
-    private void getServerConversationList() {
-        List<ChatRoom> roomList = ChatRoomDao.getRoomList();
-        String roomIdStr = "";
-        if (roomList != null && !roomList.isEmpty()) {
-            StringBuilder sb = new StringBuilder();
-            for (ChatRoom room : roomList) {
-                String maxMsgId = MessageDao.getMaxMsgIdByRoomId(room.getRoomId(), room.getRoomType());
-                if (TextUtils.isEmpty(maxMsgId)) {
-                    maxMsgId = "0";
-                }
-                sb.append(room.getRoomId()).append("-").append(room.getRoomType()).append("-")
-                        .append(maxMsgId).append(",");
-            }
-            roomIdStr = sb.toString().substring(0, sb.toString().length() - 1);
-        }
-        LogUtil.i("roomIdStr", roomIdStr);
-        HttpMessage.getServerConversationList(roomIdStr,
-                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
-                    @Override
-                    public void success(Object data, int count) {
-                        if (data == null) {
-                            return;
-                        }
-                        try {
-                            ServerConversation serverConversation = JSON.parseObject(data.toString(),
-                                    ServerConversation.class);
-
-                            List<DeleteConversation> deleteList = serverConversation.getDeleteConversations();
-                            List<UpdateConversation> updateList = serverConversation.getUpdateConversations();
-                            if (deleteList != null) {
-                                for (DeleteConversation deleteConversation : deleteList) {
-                                    MessageDao.updateShowMark(deleteConversation.getConversationId(),
-                                            deleteConversation.getConversationType());
-                                    ChatRoomDao.deleteRoom(deleteConversation.getConversationId(),
-                                            deleteConversation.getConversationType());
-                                }
-                            }
-                            if (updateList != null) {
-                                List<ChatRoom> chatRoomList = EntityUtil
-                                        .parseUpdateConversation(updateList);
-                                for (ChatRoom room : chatRoomList) {
-                                    if (!TextUtils.isEmpty(room.getUnSyncMsgFirstId())
-                                            && !"0".equals(room.getUnSyncMsgFirstId())
-                                            && room.getLastChatMsg() != null) {
-                                        LogUtil.i("unSyncId", room.getRoomId() + room.getRoomType() +
-                                                room.getUnSyncMsgFirstId());
-                                        room.getLastChatMsg().setUnSyncMsgFirstId(room.getUnSyncMsgFirstId());
-                                    }
-                                    MessageDao.addMessage(room.getLastChatMsg());
-                                }
-                                ChatRoomDao.addRoomList(chatRoomList);
-                            }
-                            mRoomList.clear();
-                            mRoomList.addAll(ChatRoomDao.getRoomList());
-                            updateRcv();
-
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-    }
 
     @Override
     public void onEventTrans(EventMsg msg) {
         switch (msg.getKey()) {
             case EventMsg.SOCKET_ON_MESSAGE:
-                ChatMsg receiveMsg = (ChatMsg) msg.getData();
-                LogUtil.i("SOCKET_ON_MESSAGE", receiveMsg);
-                if (receiveMsg == null) {
-                    return;
-                }
-               ChatRoom chatRoom=ChatRoomManager.getChatRoom(receiveMsg);
-                if (ChatRoomManager.isUnreadNumAdd(getHostActivity(), receiveMsg)) {
-                    chatRoom.setUnreadNum(chatRoom.getUnreadNum() + 1);
-                }
-                ChatRoomDao.addRoom(chatRoom);
                 mRoomList.clear();
                 mRoomList.addAll(ChatRoomDao.getRoomList());
                 updateRcv();
@@ -398,6 +360,7 @@ public class ConversationFragment extends BaseFragment {
             case EventMsg.CONTACT_FRIEND_AVATAR_REFRESH:
             case EventMsg.CONTACT_FRIEND_NAME_REFRESH:
             case EventMsg.CONTACT_GROUP_INFO_REFRESH:
+            case EventMsg.CONTACT_FRIEND_AGREE_REFRESH:
                 updateRcv();
                 break;
 
@@ -406,71 +369,67 @@ public class ConversationFragment extends BaseFragment {
             case EventMsg.CONTACT_GROUP_QUIT:
             case EventMsg.CONTACT_FRIEND_BLACK_REFRESH:
             case EventMsg.CONTACT_GROUP_DISBAND:
-            case EventMsg.CONTACT_FRIEND_MAKE_TOP_REFRESH:
-            case EventMsg.CONTACT_FRIEND_SHIELD_REFRESH:
-            case EventMsg.CONTACT_GROUP_MAKE_TOP_REFRESH:
-            case EventMsg.CONTACT_GROUP_SHIELD_REFRESH:
             case EventMsg.CONVERSATION_CLEAR_REFRESH:
             case EventMsg.CONTACT_FRIEND_DELETE_REFRESH:
             case EventMsg.CONVERSATION_DELETE_ROOM:
             case EventMsg.CONVERSATION_DELETE_ALL_ROOM:
+            case EventMsg.CONVERSATION_SYNC_SERVER_LIST:
+            case EventMsg.CONVERSATION_DELETE_MSG:
+                mRoomList.clear();
+                mRoomList.addAll(ChatRoomDao.getRoomList());
+                updateRcv();
+                if (getHostActivity() instanceof MainActivity) {
+                    ((MainActivity) getHostActivity()).setUnreadNumView();
+                }
+                break;
+
+            case EventMsg.CONTACT_FRIEND_MAKE_TOP_REFRESH:
+            case EventMsg.CONTACT_FRIEND_SHIELD_REFRESH:
+            case EventMsg.CONTACT_GROUP_MAKE_TOP_REFRESH:
+            case EventMsg.CONTACT_GROUP_SHIELD_REFRESH:
                 mRoomList.clear();
                 mRoomList.addAll(ChatRoomDao.getRoomList());
                 updateRcv();
                 break;
 
             case EventMsg.CONTACT_FRIEND_LIST_GET_REFRESH:
-                List<FriendInfo> friendList = FriendDao.getFriendList();
-                for (FriendInfo friend : friendList) {
-                    for (ChatRoom roomData : mRoomList) {
-                        if (friend.getId().equals(roomData.getRoomId())
-                                && ChatRoom.TYPE_SINGLE.equals(roomData.getRoomType())) {
-                            roomData.setTopMark(friend.getTopMark());
-                            roomData.setShieldMark(friend.getShieldMark());
-                        }
-                    }
-                }
+                mRoomList.clear();
+                mRoomList.addAll(ChatRoomDao.getRoomList());
                 updateRcv();
-                LogUtil.i("FRIEND_LIST_GET_REFRESH", mRoomList);
-                ChatRoomDao.addRoomList(mRoomList);
+                LogUtil.i("CONTACT_FRIEND_LIST_GET_REFRESH", mRoomList);
                 break;
 
             case EventMsg.CONTACT_GROUP_LIST_GET_REFRESH:
-                List<GroupInfo> groupList = GroupDao.getGroupList();
-                for (GroupInfo group : groupList) {
-                    for (ChatRoom roomData : mRoomList) {
-                        if (group.getId().equals(roomData.getRoomId()) && "group".equals(roomData.getRoomType())) {
-                            roomData.setTopMark(group.getTopMark());
-                            roomData.setShieldMark(group.getShieldMark());
-                        }
-                    }
-                }
+                mRoomList.clear();
+                mRoomList.addAll(ChatRoomDao.getRoomList());
                 updateRcv();
-                LogUtil.i("GROUP_LIST_GET_REFRESH", mRoomList);
-                ChatRoomDao.addRoomList(mRoomList);
+                LogUtil.i("CONTACT_GROUP_LIST_GET_REFRESH", mRoomList);
                 break;
 
             case EventMsg.CONVERSATION_UNREAD_NUM_REFRESH:
                 LogUtil.i("CONVERSATION_UNREAD_NUM_REFRESH");
-                ChatRoom chatRoom1 = (ChatRoom) msg.getData();
-                if (chatRoom1 != null) {
-                    for (ChatRoom roomData : mRoomList) {
-                        if (roomData.getRoomId().equals(chatRoom1.getRoomId())
-                                && roomData.getRoomType().equals(chatRoom1.getRoomType())) {
-                            roomData.setUnreadNum(0);
-                            roomData.setAtType(ChatMsg.TYPE_AT_NORMAL);
-                            ChatRoomDao.updateUnreadNum(roomData.getRoomId(),
-                                    roomData.getRoomType(), 0);
-                            ChatRoomDao.updateAtType(roomData.getRoomId(), roomData.getRoomType(),
-                                    ChatMsg.TYPE_AT_NORMAL);
-                            updateRcv();
-                            break;
-                        }
+                String roomId = msg.getData().toString();
+                String roomType = msg.getSecondData().toString();
+                if (TextUtils.isEmpty(roomId) || TextUtils.isEmpty(roomType)) {
+                    return;
+                }
+                for (ChatRoom roomData : mRoomList) {
+                    if (roomData.getRoomId().equals(roomId) && roomData.getRoomType().equals(roomType)) {
+                        roomData.setUnreadNum(0);
+                        roomData.setAtType(ChatMsg.TYPE_AT_NORMAL);
+                        ChatRoomDao.updateUnreadNum(roomData.getRoomId(), roomData.getRoomType(), 0);
+                        ChatRoomDao.updateAtType(roomData.getRoomId(), roomData.getRoomType(),
+                                ChatMsg.TYPE_AT_NORMAL);
+                        updateRcv();
+                        break;
                     }
                 }
                 if (getHostActivity() instanceof MainActivity) {
                     ((MainActivity) getHostActivity()).setUnreadNumView();
                 }
+                break;
+
+            default:
                 break;
         }
     }

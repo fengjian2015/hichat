@@ -46,6 +46,9 @@ public class LoginMainActivity extends BaseActivity {
                 intent.putExtra(LoginCons.EXTRA_LOGIN_REGISTER_OPEN_TYPE, LoginCons.TYPE_REGISTER);
                 startActivity(intent);
                 break;
+
+            default:
+                break;
         }
     }
 

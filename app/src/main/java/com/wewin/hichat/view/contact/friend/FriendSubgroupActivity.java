@@ -16,6 +16,7 @@ import com.wewin.hichat.component.adapter.MessageMoveGroupingRcvAdapter;
 import com.wewin.hichat.component.base.BaseActivity;
 import com.wewin.hichat.component.base.BaseRcvAdapter;
 import com.wewin.hichat.component.constant.ContactCons;
+import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.model.db.dao.FriendDao;
 import com.wewin.hichat.model.db.dao.UserDao;
 import com.wewin.hichat.model.db.entity.FriendInfo;
@@ -36,7 +37,7 @@ public class FriendSubgroupActivity extends BaseActivity {
     private List<Subgroup> subgroupList = new ArrayList<>();
     private MessageMoveGroupingRcvAdapter rcvAdapter;
     private FriendInfo friendInfo;
-    private int checkPosition = 0;
+    private int checkPosition = 1;
     private String subgroupId;
 
     @Override
@@ -102,9 +103,9 @@ public class FriendSubgroupActivity extends BaseActivity {
                 checkPosition = position;
                 for (int i = 0; i < subgroupList.size(); i++) {
                     if (i == position) {
-                        subgroupList.get(i).setCheckState(1);
+                        subgroupList.get(i).setChecked(true);
                     } else {
-                        subgroupList.get(i).setCheckState(0);
+                        subgroupList.get(i).setChecked(false);
                     }
                 }
                 rcvAdapter.notifyDataSetChanged();
@@ -113,7 +114,7 @@ public class FriendSubgroupActivity extends BaseActivity {
     }
 
     private void getFriendSubgroup() {
-        HttpContact.getFriendSubgroup(UserDao.user.getId(),
+        HttpContact.getFriendSubgroup(SpCons.getUser(getAppContext()).getId(),
                 new HttpCallBack(getApplicationContext(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
@@ -127,7 +128,7 @@ public class FriendSubgroupActivity extends BaseActivity {
                                 if ((!TextUtils.isEmpty(subgroupId) && subgroupId.equals(subgroup.getId()))
                                         || (friendInfo != null && friendInfo.getSubgroupId() != null
                                         && friendInfo.getSubgroupId().equals(subgroup.getId()))) {
-                                    subgroup.setCheckState(1);
+                                    subgroup.setChecked(true);
                                 }
                             }
                             subgroupList.clear();

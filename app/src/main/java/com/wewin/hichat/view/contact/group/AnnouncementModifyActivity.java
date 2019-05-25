@@ -61,14 +61,14 @@ public class AnnouncementModifyActivity extends BaseActivity {
 
     @Override
     protected void setListener() {
-        titleEt.addTextChangedListener(new CustomTextWatcher(){
+        titleEt.addTextChangedListener(new CustomTextWatcher() {
             @Override
             public void afterTextChanged(Editable s) {
                 titleCountTv.setText(s.toString().trim().length() + "/40");
             }
         });
 
-        contentEt.addTextChangedListener(new CustomTextWatcher(){
+        contentEt.addTextChangedListener(new CustomTextWatcher() {
             @Override
             public void afterTextChanged(Editable s) {
                 contentCountTv.setText(s.toString().trim().length() + "/500");
@@ -79,7 +79,7 @@ public class AnnouncementModifyActivity extends BaseActivity {
             setCenterTitle(R.string.announcement_edit);
             titleEt.setText(announcement.getTitle());
             contentEt.setText(announcement.getContent());
-        }else {
+        } else {
             setCenterTitle(R.string.announcement_create);
         }
     }
@@ -105,7 +105,7 @@ public class AnnouncementModifyActivity extends BaseActivity {
     }
 
     private void createAnnouncement(final String title, final String content) {
-        HttpContact.createAnnouncement(UserDao.user.getId(), content, mGroupInfo.getId(), title,
+        HttpContact.createAnnouncement(SpCons.getUser(getAppContext()).getId(), content, mGroupInfo.getId(), title,
                 new HttpCallBack(this, ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
@@ -114,20 +114,18 @@ public class AnnouncementModifyActivity extends BaseActivity {
                         announcement.setTitle(title);
                         announcement.setContent(content);
                         EventTrans.post(EventMsg.CONTACT_GROUP_ANNOUNCEMENT_REFRESH);
-                        SpCons.setGroupAnnouncement(getApplicationContext(), title);
                         finish();
                     }
                 });
     }
 
     private void modifyAnnouncement(final String title, final String content) {
-        HttpContact.modifyAnnouncement(UserDao.user.getId(), content, announcement.getId(), title,
+        HttpContact.modifyAnnouncement(SpCons.getUser(getAppContext()).getId(), content, announcement.getId(), title,
                 new HttpCallBack(this, ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
                         announcement.setTitle(title);
                         announcement.setContent(content);
-                        SpCons.setGroupAnnouncement(getApplicationContext(), title);
                         EventTrans.post(EventMsg.CONTACT_GROUP_ANNOUNCEMENT_REFRESH);
                         finish();
                     }
@@ -136,16 +134,16 @@ public class AnnouncementModifyActivity extends BaseActivity {
 
     @Override
     public void onEventTrans(EventMsg msg) {
-        switch (msg.getKey()){
+        switch (msg.getKey()) {
             case EventMsg.CONTACT_GROUP_REMOVE_MEMBER:
                 GroupInfo groupInfo1 = (GroupInfo) msg.getData();
                 FriendInfo receiver = (FriendInfo) msg.getThirdData();
                 if (groupInfo1 == null || TextUtils.isEmpty(groupInfo1.getId())
-                        || receiver == null || TextUtils.isEmpty(receiver.getId())){
+                        || receiver == null || TextUtils.isEmpty(receiver.getId())) {
                     return;
                 }
                 if (groupInfo1.getId().equals(mGroupInfo.getId())
-                        && receiver.getId().equals(UserDao.user.getId())){
+                        && receiver.getId().equals(SpCons.getUser(getAppContext()).getId())) {
                     ToastUtil.showShort(getAppContext(), R.string.you_are_moved_out_from_group);
                     getHostActivity().finish();
                 }
@@ -153,9 +151,13 @@ public class AnnouncementModifyActivity extends BaseActivity {
 
             case EventMsg.CONTACT_GROUP_DISBAND:
                 String groupId1 = msg.getData().toString();
-                if (!TextUtils.isEmpty(groupId1) && groupId1.equals(mGroupInfo.getId())){
+                if (!TextUtils.isEmpty(groupId1) && groupId1.equals(mGroupInfo.getId())) {
                     getHostActivity().finish();
                 }
+                break;
+
+            default:
+
                 break;
 
         }

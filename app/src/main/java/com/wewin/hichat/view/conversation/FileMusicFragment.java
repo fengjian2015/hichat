@@ -5,10 +5,9 @@ import android.support.v7.widget.RecyclerView;
 
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.manage.FileManager;
-import com.wewin.hichat.androidlib.rxJava.OnRxJavaProcessListener;
-import com.wewin.hichat.androidlib.rxJava.RxJavaObserver;
-import com.wewin.hichat.androidlib.rxJava.RxJavaScheduler;
-import com.wewin.hichat.androidlib.utils.LogUtil;
+import com.wewin.hichat.androidlib.rxjava.OnRxJavaProcessListener;
+import com.wewin.hichat.androidlib.rxjava.RxJavaObserver;
+import com.wewin.hichat.androidlib.rxjava.RxJavaScheduler;
 import com.wewin.hichat.component.adapter.MessageFileRcvAdapter;
 import com.wewin.hichat.component.base.BaseFragment;
 import com.wewin.hichat.component.dialog.LoadingDialog;

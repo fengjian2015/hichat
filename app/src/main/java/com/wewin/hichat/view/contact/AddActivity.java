@@ -66,7 +66,7 @@ public class AddActivity extends BaseActivity {
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
+        switch (v.getId()) {
             case R.id.ll_contact_add_friend:
                 containerVp.setCurrentItem(0);
                 resetBluePoint(0);
@@ -81,18 +81,22 @@ public class AddActivity extends BaseActivity {
                 containerVp.setCurrentItem(2);
                 resetBluePoint(2);
                 break;
+
+            default:
+
+                break;
         }
     }
 
     @Override
     protected void onRightTvClick() {
-        if (groupCreateFragment != null){
+        if (groupCreateFragment != null) {
             groupCreateFragment.createGroup();
         }
     }
 
-    private void resetBluePoint(int position){
-        switch (position){
+    private void resetBluePoint(int position) {
+        switch (position) {
             case 0:
                 leftPointIv.setVisibility(View.VISIBLE);
                 centerPointIv.setVisibility(View.INVISIBLE);
@@ -113,6 +117,10 @@ public class AddActivity extends BaseActivity {
                 rightPointIv.setVisibility(View.VISIBLE);
                 setRightTv(R.string.finish);
                 break;
+
+            default:
+
+                break;
         }
     }
 
@@ -131,7 +139,7 @@ public class AddActivity extends BaseActivity {
     public void onEventTrans(EventMsg msg) {
         if (msg.getKey() == EventMsg.CONTACT_FRIEND_ADD_FINISH
                 || msg.getKey() == EventMsg.CONTACT_GROUP_APPLY_JOIN_FINISH
-                || msg.getKey() == EventMsg.CONTACT_SEND_MSG_FINISH){
+                || msg.getKey() == EventMsg.CONTACT_SEND_MSG_FINISH) {
             this.finish();
         }
     }
@@ -139,25 +147,28 @@ public class AddActivity extends BaseActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK){
-            switch (requestCode){
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
                 case ImgUtil.REQUEST_CAMERA:
                     LogUtil.i("ImgUtil.REQUEST_CAMERA");
-                    if (!TextUtils.isEmpty(ImgUtil.cameraOutputPath)){
+                    if (!TextUtils.isEmpty(ImgUtil.cameraOutputPath)) {
                         ImgUtil.cropPic(getHostActivity(), ImgUtil.cameraOutputPath, ImgUtil.IMG_CROP_SIZE_1);
                     }
                     break;
 
                 case ImgUtil.REQUEST_CROP:
                     LogUtil.i("ImgUtil.REQUEST_CROP");
-                    if (!TextUtils.isEmpty(ImgUtil.cropOutputPath)){
-                        if (groupCreateFragment != null){
+                    if (!TextUtils.isEmpty(ImgUtil.cropOutputPath)) {
+                        if (groupCreateFragment != null) {
                             groupCreateFragment.setCameraImg(ImgUtil.cropOutputPath);
                         }
                     }
                     break;
-            }
 
+                default:
+
+                    break;
+            }
         }
     }
 }

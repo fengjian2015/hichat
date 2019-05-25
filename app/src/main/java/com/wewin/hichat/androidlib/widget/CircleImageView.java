@@ -48,7 +48,6 @@ public class CircleImageView extends AppCompatImageView {
         init(context, attrs);
     }
 
-
     private void init(Context context, AttributeSet attrs) {
         //初始化默认值
         mPressAlpha = 64;
@@ -78,14 +77,12 @@ public class CircleImageView extends AppCompatImageView {
         mPressPaint.setAlpha(0);
         mPressPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
 
-//        setClickable(true);
         setDrawingCacheEnabled(true);
         setWillNotDraw(false);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-//        super.onDraw(canvas);
         // 获取当前控件的 drawable
         Drawable drawable = getDrawable();
         if (drawable == null) {
@@ -96,13 +93,12 @@ public class CircleImageView extends AppCompatImageView {
             return;
         }
         // 获取 bitmap，即传入 imageview 的 bitmap
-        if (drawable instanceof BitmapDrawable){
+        if (drawable instanceof BitmapDrawable) {
             Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
             drawDrawable(canvas, bitmap);
         }
         drawPress(canvas);
         drawBorder(canvas);
-
     }
 
     private void drawDrawable(Canvas canvas, Bitmap bitmap) {
@@ -145,16 +141,16 @@ public class CircleImageView extends AppCompatImageView {
     }
 
     private void drawPress(Canvas canvas) {
-
-        if(mShapeType == 0){
-            canvas.drawCircle(mWidth/2, mHeight/2, mWidth/2, mPressPaint);
-        }else if (mShapeType == 1) {
+        if (mShapeType == 0) {
+            canvas.drawCircle(mWidth / 2, mHeight / 2, mWidth / 2, mPressPaint);
+        } else if (mShapeType == 1) {
             RectF rectF = new RectF(0, 0, mWidth, mHeight);
             canvas.drawRoundRect(rectF, mRadius, mRadius, mPressPaint);
         }
     }
-    private void drawBorder(Canvas canvas){
-        if(mBorderWidth > 0){
+
+    private void drawBorder(Canvas canvas) {
+        if (mBorderWidth > 0) {
             Paint paint = new Paint();
             paint.setStrokeWidth(mBorderWidth);
             paint.setStyle(Paint.Style.STROKE);

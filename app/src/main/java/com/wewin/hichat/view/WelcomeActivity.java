@@ -5,11 +5,13 @@ import android.os.Handler;
 
 import com.wewin.hichat.MainActivity;
 import com.wewin.hichat.R;
+import com.wewin.hichat.androidlib.utils.ToastUtil;
 import com.wewin.hichat.component.base.BaseActivity;
 import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.view.login.LoginMainActivity;
 
 /**
+ * @author Darren
  * Created by Darren on 2018/12/13.
  */
 public class WelcomeActivity extends BaseActivity {
@@ -18,10 +20,10 @@ public class WelcomeActivity extends BaseActivity {
     private Runnable delayRunnable = new Runnable() {
         @Override
         public void run() {
-            if (SpCons.getLoginState(getApplicationContext())){
-                startActivity(new Intent(getApplicationContext(), MainActivity.class));
-            }else {
-                startActivity(new Intent(getApplicationContext(), LoginMainActivity.class));
+            if (SpCons.getLoginState(getAppContext())) {
+                startActivity(new Intent(getAppContext(), MainActivity.class));
+            } else {
+                startActivity(new Intent(getAppContext(), LoginMainActivity.class));
             }
             WelcomeActivity.this.finish();
         }
@@ -45,7 +47,7 @@ public class WelcomeActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (handler != null){
+        if (handler != null) {
             handler.removeCallbacks(delayRunnable);
             delayRunnable = null;
             handler = null;

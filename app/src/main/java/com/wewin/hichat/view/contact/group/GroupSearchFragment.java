@@ -9,15 +9,18 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.wewin.hichat.R;
+import com.wewin.hichat.androidlib.event.EventMsg;
 import com.wewin.hichat.androidlib.impl.CustomTextWatcher;
 import com.wewin.hichat.androidlib.utils.ClassUtil;
 import com.wewin.hichat.androidlib.utils.ImgUtil;
 import com.wewin.hichat.androidlib.utils.LogUtil;
 import com.wewin.hichat.androidlib.utils.ToastUtil;
 import com.wewin.hichat.component.base.BaseFragment;
+import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.component.dialog.PromptDialog;
 import com.wewin.hichat.component.manager.ChatRoomManager;
 import com.wewin.hichat.model.db.dao.GroupDao;
@@ -25,6 +28,7 @@ import com.wewin.hichat.model.db.dao.UserDao;
 import com.wewin.hichat.model.db.entity.GroupInfo;
 import com.wewin.hichat.androidlib.impl.HttpCallBack;
 import com.wewin.hichat.model.http.HttpContact;
+
 import java.util.List;
 
 /**
@@ -179,7 +183,7 @@ public class GroupSearchFragment extends BaseFragment {
     }
 
     private void applyJoinGroup(String groupNum, String verifyStr) {
-        HttpContact.applyJoinGroup(groupNum, verifyStr, UserDao.user.getId(),
+        HttpContact.applyJoinGroup(groupNum, verifyStr, SpCons.getUser(getHostActivity()).getId(),
                 new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
@@ -209,6 +213,31 @@ public class GroupSearchFragment extends BaseFragment {
             promptDialog = promptBuilder.setPromptContent(R.string.search_group_null).create();
         }
         promptDialog.show();
+    }
+
+    @Override
+    public void onEventTrans(EventMsg msg) {
+        switch (msg.getKey()){
+            case EventMsg.CONTACT_GROUP_AGREE_JOIN:
+                GroupInfo groupData = (GroupInfo) msg.getData();
+                if (groupData != null && mGroupInfo != null && mGroupInfo.getId().equals(groupData.getId())) {
+                    groupType = 1;
+                    applyBtn.setText(getString(R.string.send_message));
+                    applyBtn.setEnabled(true);
+                }
+                break;
+
+            case EventMsg.CONTACT_GROUP_REMOVE_MEMBER:
+                GroupInfo groupData1 = (GroupInfo) msg.getData();
+                if (groupData1 != null && mGroupInfo != null && mGroupInfo.getId().equals(groupData1.getId())) {
+                    getHostActivity().finish();
+                }
+                break;
+
+            default:
+
+                break;
+        }
     }
 
 }

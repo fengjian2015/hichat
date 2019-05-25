@@ -21,38 +21,39 @@ import com.wewin.hichat.model.db.entity.FriendInfo;
 
 import java.util.List;
 
-/*
- *   author:jason
- *   date:2019/4/2715:15
- *   选择群成员
+/**
+ * @author Jason
+ * date:2019/4/2715:15
+ * 选择群成员
  */
 public class SelectPersonListDialog extends Dialog implements View.OnClickListener {
+
     private Context context;
     private View view;
-    private ListView lv_menu;
+    private ListView containerLv;
     private TextView mTvAllMembers;
-    private ImageView mIvcancel;
+    private ImageView mCancelIv;
 
     private ListOnClick listOnClick;
-    private List<FriendInfo> menunames;
+    private List<FriendInfo> menuNames;
     private MyAdapter mAdapter;
 
-    public SelectPersonListDialog(@NonNull Context context, List<FriendInfo> menunames){
+    public SelectPersonListDialog(@NonNull Context context, List<FriendInfo> menuNames) {
         super(context, R.style.dialog_common);
         this.context = context;
-        this.menunames=menunames;
+        this.menuNames = menuNames;
         init();
     }
 
     private void init() {
         view = View.inflate(context, R.layout.pop_select_person, null);
-        lv_menu = view.findViewById(R.id.list);
+        containerLv = view.findViewById(R.id.list);
         mTvAllMembers = view.findViewById(R.id.tv_all_members);
-        mIvcancel = view.findViewById(R.id.tv_cancel);
-        mIvcancel.setOnClickListener(this);
+        mCancelIv = view.findViewById(R.id.tv_cancel);
+        mCancelIv.setOnClickListener(this);
         mTvAllMembers.setOnClickListener(this);
         mAdapter = new MyAdapter();
-        lv_menu.setAdapter(mAdapter);
+        containerLv.setAdapter(mAdapter);
 
         Window window = getWindow();
         window.setDimAmount(0f);
@@ -61,11 +62,13 @@ public class SelectPersonListDialog extends Dialog implements View.OnClickListen
         WindowManager.LayoutParams lp = window.getAttributes();
         //设置窗口宽度为充满全屏
         lp.width = WindowManager.LayoutParams.MATCH_PARENT;
-        lp.y=DensityUtil.dp2px(40);
+        lp.y = DensityUtil.dp2px(40);
         //将设置好的属性set回去
         window.setAttributes(lp);
         window.setGravity(Gravity.BOTTOM);
-        if (!ActivityUtil.isActivityOnTop(context)) return;
+        if (!ActivityUtil.isActivityOnTop(context)) {
+            return;
+        }
         window.setWindowAnimations(R.style.dialog_common);
         setContentView(view);
 
@@ -73,7 +76,9 @@ public class SelectPersonListDialog extends Dialog implements View.OnClickListen
 
 
     public void showDialog() {
-        if (!ActivityUtil.isActivityOnTop(context)) return;
+        if (!ActivityUtil.isActivityOnTop(context)) {
+            return;
+        }
         show();
     }
 
@@ -90,6 +95,9 @@ public class SelectPersonListDialog extends Dialog implements View.OnClickListen
                 }
                 dismiss();
                 break;
+
+            default:
+                break;
         }
     }
 
@@ -98,12 +106,12 @@ public class SelectPersonListDialog extends Dialog implements View.OnClickListen
 
         @Override
         public int getCount() {
-            return menunames.size();
+            return menuNames.size();
         }
 
         @Override
         public Object getItem(int position) {
-            return menunames.get(position);
+            return menuNames.get(position);
         }
 
         @Override
@@ -119,12 +127,12 @@ public class SelectPersonListDialog extends Dialog implements View.OnClickListen
                 holder = new ViewHolder();
                 convertView.setTag(holder);
                 holder.textView = convertView.findViewById(R.id.tv_name);
-                holder.imageView=convertView.findViewById(R.id.iv_avatar);
+                holder.imageView = convertView.findViewById(R.id.iv_avatar);
             } else {
                 holder = (ViewHolder) convertView.getTag();
             }
-            ImgUtil.load(context, menunames.get(position).getAvatar(), holder.imageView);
-            holder.textView.setText(menunames.get(position).getUsername());
+            ImgUtil.loadCircle(context, menuNames.get(position).getAvatar(), holder.imageView);
+            holder.textView.setText(menuNames.get(position).getUsername());
             convertView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -150,6 +158,7 @@ public class SelectPersonListDialog extends Dialog implements View.OnClickListen
 
     public interface ListOnClick {
         void onClickItem(int position);
+
         void allMember();
     }
 }

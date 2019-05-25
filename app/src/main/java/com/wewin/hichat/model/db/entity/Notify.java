@@ -1,121 +1,124 @@
 package com.wewin.hichat.model.db.entity;
 
+import android.text.TextUtils;
+import com.wewin.hichat.androidlib.utils.UUIDUtil;
 import java.io.Serializable;
+import java.util.Comparator;
+import java.util.Random;
 
 /**
  * Created by Darren on 2018/12/26.
  */
 public class Notify implements Serializable {
 
-    public static final int TYPE_FRIEND = 1;
-    public static final int TYPE_GROUP = 2;
     public static final int STATUS_REFUSE = -1;
     public static final int STATUS_WAIT = 0;
     public static final int STATUS_AGREE = 1;
 
-    private String accountId;
-    private String content;
-    private String from;
-    private String fromGroup;
-    private String href;
-    private String id;
-    private int isSystem;
-    private String read;
+    private String avatar;
+    private long createTime;
+    private String name;
+    private String noticeId;
+    private String noticeType;
     private String remark;
+    private String senderId;
     private int status;//-1已拒绝；0等待验证；1已同意
-    private long time;
-    private int type;//1好友消息 2加群消息
-    private String uGroup;
-    private String uid;
-    private LoginUser fromUser;//接收者
-    private GroupFrom groupFrom;
-    private LoginUser user;//申请者
+    private int systemMark;
+    private String systemMessage;
+    private String systemNote;
 
     public Notify() {
     }
 
-    public Notify(String accountId, String content, String from, String fromGroup, String href, String id, int isSystem, String read, String remark, int status, long time, int type, String uGroup, String uid, LoginUser fromUser, GroupFrom groupFrom, LoginUser user) {
-        this.accountId = accountId;
-        this.content = content;
-        this.from = from;
-        this.fromGroup = fromGroup;
-        this.href = href;
-        this.id = id;
-        this.isSystem = isSystem;
-        this.read = read;
+    public Notify(String avatar, long createTime, String name, String noticeId, String noticeType, String remark, String senderId, int status, int systemMark, String systemMessage, String systemNote) {
+        this.avatar = avatar;
+        this.createTime = createTime;
+        this.name = name;
+        this.noticeId = noticeId;
+        this.noticeType = noticeType;
         this.remark = remark;
+        this.senderId = senderId;
         this.status = status;
-        this.time = time;
-        this.type = type;
-        this.uGroup = uGroup;
-        this.uid = uid;
-        this.fromUser = fromUser;
-        this.groupFrom = groupFrom;
-        this.user = user;
+        this.systemMark = systemMark;
+        this.systemMessage = systemMessage;
+        this.systemNote = systemNote;
     }
 
-    public String getAccountId() {
-        return accountId;
+    //按createTime倒序排列
+    public static class TimeRiseComparator implements Comparator<Notify> {
+        @Override
+        public int compare(Notify o1, Notify o2) {
+            if (o1.getCreateTime() - o2.getCreateTime() < 0) {
+                return 1;
+            } else if (o1.getCreateTime() - o2.getCreateTime() > 0) {
+                return -1;
+            } else {
+                return 0;
+            }
+        }
     }
 
-    public void setAccountId(String accountId) {
-        this.accountId = accountId;
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this){
+            return true;
+        }
+        if (!(obj instanceof Notify)){
+            return false;
+        }
+        return noticeId.equals(((Notify) obj).noticeId);
     }
 
-    public String getContent() {
-        return content;
+    @Override
+    public int hashCode() {
+        int result = 17;
+        if (!TextUtils.isEmpty(noticeId)){
+            result = result * 31 + noticeId.hashCode();
+            return result;
+        }else {
+            return new Random().nextInt(1000) * 31 + UUIDUtil.get32UUID().hashCode();
+        }
+
     }
 
-    public void setContent(String content) {
-        this.content = content;
+    public String getAvatar() {
+        return avatar;
     }
 
-    public String getFrom() {
-        return from;
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
 
-    public void setFrom(String from) {
-        this.from = from;
+    public long getCreateTime() {
+        return createTime;
     }
 
-    public String getFromGroup() {
-        return fromGroup;
+    public void setCreateTime(long createTime) {
+        this.createTime = createTime;
     }
 
-    public void setFromGroup(String fromGroup) {
-        this.fromGroup = fromGroup;
+    public String getName() {
+        return name;
     }
 
-    public String getHref() {
-        return href;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public void setHref(String href) {
-        this.href = href;
+    public String getNoticeId() {
+        return noticeId;
     }
 
-    public String getId() {
-        return id;
+    public void setNoticeId(String noticeId) {
+        this.noticeId = noticeId;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public String getNoticeType() {
+        return noticeType;
     }
 
-    public int getIsSystem() {
-        return isSystem;
-    }
-
-    public void setIsSystem(int isSystem) {
-        this.isSystem = isSystem;
-    }
-
-    public String getRead() {
-        return read;
-    }
-
-    public void setRead(String read) {
-        this.read = read;
+    public void setNoticeType(String noticeType) {
+        this.noticeType = noticeType;
     }
 
     public String getRemark() {
@@ -126,6 +129,14 @@ public class Notify implements Serializable {
         this.remark = remark;
     }
 
+    public String getSenderId() {
+        return senderId;
+    }
+
+    public void setSenderId(String senderId) {
+        this.senderId = senderId;
+    }
+
     public int getStatus() {
         return status;
     }
@@ -134,144 +145,45 @@ public class Notify implements Serializable {
         this.status = status;
     }
 
-    public long getTime() {
-        return time;
+    public int getSystemMark() {
+        return systemMark;
     }
 
-    public void setTime(long time) {
-        this.time = time;
+    public void setSystemMark(int systemMark) {
+        this.systemMark = systemMark;
     }
 
-    public int getType() {
-        return type;
+    public String getSystemMessage() {
+        return systemMessage;
     }
 
-    public void setType(int type) {
-        this.type = type;
+    public void setSystemMessage(String systemMessage) {
+        this.systemMessage = systemMessage;
     }
 
-    public String getuGroup() {
-        return uGroup;
+    public String getSystemNote() {
+        return systemNote;
     }
 
-    public void setuGroup(String uGroup) {
-        this.uGroup = uGroup;
-    }
-
-    public String getUid() {
-        return uid;
-    }
-
-    public void setUid(String uid) {
-        this.uid = uid;
-    }
-
-    public LoginUser getFromUser() {
-        return fromUser;
-    }
-
-    public void setFromUser(LoginUser fromUser) {
-        this.fromUser = fromUser;
-    }
-
-    public GroupFrom getGroupFrom() {
-        return groupFrom;
-    }
-
-    public void setGroupFrom(GroupFrom groupFrom) {
-        this.groupFrom = groupFrom;
-    }
-
-    public LoginUser getUser() {
-        return user;
-    }
-
-    public void setUser(LoginUser user) {
-        this.user = user;
+    public void setSystemNote(String systemNote) {
+        this.systemNote = systemNote;
     }
 
     @Override
     public String toString() {
         return "Notify{" +
-                "accountId='" + accountId + '\'' +
-                ", content='" + content + '\'' +
-                ", from='" + from + '\'' +
-                ", fromGroup='" + fromGroup + '\'' +
-                ", href='" + href + '\'' +
-                ", id='" + id + '\'' +
-                ", isSystem=" + isSystem +
-                ", read='" + read + '\'' +
+                "avatar='" + avatar + '\'' +
+                ", createTime=" + createTime +
+                ", name='" + name + '\'' +
+                ", noticeId='" + noticeId + '\'' +
+                ", noticeType='" + noticeType + '\'' +
                 ", remark='" + remark + '\'' +
+                ", senderId='" + senderId + '\'' +
                 ", status=" + status +
-                ", time='" + time + '\'' +
-                ", type='" + type + '\'' +
-                ", uGroup='" + uGroup + '\'' +
-                ", uid='" + uid + '\'' +
-                ", fromUser=" + fromUser +
-                ", groupFrom=" + groupFrom +
-                ", user=" + user +
+                ", systemMark=" + systemMark +
+                ", systemMessage='" + systemMessage + '\'' +
+                ", systemNote='" + systemNote + '\'' +
                 '}';
     }
-
-    public static class GroupFrom implements Serializable{
-        private String avatar;
-        private String description;
-        private String groupName;
-        private String groupNum;
-        private String id;
-
-        public String getAvatar() {
-            return avatar;
-        }
-
-        public void setAvatar(String avatar) {
-            this.avatar = avatar;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public void setDescription(String description) {
-            this.description = description;
-        }
-
-        public String getGroupName() {
-            return groupName;
-        }
-
-        public void setGroupName(String groupName) {
-            this.groupName = groupName;
-        }
-
-        public String getGroupNum() {
-            return groupNum;
-        }
-
-        public void setGroupNum(String groupNum) {
-            this.groupNum = groupNum;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
-        }
-
-        @Override
-        public String toString() {
-            return "Group{" +
-                    "avatar='" + avatar + '\'' +
-                    ", description='" + description + '\'' +
-                    ", groupName='" + groupName + '\'' +
-                    ", groupNum='" + groupNum + '\'' +
-                    ", id='" + id + '\'' +
-                    '}';
-        }
-    }
-
-
 
 }

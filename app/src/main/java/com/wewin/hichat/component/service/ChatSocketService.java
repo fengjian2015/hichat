@@ -22,6 +22,7 @@ import io.agora.rtc.utils.ThreadUtils;
 public class ChatSocketService extends IntentService {
 
     public static final String NAME_CHAT_SERVICE = "com.wewin.hichat.component.service.ChatSocketService";
+
     public ChatSocketService() {
         super("ChatSocketService");
     }
@@ -29,16 +30,14 @@ public class ChatSocketService extends IntentService {
     @Override
     public void onCreate() {
         super.onCreate();
-        if (SpCons.getLoginState(getApplicationContext())){
-            ChatSocket.getInstance().init(getApplicationContext());
-        }
+        ChatSocket.getInstance().init(getApplicationContext());
     }
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
         while (true) {
             try {
-                Thread.sleep(6 * 1000);
+                Thread.sleep(8 * 1000);
                 checkSocketState();
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -49,7 +48,7 @@ public class ChatSocketService extends IntentService {
     private void checkSocketState() {
         if (!ChatSocket.getInstance().isConnectState()
                 && SpCons.getLoginState(getApplicationContext())) {
-            ChatSocket.getInstance().reconnect(getApplicationContext());
+            ChatSocket.getInstance().reconnect();
         }
     }
 

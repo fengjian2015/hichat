@@ -33,8 +33,9 @@ public class ActivityUtil {
                 } else {
                     return !((Activity) context).isFinishing();
                 }
-            } else
+            } else {
                 return !(context instanceof Service) || isServiceRunning(context, context.getClass().getName());
+            }
         } else {
             return false;
         }
@@ -47,16 +48,17 @@ public class ActivityUtil {
      * @param context
      * @return
      */
-    public static boolean isAppRunning(Context context, String packageName) {
+    public static boolean isAppRunning(Context context) {
         ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         if (am == null){
             return false;
         }
         List<ActivityManager.RunningTaskInfo> list = am.getRunningTasks(100);
         boolean isAppRunning = false;
+        String MY_PKG_NAME = context.getPackageName();
         for (ActivityManager.RunningTaskInfo info : list) {
-            if (info.topActivity.getPackageName().equals(packageName)
-                    || info.baseActivity.getPackageName().equals(packageName)) {
+            if (info.topActivity.getPackageName().equals(MY_PKG_NAME)
+                    || info.baseActivity.getPackageName().equals(MY_PKG_NAME)) {
                 isAppRunning = true;
                 break;
             }

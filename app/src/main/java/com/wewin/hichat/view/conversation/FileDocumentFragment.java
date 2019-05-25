@@ -5,9 +5,9 @@ import android.support.v7.widget.RecyclerView;
 
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.manage.FileManager;
-import com.wewin.hichat.androidlib.rxJava.OnRxJavaProcessListener;
-import com.wewin.hichat.androidlib.rxJava.RxJavaObserver;
-import com.wewin.hichat.androidlib.rxJava.RxJavaScheduler;
+import com.wewin.hichat.androidlib.rxjava.OnRxJavaProcessListener;
+import com.wewin.hichat.androidlib.rxjava.RxJavaObserver;
+import com.wewin.hichat.androidlib.rxjava.RxJavaScheduler;
 import com.wewin.hichat.androidlib.utils.LogUtil;
 import com.wewin.hichat.component.adapter.MessageFileRcvAdapter;
 import com.wewin.hichat.component.base.BaseFragment;
@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.ObservableEmitter;
-import io.reactivex.disposables.Disposable;
 
 /**
  * 文件选择-文档
@@ -60,6 +59,10 @@ public class FileDocumentFragment extends BaseFragment {
                         .getFilesByType(getHostActivity(), FileInfo.TYPE_DOC);
                 fileInfoList.clear();
                 fileInfoList.addAll(dataList);
+
+                for (FileInfo fileInfo : fileInfoList) {
+                    LogUtil.i("fileInfo", fileInfo);
+                }
             }
         }, new RxJavaObserver<Object>() {
             @Override
@@ -104,7 +107,6 @@ public class FileDocumentFragment extends BaseFragment {
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        LogUtil.i("setUserVisibleHint");
         this.isUserVisible = isVisibleToUser;
         if (!isDataGetFinish && isVisibleToUser) {
             showLoadingDialog();

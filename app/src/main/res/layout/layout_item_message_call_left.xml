@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="12dp">
+
+    <TextView
+        android:id="@+id/tv_message_chat_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="time"
+        android:textSize="@dimen/font_size_11"
+        android:textColor="@color/gray_ac"
+        android:gravity="center"
+        android:paddingBottom="9dp"
+        android:visibility="visible"
+        />
+
+    <include layout="@layout/layout_item_message_extra_left"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/ll_message_chat_call_state_container_left"
+        android:layout_alignTop="@+id/ll_message_chat_call_state_container_left"
+        android:layout_alignBottom="@+id/ll_message_chat_call_state_container_left"
+        android:layout_below="@+id/tv_message_chat_date"
+        />
+
+    <!--头像-->
+    <ImageView
+        android:id="@+id/civ_message_chat_left_avatar"
+        android:layout_width="31dp"
+        android:layout_height="31dp"
+        android:layout_marginLeft="12dp"
+        android:src="@drawable/img_avatar_default"
+        android:visibility="visible"
+        android:layout_alignBottom="@+id/ll_message_chat_call_state_container_left"
+        />
+
+    <!--左侧语音通话-->
+    <LinearLayout
+        android:id="@+id/ll_message_chat_call_state_container_left"
+        android:layout_width="wrap_content"
+        android:layout_height="31dp"
+        android:background="@drawable/message_bg_white_left"
+        android:layout_marginLeft="46dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_below="@+id/tv_message_chat_date"
+        >
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="22dp"
+            android:src="@drawable/voice_blue"
+            />
+
+        <TextView
+            android:id="@+id/tv_message_chat_voice_call_state_left"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="7dp"
+            android:textSize="@dimen/font_size_11"
+            android:textColor="@color/blue_main"
+            />
+
+    </LinearLayout>
+
+</RelativeLayout>

@@ -3,6 +3,7 @@ package com.wewin.hichat.component.dialog;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +27,7 @@ public class PromptDialog extends Dialog {
         private TextView contentTv, cancelTv, confirmTv, dividerTv;
         private Activity activity;
         private OnConfirmClickListener confirmClickListener;
+        private OnCancelClickListener cancelClickListener;
         private boolean isCancelableOnTouchOutside = true;
 
         public PromptBuilder(Activity activity){
@@ -62,6 +64,15 @@ public class PromptDialog extends Dialog {
                 }
             });
 
+            promptDialog.setOnDismissListener(new OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    if(cancelClickListener!=null){
+                        cancelClickListener.cancelClick();
+                    }
+                }
+            });
+
             promptDialog.setCancelable(true);
             promptDialog.setCanceledOnTouchOutside(isCancelableOnTouchOutside);
 
@@ -70,6 +81,15 @@ public class PromptDialog extends Dialog {
 
         public interface OnConfirmClickListener{
             void confirmClick();
+        }
+
+        public interface OnCancelClickListener{
+            void cancelClick();
+        }
+
+        public PromptBuilder setOnCancelClickListener(OnCancelClickListener cancelClickListener){
+            this.cancelClickListener = cancelClickListener;
+            return this;
         }
 
         public PromptBuilder setOnConfirmClickListener(OnConfirmClickListener confirmClickListener){

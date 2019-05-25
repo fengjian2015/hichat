@@ -25,7 +25,7 @@
                 android:id="@+id/civ_contact_group_info_avatar"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
-                android:src="@drawable/img_avatar_default"
+                tools:src="@drawable/img_avatar_group_default"
                 app:shape_type="round"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
@@ -52,14 +52,14 @@
             android:layout_marginLeft="100dp"
             android:layout_marginRight="22dp"
             android:layout_centerVertical="true"
-            android:maxLength="10"
+            android:maxLength="12"
             />
 
         <TextView
             android:id="@+id/tv_contact_group_info_name_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0/10"
+            android:text="0/12"
             android:textSize="@dimen/font_size_11"
             android:textColor="@color/gray_c3"
             android:layout_alignParentRight="true"

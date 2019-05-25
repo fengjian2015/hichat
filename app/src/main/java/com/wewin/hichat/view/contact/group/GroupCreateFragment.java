@@ -28,6 +28,7 @@ import com.wewin.hichat.androidlib.utils.ToastUtil;
 import com.wewin.hichat.component.adapter.ContactGroupCreateMemberRcvAdapter;
 import com.wewin.hichat.component.base.BaseFragment;
 import com.wewin.hichat.component.constant.ContactCons;
+import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.component.dialog.PhotoDialog;
 import com.wewin.hichat.model.db.dao.FriendDao;
 import com.wewin.hichat.model.db.dao.UserDao;
@@ -64,7 +65,7 @@ public class GroupCreateFragment extends BaseFragment {
     private final int needVerify = 1;
     private final int notVerify = 0;
     private int verifyType = needVerify;
-    private List<FriendInfo> friendInfoList = new ArrayList<>();
+    private List<FriendInfo> mFriendList = new ArrayList<>();
     private List<String> selectImgList = new ArrayList<>();
     private PhotoDialog photoDialog;
     private ContactGroupCreateMemberRcvAdapter rcvAdapter;
@@ -118,7 +119,7 @@ public class GroupCreateFragment extends BaseFragment {
             @Override
             public void afterTextChanged(Editable s) {
                 String groupName = groupNameEt.getText().toString().trim();
-                nameCountTv.setText(groupName.length() + "/20");
+                nameCountTv.setText(groupName.length() + "/12");
             }
         });
         introduceEt.addTextChangedListener(new CustomTextWatcher() {
@@ -175,6 +176,10 @@ public class GroupCreateFragment extends BaseFragment {
                 verifyType = notVerify;
                 break;
 
+            default:
+
+                break;
+
         }
     }
 
@@ -194,9 +199,9 @@ public class GroupCreateFragment extends BaseFragment {
             ToastUtil.showShort(getActivity(), R.string.input_group_name);
         } else {
             String friendIdStr = "";
-            if (!friendInfoList.isEmpty()) {
+            if (!mFriendList.isEmpty()) {
                 StringBuilder sb = new StringBuilder();
-                for (FriendInfo friend : friendInfoList) {
+                for (FriendInfo friend : mFriendList) {
                     sb.append(friend.getId()).append(",");
                 }
                 friendIdStr = sb.toString().substring(0, sb.toString().length() - 1);
@@ -206,7 +211,7 @@ public class GroupCreateFragment extends BaseFragment {
     }
 
     private void initRecyclerView() {
-        rcvAdapter = new ContactGroupCreateMemberRcvAdapter(getActivity(), friendInfoList);
+        rcvAdapter = new ContactGroupCreateMemberRcvAdapter(getActivity(), mFriendList);
         GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), 4);
         containerRcv.setLayoutManager(layoutManager);
         containerRcv.setAdapter(rcvAdapter);
@@ -215,7 +220,14 @@ public class GroupCreateFragment extends BaseFragment {
             public void itemClick(int position) {
                 if (position == 0) {
                     List<FriendInfo> friendInfoList = FriendDao.getFriendList();
-                    LogUtil.i("FriendDao.getFriendList", friendInfoList);
+                    for (FriendInfo friendInfo : friendInfoList) {
+                        for (FriendInfo selectFriend : mFriendList) {
+                            if (!TextUtils.isEmpty(friendInfo.getId())
+                                    && friendInfo.getId().equals(selectFriend.getId())){
+                                friendInfo.setChecked(true);
+                            }
+                        }
+                    }
                     Intent intent = new Intent(getActivity(), FriendSearchActivity.class);
                     intent.putExtra(ContactCons.EXTRA_CONTACT_FRIEND_SEARCH_TITLE, getString(R.string.create_group));
                     intent.putExtra(ContactCons.EXTRA_CONTACT_FRIEND_LIST, (Serializable) friendInfoList);
@@ -223,7 +235,6 @@ public class GroupCreateFragment extends BaseFragment {
                 }
             }
         });
-
     }
 
     private void showPhotoDialog() {
@@ -246,8 +257,8 @@ public class GroupCreateFragment extends BaseFragment {
     }
 
     private void createGroupCommit(String introduction, String name, String friendIdStr) {
-        HttpContact.createGroup(introduction, groupLimit, name, UserDao.user.getId(), verifyType,
-                friendIdStr, new HttpCallBack(getActivity(), ClassUtil.classMethodName()) {
+        HttpContact.createGroup(introduction, groupLimit, name, SpCons.getUser(getHostActivity()).getId(),
+                verifyType, friendIdStr, new HttpCallBack(getActivity(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
                         if (data == null) {
@@ -291,7 +302,7 @@ public class GroupCreateFragment extends BaseFragment {
                             return;
                         }
                         try {
-                            ToastUtil.showShort(getActivity(), R.string.upload_success);
+                            ToastUtil.showShort(getHostActivity(), R.string.upload_success);
                             LogUtil.i("uploadGroupAvatar", data);
                             JSONObject object = JSON.parseObject(data.toString());
                             String avatar = object.getString("avatar");
@@ -332,11 +343,16 @@ public class GroupCreateFragment extends BaseFragment {
                     break;
 
                 case ContactCons.REQ_CONTACT_FRIEND_LIST_SELECT:
-                    List<FriendInfo> friendDataList = (List<FriendInfo>) data.getSerializableExtra(ContactCons.EXTRA_CONTACT_FRIEND_LIST);
+                    List<FriendInfo> friendDataList = (List<FriendInfo>) data
+                            .getSerializableExtra(ContactCons.EXTRA_CONTACT_FRIEND_LIST);
                     LogUtil.i("friendDataList", friendDataList);
-                    friendInfoList.clear();
-                    friendInfoList.addAll(friendDataList);
+                    mFriendList.clear();
+                    mFriendList.addAll(friendDataList);
                     rcvAdapter.notifyDataSetChanged();
+                    break;
+
+                default:
+
                     break;
             }
         }
@@ -346,7 +362,7 @@ public class GroupCreateFragment extends BaseFragment {
     public void onDestroy() {
         super.onDestroy();
         if (getActivity() != null) {
-            FileUtil.deleteDir(FileUtil.getInnerFilePath(getActivity()));
+            FileUtil.deleteDir(FileUtil.getSDCachePath(getActivity()));
         }
     }
 

@@ -6,10 +6,10 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.datamanager.DataCache;
 import com.wewin.hichat.androidlib.datamanager.SpCache;
@@ -26,11 +26,11 @@ import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.component.dialog.FriendDeleteDialog;
 import com.wewin.hichat.component.dialog.PromptInputDialog;
 import com.wewin.hichat.component.manager.ChatRoomManager;
+import com.wewin.hichat.component.manager.VoiceCallManager;
 import com.wewin.hichat.model.db.dao.ChatRoomDao;
 import com.wewin.hichat.model.db.dao.ContactUserDao;
 import com.wewin.hichat.model.db.dao.FriendDao;
 import com.wewin.hichat.model.db.dao.MessageDao;
-import com.wewin.hichat.model.db.dao.UserDao;
 import com.wewin.hichat.model.db.entity.ChatRoom;
 import com.wewin.hichat.model.db.entity.FriendInfo;
 import com.wewin.hichat.androidlib.impl.HttpCallBack;
@@ -38,27 +38,28 @@ import com.wewin.hichat.model.db.entity.Subgroup;
 import com.wewin.hichat.model.http.HttpContact;
 import com.wewin.hichat.model.http.HttpMessage;
 
+import java.util.Map;
+
 /**
  * 好友资料
  * Created by Darren on 2019/1/3.
  */
 public class FriendInfoActivity extends BaseActivity {
 
-    private ImageView avatarIv, callIv, chatIv;
-    private TextView nameTv, phoneNumTv, signTv, nicknameTv, sexTv, onlineStateTv, clearConversationTv,
+    private ImageView avatarIv, callIv, chatIv, makeTopIv, shieldIv;
+    private TextView nameTv, phoneNumTv, signTv, nicknameTv, sexTv, clearConversationTv,
             blacklistTv, deleteFriendTv, friendNoteTv, addFriendTv;
     private FrameLayout moveGroupingFl, makeTopFl, shieldFl;
-    private ScrollView containerSv;
-    private CheckBox makeTopCb, shieldCb;
     private FriendInfo mFriendInfo;
     private FriendDeleteDialog friendDeleteDialog;
     private PromptInputDialog promptInputDialog;
     private ChatRoom mChatRoom;
+    private boolean isInit = true;
 
 
     @Override
     protected int getLayoutId() {
-        return R.layout.activity_contact_chat_friend_info;
+        return R.layout.activity_contact_friend_info;
     }
 
     @Override
@@ -83,9 +84,8 @@ public class FriendInfoActivity extends BaseActivity {
         moveGroupingFl = findViewById(R.id.fl_contact_friend_info_move_grouping);
         makeTopFl = findViewById(R.id.fl_contact_friend_info_make_top);
         shieldFl = findViewById(R.id.fl_contact_friend_info_shield);
-        makeTopCb = findViewById(R.id.cb_contact_friend_info_make_top);
-        shieldCb = findViewById(R.id.cb_contact_friend_info_shield);
-        containerSv = findViewById(R.id.sv_contact_friend_info_container);
+        makeTopIv = findViewById(R.id.iv_contact_friend_info_make_top);
+        shieldIv = findViewById(R.id.iv_contact_friend_info_shield);
         addFriendTv = findViewById(R.id.tv_contact_friend_info_add_friend);
     }
 
@@ -94,11 +94,11 @@ public class FriendInfoActivity extends BaseActivity {
         setCenterTitle(R.string.friend_info);
         setLeftText(R.string.back);
         LogUtil.i("mChatRoom", mChatRoom);
-        FriendInfo friendInfo = FriendDao.getFriendInfo(mChatRoom.getRoomId());
-        if (friendInfo == null) {
-            friendInfo = ContactUserDao.getContactUser(mChatRoom.getRoomId());
+        mFriendInfo = FriendDao.getFriendInfo(mChatRoom.getRoomId());
+        if (mFriendInfo == null) {
+            mFriendInfo = ContactUserDao.getContactUser(mChatRoom.getRoomId());
         }
-        if (friendInfo != null) {
+        if (mFriendInfo != null) {
             setViewByData();
         }
         if (mChatRoom != null) {
@@ -113,9 +113,7 @@ public class FriendInfoActivity extends BaseActivity {
         chatIv.setOnClickListener(this);
         moveGroupingFl.setOnClickListener(this);
         makeTopFl.setOnClickListener(this);
-        makeTopCb.setOnClickListener(this);
         shieldFl.setOnClickListener(this);
-        shieldCb.setOnClickListener(this);
         clearConversationTv.setOnClickListener(this);
         blacklistTv.setOnClickListener(this);
         deleteFriendTv.setOnClickListener(this);
@@ -128,7 +126,7 @@ public class FriendInfoActivity extends BaseActivity {
         switch (v.getId()) {
             case R.id.iv_contact_friend_info_call:
                 if (mChatRoom != null) {
-                    ChatRoomManager.startVoiceCallInviteActivity(getHostActivity(), mChatRoom);
+                    VoiceCallManager.get().startVoiceCallActivity(getHostActivity(), mChatRoom);
                 }
                 break;
 
@@ -146,15 +144,13 @@ public class FriendInfoActivity extends BaseActivity {
                 }
                 break;
 
-            case R.id.cb_contact_friend_info_make_top:
             case R.id.fl_contact_friend_info_make_top:
                 if (mFriendInfo != null) {
                     int topMark = 1 - mFriendInfo.getTopMark();
-                    makeTopFriend(mFriendInfo.getId(), topMark,FriendDao.findFriendshipMark(mFriendInfo.getId()));
+                    makeTopFriend(mFriendInfo.getId(), topMark, FriendDao.findFriendshipMark(mFriendInfo.getId()));
                 }
                 break;
 
-            case R.id.cb_contact_friend_info_shield:
             case R.id.fl_contact_friend_info_shield:
                 if (mFriendInfo != null) {
                     int shieldMark = 1 - mFriendInfo.getShieldMark();
@@ -176,8 +172,7 @@ public class FriendInfoActivity extends BaseActivity {
                     } else {
                         blackMark = 0;
                     }
-                    LogUtil.i("blackMark", blackMark);
-                    pullBlackFriend(mFriendInfo.getId(), blackMark,FriendDao.findFriendshipMark(mChatRoom.getRoomId()));
+                    pullBlackFriend(mFriendInfo.getId(), blackMark, FriendDao.findFriendshipMark(mChatRoom.getRoomId()));
                 }
                 break;
 
@@ -192,8 +187,12 @@ public class FriendInfoActivity extends BaseActivity {
             case R.id.tv_contact_friend_info_add_friend:
                 DataCache spCache = new SpCache(getAppContext());
                 Subgroup friendSubgroup = (Subgroup) spCache.getObject(SpCons.SP_KEY_FRIEND_SUBGROUP);
-                applyAddFriend(mFriendInfo.getId(), UserDao.user.getUsername() + getString(R.string.apply_add_friend),
+                applyAddFriend(mFriendInfo.getId(), SpCons.getUser(getAppContext()).getUsername() + getString(R.string.apply_add_friend),
                         friendSubgroup.getId());
+                break;
+
+            default:
+
                 break;
         }
     }
@@ -227,8 +226,8 @@ public class FriendInfoActivity extends BaseActivity {
         } else {
             sexTv.setText(R.string.keep_secret);
         }
-        makeTopCb.setChecked(TransUtil.intToBoolean(mFriendInfo.getTopMark()));
-        shieldCb.setChecked(TransUtil.intToBoolean(mFriendInfo.getShieldMark()));
+        makeTopIv.setSelected(TransUtil.intToBoolean(mFriendInfo.getTopMark()));
+        shieldIv.setSelected(TransUtil.intToBoolean(mFriendInfo.getShieldMark()));
 
         if (mFriendInfo.getBlackMark() == 1) {
             blacklistTv.setText(getString(R.string.push_black_list));
@@ -238,7 +237,6 @@ public class FriendInfoActivity extends BaseActivity {
             makeTopFl.setVisibility(View.GONE);
             shieldFl.setVisibility(View.GONE);
             clearConversationTv.setVisibility(View.GONE);
-            containerSv.fullScroll(ScrollView.FOCUS_AFTER_DESCENDANTS);
         } else {
             blacklistTv.setText(getString(R.string.pull_black_list));
             callIv.setVisibility(View.VISIBLE);
@@ -247,15 +245,14 @@ public class FriendInfoActivity extends BaseActivity {
             makeTopFl.setVisibility(View.VISIBLE);
             shieldFl.setVisibility(View.VISIBLE);
             clearConversationTv.setVisibility(View.VISIBLE);
-            containerSv.fullScroll(ScrollView.FOCUS_AFTER_DESCENDANTS);
         }
         //非好友的情况
-        if(FriendDao.findFriendshipMark(mChatRoom.getRoomId())==0){
+        if (mFriendInfo.getFriendship() == 0) {
             addFriendTv.setVisibility(View.VISIBLE);
             deleteFriendTv.setVisibility(View.GONE);
             moveGroupingFl.setVisibility(View.GONE);
             phoneNumTv.setVisibility(View.GONE);
-        }else {
+        } else {
             addFriendTv.setVisibility(View.GONE);
             deleteFriendTv.setVisibility(View.VISIBLE);
             moveGroupingFl.setVisibility(View.VISIBLE);
@@ -269,7 +266,7 @@ public class FriendInfoActivity extends BaseActivity {
             friendDeleteDialog = builder.setOnConfirmClickListener(new FriendDeleteDialog.FriendDeleteBuilder.OnDialogConfirmClickListener() {
                 @Override
                 public void confirmClick() {
-                    deleteFriend(UserDao.user.getId(), mFriendInfo.getId());
+                    deleteFriend(SpCons.getUser(getAppContext()).getId(), mFriendInfo.getId());
                 }
             }).create();
         }
@@ -286,12 +283,35 @@ public class FriendInfoActivity extends BaseActivity {
                         @Override
                         public void confirm(String inputStr) {
                             if (!TextUtils.isEmpty(inputStr)) {
-                                modifyFriendNote(UserDao.user.getId(), mFriendInfo.getId(), inputStr,FriendDao.findFriendshipMark(mFriendInfo.getId()));
+                                modifyFriendNote(SpCons.getUser(getAppContext()).getId(), mFriendInfo.getId(), inputStr, FriendDao.findFriendshipMark(mFriendInfo.getId()));
                             }
                         }
                     }).create();
         }
         promptInputDialog.show();
+    }
+
+    private void parseBackFriendInfo(FriendInfo backFriend){
+        FriendDao.updateFriendInfo(backFriend);
+        ContactUserDao.addContactUser(backFriend);
+        setViewByData();
+        if (isInit) {
+            isInit = false;
+            if (!mFriendInfo.getAvatar().equals(backFriend.getAvatar())){
+                EventTrans.post(EventMsg.CONTACT_FRIEND_AVATAR_REFRESH, backFriend.getId());
+            }
+            if (!mFriendInfo.getFriendNote().equals(backFriend.getFriendNote())){
+                EventTrans.post(EventMsg.CONTACT_FRIEND_NOTE_REFRESH, backFriend.getId());
+            }
+            if (mFriendInfo.getTopMark() != backFriend.getTopMark()){
+                EventTrans.post(EventMsg.CONTACT_FRIEND_MAKE_TOP_REFRESH, backFriend.getId(),
+                        mFriendInfo.getTopMark());
+            }
+            if (mFriendInfo.getShieldMark() != backFriend.getShieldMark()){
+                EventTrans.post(EventMsg.CONTACT_FRIEND_SHIELD_REFRESH, backFriend.getId(),
+                        mFriendInfo.getShieldMark());
+            }
+        }
     }
 
     private void getFriendInfo(final String friendId) {
@@ -303,9 +323,11 @@ public class FriendInfoActivity extends BaseActivity {
                             return;
                         }
                         try {
-                            mFriendInfo = JSON.parseObject(data.toString(), FriendInfo.class);
-                            LogUtil.i("getFriendInfo", mFriendInfo);
-                            setViewByData();
+                            FriendInfo backFriend = JSON.parseObject(data.toString(), FriendInfo.class);
+                            LogUtil.i("getFriendInfo", backFriend);
+                            parseBackFriendInfo(backFriend);
+                            mFriendInfo = backFriend;
+
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -313,8 +335,8 @@ public class FriendInfoActivity extends BaseActivity {
                 });
     }
 
-    private void pullBlackFriend(final String friendId, final int blackMark,int friendShipMark) {
-        HttpContact.pullBlackFriend(friendId, blackMark,friendShipMark,
+    private void pullBlackFriend(final String friendId, final int blackMark, int friendShipMark) {
+        HttpContact.pullBlackFriend(friendId, blackMark, friendShipMark,
                 new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
@@ -333,7 +355,7 @@ public class FriendInfoActivity extends BaseActivity {
     }
 
     private void shieldFriendConversation(final String friendId, final int shieldMark) {
-        HttpContact.shieldFriendConversation(friendId, shieldMark,FriendDao.findFriendshipMark(friendId),
+        HttpContact.shieldFriendConversation(friendId, shieldMark, FriendDao.findFriendshipMark(friendId),
                 new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
@@ -341,17 +363,18 @@ public class FriendInfoActivity extends BaseActivity {
                             return;
                         }
                         mFriendInfo.setShieldMark(shieldMark);
-                        shieldCb.setChecked(TransUtil.intToBoolean(shieldMark));
+                        shieldIv.setSelected(TransUtil.intToBoolean(shieldMark));
                         ChatRoomDao.updateShieldMark(friendId, ChatRoom.TYPE_SINGLE, shieldMark);
                         FriendDao.updateShieldMark(friendId, shieldMark);
-                        EventTrans.post(EventMsg.CONTACT_FRIEND_SHIELD_REFRESH, mFriendInfo.getId(),
-                                shieldMark);
+                        ContactUserDao.updateShieldMark(friendId, shieldMark);
+                        EventTrans.post(EventMsg.CONTACT_FRIEND_SHIELD_REFRESH,
+                                mFriendInfo.getId(), shieldMark);
                     }
                 });
     }
 
-    private void makeTopFriend(final String friendId, final int topMark,int friendShipMark) {
-        HttpContact.makeTopFriend(friendId, topMark,friendShipMark,
+    private void makeTopFriend(final String friendId, final int topMark, int friendShipMark) {
+        HttpContact.makeTopFriend(friendId, topMark, friendShipMark,
                 new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
@@ -359,10 +382,11 @@ public class FriendInfoActivity extends BaseActivity {
                             return;
                         }
                         mFriendInfo.setTopMark(topMark);
-                        makeTopCb.setChecked(TransUtil.intToBoolean(mFriendInfo.getTopMark()));
+                        makeTopIv.setSelected(TransUtil.intToBoolean(mFriendInfo.getTopMark()));
                         ChatRoomDao.updateTopMark(friendId, ChatRoom.TYPE_SINGLE, topMark);
                         FriendDao.updateTopMark(friendId, topMark);
-                        EventTrans.post(EventMsg.CONTACT_FRIEND_MAKE_TOP_REFRESH, mFriendInfo);
+                        ContactUserDao.updateTopMark(friendId, topMark);
+                        EventTrans.post(EventMsg.CONTACT_FRIEND_MAKE_TOP_REFRESH, friendId, topMark);
                     }
                 });
     }
@@ -381,8 +405,8 @@ public class FriendInfoActivity extends BaseActivity {
                 });
     }
 
-    private void modifyFriendNote(String accountId, final String friendId, final String friendNote,int friendShipMark) {
-        HttpContact.modifyFriendNote(accountId, friendId, friendNote,friendShipMark,
+    private void modifyFriendNote(String accountId, final String friendId, final String friendNote, int friendShipMark) {
+        HttpContact.modifyFriendNote(accountId, friendId, friendNote, friendShipMark,
                 new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
@@ -394,6 +418,7 @@ public class FriendInfoActivity extends BaseActivity {
                             nameTv.setText(mFriendInfo.getUsername());
                         }
                         FriendDao.updateNote(mFriendInfo.getId(), friendNote);
+                        ContactUserDao.updateNote(mFriendInfo.getId(), friendNote);
                         EventTrans.post(EventMsg.CONTACT_FRIEND_NOTE_REFRESH, mFriendInfo.getId());
                     }
                 });
@@ -413,11 +438,15 @@ public class FriendInfoActivity extends BaseActivity {
     }
 
     private void applyAddFriend(String friendId, String verifyInfo, String groupingId) {
-        HttpContact.applyAddFriend(friendId, verifyInfo, groupingId, UserDao.user.getId(),
+        HttpContact.applyAddFriend(friendId, verifyInfo, groupingId, SpCons.getUser(getAppContext()).getId(),
                 new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
-                        ToastUtil.showShort(getAppContext(), R.string.apply_add_friend_sent);
+                        if (data == null) {
+                            ToastUtil.showShort(getAppContext(), getString(R.string.apply_add_friend_sent));
+                        } else {
+                            ToastUtil.showShort(getAppContext(), getString(R.string.add_to_friend));
+                        }
                     }
                 });
     }
@@ -444,10 +473,17 @@ public class FriendInfoActivity extends BaseActivity {
                 if (!TextUtils.isEmpty(friendId1) && friendId1.equals(mFriendInfo.getId())) {
                     getHostActivity().finish();
                 }
+            case EventMsg.CONTACT_FRIEND_AGREE_REFRESH:
+                String friendId2 = msg.getData().toString();
+                if (!TextUtils.isEmpty(friendId2) && friendId2.equals(mFriendInfo.getId())) {
+                    getFriendInfo(mChatRoom.getRoomId());
+                }
                 break;
 
-        }
+            default:
 
+                break;
+        }
     }
 
 }

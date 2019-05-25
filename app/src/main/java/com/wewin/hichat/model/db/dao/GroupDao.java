@@ -32,7 +32,13 @@ public class GroupDao {
     public static final String SHIELD_MARK = "shield_mark";
     public static final String MEMBER_GRADE = "member_grade";
     public static final String USER_ID = "user_id";
+    public static final String ALLOW_ADD_MARK="allow_add_mark";
 
+    public static void addGroup(GroupInfo groupInfo){
+        List<GroupInfo> groupList = new ArrayList<>();
+        groupList.add(groupInfo);
+        addGroupList(groupList);
+    }
 
     public static void addGroupList(List<GroupInfo> groupList) {
         SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
@@ -58,43 +64,42 @@ public class GroupDao {
     }
 
     public static List<GroupInfo> getGroupList() {
-        SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
-        Cursor cursor = db.rawQuery("select * from " + TABLE_NAME + " where " + USER_ID + " =? " +
-                " order by " + LOCAL_ID, new String[]{UserDao.user.getId()});
         List<GroupInfo> groupList = new ArrayList<>();
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                groupList.add(parseCursorData(cursor));
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
+            Cursor cursor = db.rawQuery("select * from " + TABLE_NAME + " where " + USER_ID + " =? " +
+                    " order by " + LOCAL_ID, new String[]{UserDao.user.getId()});
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    groupList.add(parseCursorData(cursor));
+                }
+                cursor.close();
             }
-            cursor.close();
+            DbManager.getInstance().closeDatabase();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        DbManager.getInstance().closeDatabase();
         return groupList;
     }
 
     public static GroupInfo getGroup(String groupId) {
-        SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
-        String sql = "select * from " + TABLE_NAME + " where " + GROUP_ID + " =? and "
-                + USER_ID + " =?";
-        Cursor cursor = db.rawQuery(sql, new String[]{groupId, UserDao.user.getId()});
         GroupInfo groupInfo = null;
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                groupInfo = parseCursorData(cursor);
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
+            String sql = "select * from " + TABLE_NAME + " where " + GROUP_ID + " =? and "
+                    + USER_ID + " =?";
+            Cursor cursor = db.rawQuery(sql, new String[]{groupId, UserDao.user.getId()});
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    groupInfo = parseCursorData(cursor);
+                }
+                cursor.close();
             }
-            cursor.close();
+            DbManager.getInstance().closeDatabase();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        DbManager.getInstance().closeDatabase();
         return groupInfo;
-    }
-
-    public static void updateGroupInfo(GroupInfo groupInfo) {
-        SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
-        String sql = "update " + TABLE_NAME + " set " + GROUP_NAME + " =? and " + GROUP_AVATAR
-                + " =? where " + GROUP_ID + " =?";
-        db.execSQL(sql, new String[]{groupInfo.getGroupName(), groupInfo.getGroupAvatar(),
-                groupInfo.getId()});
-        DbManager.getInstance().closeDatabase();
     }
 
     public static void updateTopMark(String groupId, int topMark) {
@@ -113,20 +118,55 @@ public class GroupDao {
         update(groupId, GROUP_NAME, groupName);
     }
 
-    public static void updateDesc(String groupId, String desc){
+    public static void updateDesc(String groupId, String desc) {
         update(groupId, DESCRIPTION, desc);
     }
 
-    public static void updateGroupGrade(String groupId, int groupGrade){
+    public static void updateGroupGrade(String groupId, int groupGrade) {
         update(groupId, MEMBER_GRADE, String.valueOf(groupGrade));
     }
 
-    private static void update(String groupId, String columnName, String columnValue){
-        SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
-        String sql = "update " + TABLE_NAME + " set " + columnName + " =? where " + GROUP_ID
-                + " =? and " + USER_ID + " =?";
-        db.execSQL(sql, new String[]{columnValue, groupId});
-        DbManager.getInstance().closeDatabase();
+    public static void updatePermission(GroupInfo groupInfo) {
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
+            ContentValues values = new ContentValues();
+            if (groupInfo.getSearchFlag() >= 0) {
+                values.put(SEARCH_MARK, groupInfo.getSearchFlag());
+            }
+            if (groupInfo.getGroupValid() >= 0) {
+                values.put(VERIFY_MARK, groupInfo.getGroupValid());
+            }
+            if (groupInfo.getInviteFlag() >= 0) {
+                values.put(INVITE_MARK, groupInfo.getInviteFlag());
+            }
+            if (groupInfo.getAddFriendMark() >= 0) {
+                values.put(ADD_FRIEND_MARK, groupInfo.getAddFriendMark());
+            }
+            if (groupInfo.getGroupSpeak() >= 0) {
+                values.put(GROUP_SPEAK, groupInfo.getGroupSpeak());
+            }
+            if( groupInfo.getAddFlag()>=0){
+                values.put(ALLOW_ADD_MARK,groupInfo.getAddFlag());
+            }
+            String whereSql = GROUP_ID + " =? and " + USER_ID + " =?";
+            db.update(TABLE_NAME, values, whereSql, new String[]{groupInfo.getId(), UserDao.user.getId()});
+            DbManager.getInstance().closeDatabase();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void update(String groupId, String columnName, String columnValue) {
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
+            String sql = "update " + TABLE_NAME + " set " + columnName + " =? where " + GROUP_ID
+                    + " =? and " + USER_ID + " =?";
+            db.execSQL(sql, new String[]{columnValue, groupId, UserDao.user.getId()});
+            DbManager.getInstance().closeDatabase();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void deleteGroup(String groupId) {
@@ -144,7 +184,7 @@ public class GroupDao {
         }
     }
 
-    private static ContentValues packContentValue(GroupInfo groupInfo){
+    private static ContentValues packContentValue(GroupInfo groupInfo) {
         ContentValues values = new ContentValues();
         values.put(GROUP_ID, groupInfo.getId());
         values.put(GROUP_NAME, groupInfo.getGroupName());
@@ -160,6 +200,7 @@ public class GroupDao {
         values.put(SHIELD_MARK, groupInfo.getShieldMark());
         values.put(MEMBER_GRADE, groupInfo.getGrade());
         values.put(USER_ID, UserDao.user.getId());
+        values.put(ALLOW_ADD_MARK,groupInfo.getAddFlag());
         return values;
     }
 
@@ -179,6 +220,7 @@ public class GroupDao {
         groupInfo.setTopMark(cursor.getInt(cursor.getColumnIndex(TOP_MARK)));
         groupInfo.setShieldMark(cursor.getInt(cursor.getColumnIndex(SHIELD_MARK)));
         groupInfo.setGrade(cursor.getInt(cursor.getColumnIndex(MEMBER_GRADE)));
+        groupInfo.setAddFlag(cursor.getInt(cursor.getColumnIndex(ALLOW_ADD_MARK)));
         return groupInfo;
     }
 

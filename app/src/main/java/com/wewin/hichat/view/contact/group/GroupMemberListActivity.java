@@ -8,6 +8,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.datamanager.DataCache;
 import com.wewin.hichat.androidlib.datamanager.SpCache;
@@ -35,6 +36,7 @@ import com.wewin.hichat.view.search.CharacterParser;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -60,7 +62,7 @@ public class GroupMemberListActivity extends BaseActivity {
     private final static String SET_MANAGER = "设定为管理员";
     private final static String CANCEL_MANAGER = "取消管理员权限";
     private final static String ADD_FRIEND = "加好友";
-    private final static String MOVE_OUT_GROUP = "移出群组";
+    private final static String REMOVE_MEMBER = "移出群组";
     private final int TYPE_MANAGER_N = 0;//设置取消管理员
     private final int TYPE_MANAGER_Y = 1;//设置成为管理员
 
@@ -99,7 +101,7 @@ public class GroupMemberListActivity extends BaseActivity {
         containerLv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (memberList.get(position).getId().equals(UserDao.user.getId())) {
+                if (memberList.get(position).getId().equals(SpCons.getUser(getAppContext()).getId())) {
                     return;
                 }
                 int clickMemberGrade = memberList.get(position).getGrade();
@@ -115,11 +117,11 @@ public class GroupMemberListActivity extends BaseActivity {
 
                     case 1:
                         if (friendship == 1 && clickMemberGrade == 0) {
-                            selectStrArr = new String[]{CHECK_MEMBER_INFO, SEND_MESSAGE, MOVE_OUT_GROUP};
+                            selectStrArr = new String[]{CHECK_MEMBER_INFO, SEND_MESSAGE, REMOVE_MEMBER};
                         } else if (friendship == 1 && (clickMemberGrade == 1 || clickMemberGrade == 2)) {
                             selectStrArr = new String[]{CHECK_MEMBER_INFO, SEND_MESSAGE};
                         } else if (friendship == 0 && clickMemberGrade == 0) {
-                            selectStrArr = new String[]{CHECK_MEMBER_INFO, TEMPORARY_CHAT, ADD_FRIEND, MOVE_OUT_GROUP};
+                            selectStrArr = new String[]{CHECK_MEMBER_INFO, TEMPORARY_CHAT, ADD_FRIEND, REMOVE_MEMBER};
                         } else if (friendship == 0 && (clickMemberGrade == 1 || clickMemberGrade == 2)) {
                             selectStrArr = new String[]{CHECK_MEMBER_INFO, TEMPORARY_CHAT, ADD_FRIEND};
                         }
@@ -127,16 +129,20 @@ public class GroupMemberListActivity extends BaseActivity {
 
                     case 2:
                         if (friendship == 1 && clickMemberGrade == 0) {
-                            selectStrArr = new String[]{CHECK_MEMBER_INFO, SEND_MESSAGE, SET_MANAGER, MOVE_OUT_GROUP};
+                            selectStrArr = new String[]{CHECK_MEMBER_INFO, SEND_MESSAGE, SET_MANAGER, REMOVE_MEMBER};
                         } else if (friendship == 1 && clickMemberGrade == 1) {
-                            selectStrArr = new String[]{CHECK_MEMBER_INFO, SEND_MESSAGE, CANCEL_MANAGER, MOVE_OUT_GROUP};
+                            selectStrArr = new String[]{CHECK_MEMBER_INFO, SEND_MESSAGE, CANCEL_MANAGER, REMOVE_MEMBER};
                         } else if (clickMemberGrade == 2) {
                             selectStrArr = new String[]{CHECK_MEMBER_INFO};
                         } else if (friendship == 0 && clickMemberGrade == 0) {
-                            selectStrArr = new String[]{CHECK_MEMBER_INFO, TEMPORARY_CHAT, SET_MANAGER, ADD_FRIEND, MOVE_OUT_GROUP};
+                            selectStrArr = new String[]{CHECK_MEMBER_INFO, TEMPORARY_CHAT, SET_MANAGER, ADD_FRIEND, REMOVE_MEMBER};
                         } else if (friendship == 0 && clickMemberGrade == 1) {
-                            selectStrArr = new String[]{CHECK_MEMBER_INFO, TEMPORARY_CHAT, CANCEL_MANAGER, ADD_FRIEND, MOVE_OUT_GROUP};
+                            selectStrArr = new String[]{CHECK_MEMBER_INFO, TEMPORARY_CHAT, CANCEL_MANAGER, ADD_FRIEND, REMOVE_MEMBER};
                         }
+                        break;
+
+                    default:
+
                         break;
                 }
                 showSelectDialog(position, selectStrArr);
@@ -188,13 +194,18 @@ public class GroupMemberListActivity extends BaseActivity {
                             case ADD_FRIEND:
                                 DataCache spCache = new SpCache(getAppContext());
                                 Subgroup friendSubgroup = (Subgroup) spCache.getObject(SpCons.SP_KEY_FRIEND_SUBGROUP);
-                                applyAddFriend(memberList.get(memberPosition).getId(), UserDao.user.getUsername() +
+                                applyAddFriend(memberList.get(memberPosition).getId(),
+                                        SpCons.getUser(getAppContext()).getUsername() +
                                         getString(R.string.apply_add_friend), friendSubgroup.getId());
                                 break;
 
-                            case MOVE_OUT_GROUP:
+                            case REMOVE_MEMBER:
                                 moveOutGroupMember(memberPosition, mGroupInfo.getId(),
-                                        memberList.get(memberPosition).getId());
+                                        memberList.get(memberPosition));
+                                break;
+
+                            default:
+
                                 break;
                         }
                     }
@@ -222,7 +233,7 @@ public class GroupMemberListActivity extends BaseActivity {
                                 if (member.getGrade() == 1) {
                                     managerCount += 1;
                                 }
-                                if (member.getId().equals(UserDao.user.getId())) {
+                                if (member.getId().equals(SpCons.getUser(getAppContext()).getId())) {
                                     selfGrade = member.getGrade();
                                 }
                             }
@@ -288,20 +299,25 @@ public class GroupMemberListActivity extends BaseActivity {
     }
 
     private void applyAddFriend(String friendId, String verifyInfo, String groupingId) {
-        HttpContact.applyAddFriend(friendId, verifyInfo, groupingId, UserDao.user.getId(),
+        HttpContact.applyAddFriend(friendId, verifyInfo, groupingId, SpCons.getUser(getAppContext()).getId(),
                 new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
-                        ToastUtil.showShort(getAppContext(), R.string.apply_add_friend_sent);
+                        if(data==null){
+                            ToastUtil.showShort(getAppContext(), getString(R.string.apply_add_friend_sent));
+                        }else {
+                            ToastUtil.showShort(getAppContext(), getString(R.string.add_to_friend));
+                        }
                     }
                 });
     }
 
-    private void moveOutGroupMember(final int position, final String groupId, String memberId) {
-        HttpContact.moveOutGroupMember(memberList.get(position).getGrade(), groupId, memberId,
+    private void moveOutGroupMember(final int position, final String groupId, final FriendInfo member) {
+        HttpContact.moveOutGroupMember(memberList.get(position).getGrade(), groupId, member.getId(),
                 new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
+                        EventTrans.post(EventMsg.CONTACT_GROUP_REMOVE_MEMBER, mGroupInfo, null, member);
                         getGroupMemberList(groupId);
                     }
                 });
@@ -342,7 +358,7 @@ public class GroupMemberListActivity extends BaseActivity {
                     return;
                 }
                 if (groupInfo3.getId().equals(mGroupInfo.getId())) {
-                    if (receiver3.getId().equals(UserDao.user.getId())) {
+                    if (receiver3.getId().equals(SpCons.getUser(getAppContext()).getId())) {
                         ToastUtil.showShort(getAppContext(), R.string.you_are_moved_out_from_group);
                         getHostActivity().finish();
                     } else {
@@ -363,10 +379,14 @@ public class GroupMemberListActivity extends BaseActivity {
                 String groupId2 = msg.getData().toString();
                 String friendId2 = msg.getSecondData().toString();
                 if (!TextUtils.isEmpty(groupId2) && groupId2.equals(mGroupInfo.getId())
-                        && !TextUtils.isEmpty(friendId2) && UserDao.user != null
-                        && !friendId2.equals(UserDao.user.getId())) {
+                        && !TextUtils.isEmpty(friendId2)
+                        && !friendId2.equals(SpCons.getUser(getAppContext()).getId())) {
                     getGroupMemberList(mGroupInfo.getId());
                 }
+                break;
+
+            default:
+
                 break;
         }
     }

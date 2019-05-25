@@ -25,7 +25,7 @@ import com.wewin.hichat.androidlib.utils.ToastUtil;
 import com.wewin.hichat.component.adapter.LoginRegisterVerifyCodeRcvAdapter;
 import com.wewin.hichat.component.base.BaseActivity;
 import com.wewin.hichat.component.constant.LoginCons;
-import com.wewin.hichat.model.db.entity.CountryCode;
+import com.wewin.hichat.model.db.entity.CountryInfo;
 import com.wewin.hichat.model.http.HttpLogin;
 
 import java.util.ArrayList;
@@ -44,7 +44,7 @@ public class RegisterVerifyCodeActivity extends BaseActivity {
     private EditText codeBgEt;
     private LoginRegisterVerifyCodeRcvAdapter rcvAdapter;
     private String phoneNum;
-    private String code;
+    private String areaCode;
     private final int MAX_SECOND = 30;
     private int leftSecond = MAX_SECOND;
     private Handler handler = new Handler();
@@ -52,7 +52,7 @@ public class RegisterVerifyCodeActivity extends BaseActivity {
     private Button nextStepBtn;
     private String verifyCode;
     private int openType;
-    private CountryCode countryCode;
+    private CountryInfo countryInfo;
 
     @Override
     protected int getLayoutId() {
@@ -73,11 +73,11 @@ public class RegisterVerifyCodeActivity extends BaseActivity {
     @Override
     protected void getIntentData() {
         phoneNum = getIntent().getStringExtra(LoginCons.EXTRA_LOGIN_PHONE_NUM);
-        code = getIntent().getStringExtra(LoginCons.EXTRA_LOGIN_AREA_CODE);
+        areaCode = getIntent().getStringExtra(LoginCons.EXTRA_LOGIN_AREA_CODE);
         verifyCode = getIntent().getStringExtra(LoginCons.EXTRA_LOGIN_VERIFY_CODE);
         openType = getIntent().getIntExtra(LoginCons.EXTRA_LOGIN_REGISTER_OPEN_TYPE, 0);
-        countryCode = (CountryCode) getIntent().getSerializableExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE);
-        LogUtil.i("countryCode", countryCode);
+        countryInfo = (CountryInfo) getIntent().getSerializableExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE);
+        LogUtil.i("countryInfo", countryInfo);
     }
 
     @Override
@@ -91,8 +91,8 @@ public class RegisterVerifyCodeActivity extends BaseActivity {
         codeBgEt.requestFocus();
         SystemUtil.showKeyboard(this, codeBgEt);
 
-        if (!TextUtils.isEmpty(phoneNum) && !TextUtils.isEmpty(code)) {
-            phoneNumTv.setText(code + " " + phoneNum);
+        if (!TextUtils.isEmpty(phoneNum) && !TextUtils.isEmpty(areaCode)) {
+            phoneNumTv.setText(areaCode + " " + phoneNum);
         }
 
         runnable = new Runnable() {
@@ -153,17 +153,23 @@ public class RegisterVerifyCodeActivity extends BaseActivity {
                 break;
 
             case R.id.rl_login_register_resend_verify_code_parent:
-                if (openType == LoginCons.TYPE_REGISTER) {
-                    getVerifyCode(phoneNum, "register");
-                } else {
-                    getVerifyCode(phoneNum, "retrieve");
+                if (leftSecond == MAX_SECOND && handler != null) {
+                    if (openType == LoginCons.TYPE_REGISTER) {
+                        getVerifyCode(areaCode, phoneNum, "register");
+                    } else {
+                        getVerifyCode(areaCode, phoneNum, "retrieve");
+                    }
+                    handler.removeCallbacks(runnable);
+                    handler.post(runnable);
                 }
-                handler.post(runnable);
                 break;
 
             case R.id.btn_login_register_next_step:
                 String verifyCode = codeBgEt.getText().toString().trim();
-                checkVerifyCode(verifyCode);
+                checkVerifyCode(areaCode, verifyCode);
+                break;
+
+            default:
                 break;
         }
     }
@@ -184,30 +190,32 @@ public class RegisterVerifyCodeActivity extends BaseActivity {
         rcvAdapter.notifyDataSetChanged();
     }
 
-    private void getVerifyCode(String phoneNum, String type) {
-        HttpLogin.getSms(phoneNum, type, new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
-            @Override
-            public void success(Object data, int count) {
-                if (data != null) {
-                    ToastUtil.showLong(getApplicationContext(), data.toString());
-                    codeBgEt.setText(data.toString());
-                }
-            }
-        });
+    private void getVerifyCode(String areaCode, String phoneNum, String type) {
+        HttpLogin.getSms(areaCode.replace("+", ""), phoneNum, type,
+                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                    @Override
+                    public void success(Object data, int count) {
+                        if (data != null) {
+                            ToastUtil.showLong(getApplicationContext(), data.toString());
+                            codeBgEt.setText(data.toString());
+                        }
+                    }
+                });
     }
 
-    private void checkVerifyCode(String verifyCode) {
-        HttpLogin.checkVerifyCode(verifyCode, phoneNum, new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
-            @Override
-            public void success(Object data, int count) {
-                Intent intent = new Intent(getAppContext(), RegisterPasswordActivity.class);
-                intent.putExtra(LoginCons.EXTRA_LOGIN_AREA_CODE, code);
-                intent.putExtra(LoginCons.EXTRA_LOGIN_PHONE_NUM, phoneNum);
-                intent.putExtra(LoginCons.EXTRA_LOGIN_REGISTER_OPEN_TYPE, openType);
-                intent.putExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE, countryCode);
-                startActivity(intent);
-            }
-        });
+    private void checkVerifyCode(final String areaCode, String verifyCode) {
+        HttpLogin.checkVerifyCode(areaCode.replace("+", ""), verifyCode, phoneNum,
+                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                    @Override
+                    public void success(Object data, int count) {
+                        Intent intent = new Intent(getAppContext(), RegisterPasswordActivity.class);
+                        intent.putExtra(LoginCons.EXTRA_LOGIN_AREA_CODE, areaCode);
+                        intent.putExtra(LoginCons.EXTRA_LOGIN_PHONE_NUM, phoneNum);
+                        intent.putExtra(LoginCons.EXTRA_LOGIN_REGISTER_OPEN_TYPE, openType);
+                        intent.putExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE, countryInfo);
+                        startActivity(intent);
+                    }
+                });
     }
 
     @Override
@@ -219,8 +227,10 @@ public class RegisterVerifyCodeActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
+        if (handler != null) {
+            handler.removeCallbacks(runnable);
+            handler = null;
+        }
         super.onDestroy();
-        handler.removeCallbacks(runnable);
-        handler = null;
     }
 }

@@ -4,7 +4,6 @@ import android.text.TextUtils;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.wewin.hichat.R;
@@ -14,7 +13,7 @@ import com.wewin.hichat.androidlib.event.EventMsg;
 import com.wewin.hichat.androidlib.utils.ClassUtil;
 import com.wewin.hichat.androidlib.impl.HttpCallBack;
 import com.wewin.hichat.androidlib.utils.LogUtil;
-import com.wewin.hichat.androidlib.utils.PhoneContactUtil;
+import com.wewin.hichat.androidlib.utils.PhoneUtil;
 import com.wewin.hichat.androidlib.utils.TimeUtil;
 import com.wewin.hichat.androidlib.widget.SideBarView;
 import com.wewin.hichat.component.adapter.SearchPhoneContactLvAdapter;
@@ -23,7 +22,6 @@ import com.wewin.hichat.model.db.dao.PhoneContactDao;
 import com.wewin.hichat.model.db.entity.PhoneContact;
 import com.wewin.hichat.model.db.entity.SortModel;
 import com.wewin.hichat.model.http.HttpContact;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -49,6 +47,7 @@ public class PhoneContactSearchActivity extends BaseActivity {
     private SearchPhoneContactLvAdapter lvAdapter;
     //    private ImageView clearIv;
 
+
     @Override
     protected int getLayoutId() {
         return R.layout.activity_contact_friend_phone_contact;
@@ -66,11 +65,12 @@ public class PhoneContactSearchActivity extends BaseActivity {
     @Override
     protected void initViewsData() {
         setCenterTitle(R.string.phone_contact);
+        setLeftText(R.string.back);
         sideBarView.setTextView(dialogTv);
         initListView();
 
         //获取手机通讯录
-        List<PhoneContact> cacheContactList = PhoneContactUtil.getPhoneContactList(getAppContext());
+        List<PhoneContact> cacheContactList = PhoneUtil.getPhoneContactList(getAppContext());
         //与数据库数据对比，24小时内的邀请显示已邀请
         List<PhoneContact> dbContactList = PhoneContactDao.getPhoneContactList();
         for (PhoneContact phoneContact : cacheContactList) {

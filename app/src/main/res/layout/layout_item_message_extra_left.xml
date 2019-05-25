@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rl_conversation_chat_extra_left"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:paddingLeft="4dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="2dp"
+    android:minWidth="78dp"
+    >
+
+    <!--红点-->
+    <ImageView
+        android:id="@+id/iv_conversation_unread_red_point_left"
+        android:layout_width="7dp"
+        android:layout_height="7dp"
+        android:background="@drawable/corner_red_10"
+        android:visibility="gone"
+        />
+
+    <!--左侧时间-->
+    <TextView
+        android:id="@+id/tv_conversation_chat_time_left"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="time"
+        android:textSize="@dimen/font_size_8"
+        android:textColor="@color/gray_ac"
+        android:layout_alignParentBottom="true"
+        />
+
+    <!--下载中-->
+    <ImageView
+        android:id="@+id/iv_chat_text_msg_loading_left"
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        android:src="@drawable/msg_loading"
+        android:visibility="gone"
+        />
+
+
+</RelativeLayout>

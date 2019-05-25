@@ -18,8 +18,6 @@
     </style>
 
 
-
-
     <style name="ThemeSingleInstance" parent="AppTheme">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:activityOpenEnterAnimation">@anim/activity_slide_right_in</item>

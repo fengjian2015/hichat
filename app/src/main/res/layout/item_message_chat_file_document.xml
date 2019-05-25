@@ -10,15 +10,12 @@
         android:layout_height="58dp"
         android:background="@color/white">
 
-        <ImageButton
-            android:id="@+id/ib_message_chat_file_document_item_check"
+        <ImageView
+            android:id="@+id/iv_message_chat_file_document_item_check"
             android:layout_width="25dp"
             android:layout_height="25dp"
             android:layout_centerVertical="true"
             android:layout_marginLeft="20dp"
-            android:background="@null"
-            android:button="@null"
-            android:clickable="false"
             android:src="@drawable/select_corner_img_hook"
             />
 

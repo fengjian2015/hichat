@@ -1,6 +1,7 @@
 package com.wewin.hichat.view.login;
 
 import android.content.Intent;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.view.KeyEvent;
@@ -15,12 +16,14 @@ import com.wewin.hichat.androidlib.impl.CustomTextWatcher;
 import com.wewin.hichat.androidlib.event.EventMsg;
 import com.wewin.hichat.androidlib.utils.ClassUtil;
 import com.wewin.hichat.androidlib.impl.HttpCallBack;
-import com.wewin.hichat.androidlib.utils.StrUtil;
+import com.wewin.hichat.androidlib.utils.LogUtil;
+import com.wewin.hichat.androidlib.utils.PhoneUtil;
+import com.wewin.hichat.androidlib.utils.SystemUtil;
 import com.wewin.hichat.component.base.BaseActivity;
 import com.wewin.hichat.androidlib.utils.ToastUtil;
 import com.wewin.hichat.component.constant.LoginCons;
 import com.wewin.hichat.component.constant.SpCons;
-import com.wewin.hichat.model.db.entity.CountryCode;
+import com.wewin.hichat.model.db.entity.CountryInfo;
 import com.wewin.hichat.model.db.entity.SortModel;
 import com.wewin.hichat.model.http.HttpLogin;
 import com.wewin.hichat.view.search.CountrySearchActivity;
@@ -34,9 +37,20 @@ public class RegisterPhoneNumActivity extends BaseActivity {
     private Button verifyBtn;
     private TextView countryTv, codeTv;
     private EditText phoneNumEt;
-    private CountryCode countryCode;
+    private CountryInfo countryInfo;
     private int openType;
     private String phoneNum;
+    private Handler handler = new Handler();
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            if (phoneNumEt == null){
+                return;
+            }
+            phoneNumEt.requestFocus();
+            SystemUtil.showKeyboard(getHostActivity(), phoneNumEt);
+        }
+    };
 
     @Override
     protected int getLayoutId() {
@@ -45,7 +59,7 @@ public class RegisterPhoneNumActivity extends BaseActivity {
 
     @Override
     protected void getIntentData() {
-        countryCode = (CountryCode) getIntent().getSerializableExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE);
+        countryInfo = (CountryInfo) getIntent().getSerializableExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE);
         openType = getIntent().getIntExtra(LoginCons.EXTRA_LOGIN_REGISTER_OPEN_TYPE, 0);
         phoneNum = getIntent().getStringExtra(LoginCons.EXTRA_LOGIN_PHONE_NUM);
     }
@@ -67,11 +81,13 @@ public class RegisterPhoneNumActivity extends BaseActivity {
         } else {
             setCenterTitle(R.string.password_find_back);
         }
-        if (countryCode == null) {
-            countryCode = new CountryCode(getString(R.string.philippines), "+63");
+        if (countryInfo == null) {
+            countryInfo = new CountryInfo(getString(R.string.philippines), "+63");
         }
-        countryTv.setText(countryCode.getCountry());
-        codeTv.setText(countryCode.getCode());
+        countryTv.setText(countryInfo.getCountry());
+        codeTv.setText(countryInfo.getCode());
+
+        handler.postDelayed(runnable, 300);
     }
 
     @Override
@@ -94,14 +110,16 @@ public class RegisterPhoneNumActivity extends BaseActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 super.afterTextChanged(s);
-                if (s.toString().length() > 0) {
+                String code = codeTv.getText().toString().trim();
+                String phoneNum = phoneNumEt.getText().toString().trim();
+                if (PhoneUtil.isPhoneNumValid(code, phoneNum)) {
                     verifyBtn.setEnabled(true);
                 } else {
                     verifyBtn.setEnabled(false);
                 }
             }
         });
-        if (!TextUtils.isEmpty(phoneNum)){
+        if (!TextUtils.isEmpty(phoneNum)) {
             phoneNumEt.setText(phoneNum);
         }
     }
@@ -110,40 +128,52 @@ public class RegisterPhoneNumActivity extends BaseActivity {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_register_verify_num:
+                String areaCode = codeTv.getText().toString();
                 String phoneNum = phoneNumEt.getText().toString().trim();
                 if (TextUtils.isEmpty(phoneNum)) {
                     ToastUtil.showShort(getAppContext(), getString(R.string.phone_num_cannot_null));
-                } else if (!StrUtil.isPhoneNumRight(countryCode.getCode(), phoneNum)) {
-                    ToastUtil.showShort(getAppContext(), countryCode.getCountry()
+                } else if (!PhoneUtil.isPhoneNumValid(countryInfo.getCode(), phoneNum)) {
+                    ToastUtil.showShort(getAppContext(), countryInfo.getCountry()
                             + getString(R.string.phone_num_format_error));
                 } else if (openType == LoginCons.TYPE_REGISTER) {
-                    getVerifyCode(phoneNum, "register");
+                    if ("+63".equals(areaCode) && phoneNum.startsWith("0")){
+                        phoneNum = phoneNum.substring(1, phoneNum.length());
+                    }
+                    getVerifyCode(areaCode, phoneNum, "register");
                 } else {
-                    getVerifyCode(phoneNum, "retrieve");
+                    if ("+63".equals(areaCode) && phoneNum.startsWith("0")){
+                        phoneNum = phoneNum.substring(1, phoneNum.length());
+                    }
+                    getVerifyCode(areaCode, phoneNum, "retrieve");
                 }
                 break;
 
             case R.id.tv_login_register_country:
+                SystemUtil.hideKeyboard(getHostActivity());
                 Intent intent = new Intent(getAppContext(), CountrySearchActivity.class);
-                intent.putExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE, countryCode);
+                intent.putExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE, countryInfo);
                 startActivityForResult(intent, LoginCons.INTENT_REQ_COUNTRY_SEARCH);
+                break;
+
+            default:
                 break;
         }
     }
 
-    private void getVerifyCode(final String phoneNum, String type) {
-        HttpLogin.getSms(phoneNum, type, new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+    private void getVerifyCode(final String areaCode, final String phoneNum, String type) {
+        LogUtil.i("phoneNum", phoneNum);
+        HttpLogin.getSms(areaCode.replace("+", ""), phoneNum, type, new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
             @Override
             public void success(Object data, int count) {
                 Intent intent = new Intent(getAppContext(), RegisterVerifyCodeActivity.class);
-                intent.putExtra(LoginCons.EXTRA_LOGIN_AREA_CODE, codeTv.getText().toString());
+                intent.putExtra(LoginCons.EXTRA_LOGIN_AREA_CODE, areaCode);
                 intent.putExtra(LoginCons.EXTRA_LOGIN_PHONE_NUM, phoneNum);
                 intent.putExtra(LoginCons.EXTRA_LOGIN_VERIFY_CODE, data.toString());
                 intent.putExtra(LoginCons.EXTRA_LOGIN_REGISTER_OPEN_TYPE, openType);
-                intent.putExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE, countryCode);
+                intent.putExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE, countryInfo);
                 startActivity(intent);
-                SpCons.setCountryName(getAppContext(), countryCode.getCountry());
-                SpCons.setCountryCode(getAppContext(), countryCode.getCode());
+                SpCons.setCountryName(getAppContext(), countryInfo.getCountry());
+                SpCons.setCountryCode(getAppContext(), countryInfo.getCode());
             }
         });
     }
@@ -162,15 +192,30 @@ public class RegisterPhoneNumActivity extends BaseActivity {
             if (requestCode == LoginCons.INTENT_REQ_COUNTRY_SEARCH) {
                 SortModel sortModel = (SortModel) data.getSerializableExtra(
                         LoginCons.EXTRA_LOGIN_COUNTRY_CODE);
-                if (sortModel != null) {
-                    countryTv.setText(sortModel.getName());
-                    codeTv.setText(sortModel.getCode());
-                    countryCode.setCountry(sortModel.getName());
-                    countryCode.setCode(sortModel.getCode());
+                if (sortModel == null){
+                    return;
+                }
+                countryTv.setText(sortModel.getName());
+                codeTv.setText(sortModel.getCode());
+                countryInfo.setCountry(sortModel.getName());
+                countryInfo.setCode(sortModel.getCode());
+                String phoneNum = phoneNumEt.getText().toString().trim();
+                if (PhoneUtil.isPhoneNumValid(sortModel.getCode(), phoneNum)) {
+                    verifyBtn.setEnabled(true);
+                } else {
+                    verifyBtn.setEnabled(false);
                 }
             }
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        if (handler != null){
+            handler.removeCallbacks(runnable);
+            handler = null;
+        }
+        super.onDestroy();
+    }
 
 }

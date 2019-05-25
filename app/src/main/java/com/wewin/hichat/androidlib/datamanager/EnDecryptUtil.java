@@ -31,8 +31,9 @@ public class EnDecryptUtil {
 
     private static int getGBS(int x, int y) {
         for (int i = 1; i <= x * y; i++) {
-            if (i % x == 0 && i % y == 0)
+            if (i % x == 0 && i % y == 0) {
                 return i;
+            }
         }
         return x * y;
     }
@@ -67,8 +68,8 @@ public class EnDecryptUtil {
         return null;
     }
 
-    static String parseByte2HexStr(byte buf[]) {
-        StringBuffer sb = new StringBuffer();
+    public static String parseByte2HexStr(byte[] buf) {
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < buf.length; i++) {
             String hex = Integer.toHexString(buf[i] & 0xFF);
             if (hex.length() == 1) {
@@ -79,9 +80,10 @@ public class EnDecryptUtil {
         return sb.toString();
     }
 
-    static byte[] parseHexStr2Byte(String hexStr) {
-        if (hexStr.length() < 1)
+    public static byte[] parseHexStr2Byte(String hexStr) {
+        if (hexStr.length() < 1) {
             return null;
+        }
         byte[] result = new byte[hexStr.length() / 2];
         for (int i = 0; i < hexStr.length() / 2; i++) {
             int high = Integer.parseInt(hexStr.substring(i * 2, i * 2 + 1), 16);
@@ -91,7 +93,7 @@ public class EnDecryptUtil {
         return result;
     }
 
-    static byte[] obj2byteArr(Object obj) {
+    public static byte[] obj2byteArr(Object obj) {
         try {
             //将Object转换成byte[]
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -103,12 +105,11 @@ public class EnDecryptUtil {
             return byteArr;
         } catch (Exception e) {
             e.printStackTrace();
-//            throw new DataCacheException(e);
         }
         return null;
     }
 
-    static Object byteArr2Obj(byte[] data) {
+    public static Object byteArr2Obj(byte[] data) {
         try {
             return new ObjectInputStream(new ByteArrayInputStream(data)).readObject();
         } catch (Exception e) {

@@ -1,42 +1,123 @@
 package com.wewin.hichat.androidlib.utils;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Rect;
-import android.media.MediaScannerConnection;
+import android.media.AudioManager;
 import android.net.Uri;
-import android.os.Environment;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
-
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 
 import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.math.BigDecimal;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import static android.content.Context.INPUT_METHOD_SERVICE;
 
 /**
- * Created by dyj on 2017/3/13.
+ * @author Darren
+ * Created by Darren on 2017/3/13.
  */
 
 public class SystemUtil {
 
+
+    /**
+     * 根据包名移除栈
+     */
+    public static void removeTaskByPckName(Context context, String pckName) {
+        if (context == null || TextUtils.isEmpty(pckName)) {
+            return;
+        }
+        try {
+            ActivityManager manager = (ActivityManager) context
+                    .getSystemService(Context.ACTIVITY_SERVICE);
+            if (manager == null) {
+                return;
+            }
+            List<ActivityManager.RunningTaskInfo> taskInfoList = manager.getRunningTasks(30);
+            for (ActivityManager.RunningTaskInfo taskInfo : taskInfoList) {
+                if (pckName.contentEquals(taskInfo.baseActivity.getPackageName())) {
+                    removeTask(context, taskInfo.id);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 根据类名移除栈
+     */
+    public static void removeTaskByClsName(Context context, String clsName) {
+        if (context == null || TextUtils.isEmpty(clsName)) {
+            return;
+        }
+        try {
+            ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+            if (manager == null) {
+                return;
+            }
+            List<ActivityManager.RunningTaskInfo> taskInfoList = manager.getRunningTasks(30);
+            for (ActivityManager.RunningTaskInfo taskInfo : taskInfoList) {
+                if (clsName.contentEquals(taskInfo.topActivity.getClassName())) {
+                    removeTask(context, taskInfo.id);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 移除栈
+     */
+    private static void removeTask(Context context, int taskId) {
+        try {
+            ActivityManager manager = (ActivityManager) context
+                    .getSystemService(Context.ACTIVITY_SERVICE);
+            if (manager == null) {
+                return;
+            }
+            Class<?> managerClass = Class.forName("android.app.ActivityManager");
+            Method removeTask = managerClass.getDeclaredMethod("removeTask", int.class);
+            removeTask.setAccessible(true);
+            removeTask.invoke(manager, taskId);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 获取当前进程名
+     */
+    public static String getProcessName(Context context) {
+        int pid = android.os.Process.myPid();
+        ActivityManager manager = (ActivityManager) context
+                .getSystemService(Context.ACTIVITY_SERVICE);
+        if (manager == null) {
+            return "";
+        }
+        for (ActivityManager.RunningAppProcessInfo appProcess : manager.getRunningAppProcesses()) {
+            if (appProcess.pid == pid) {
+                return appProcess.processName;
+            }
+        }
+        return "";
+    }
+
     /**
      * 通知MediaStore刷新
      */
-    public static void notifyMediaStoreRefresh(Context context, String path){
+    public static void notifyMediaStoreRefresh(Context context, String path) {
         Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
         Uri uri = Uri.fromFile(new File(path));
         intent.setData(uri);
@@ -48,27 +129,26 @@ public class SystemUtil {
      */
     public static void hideKeyboard(Activity activity) {
         InputMethodManager inputManager = (InputMethodManager) activity.getSystemService(INPUT_METHOD_SERVICE);
-        if (inputManager != null && activity.getCurrentFocus() != null){
-            inputManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(),
-                    InputMethodManager.HIDE_NOT_ALWAYS);
+        if (activity.getCurrentFocus() != null && inputManager != null && inputManager.isActive()) {
+            inputManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
         }
     }
 
     public static void hideKeyboard(Activity activity, View view) {
         InputMethodManager inputManager = (InputMethodManager) activity.getSystemService(INPUT_METHOD_SERVICE);
-        if (inputManager != null && activity.getCurrentFocus() != null){
+        if (activity.getCurrentFocus() != null && inputManager != null && inputManager.isActive()) {
             inputManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
     }
 
     /**
      * 显示键盘
+     *
      * @param view 要获取输入内容的view
-     * @param activity
      */
     public static void showKeyboard(Activity activity, View view) {
         InputMethodManager inputManager = (InputMethodManager) activity.getSystemService(INPUT_METHOD_SERVICE);
-        if (inputManager != null){
+        if (inputManager != null) {
             inputManager.showSoftInput(view, InputMethodManager.SHOW_FORCED);
         }
     }
@@ -76,20 +156,10 @@ public class SystemUtil {
     /**
      * 用*号隐藏手机号码
      */
-    public static String hidePhoneNum(String phoneNum){
+    public static String hidePhoneNum(String phoneNum) {
         String centerFourNum = phoneNum.substring(3, 7);
         return phoneNum.replace(centerFourNum, "****");
     }
-
-    /**
-     * 获取名字的大写首字母
-     */
-    /*public static String getFirstC(String name) {
-        HanziToPinyin                  hanziToPinyin = HanziToPinyin.getInstance();
-        ArrayList<HanziToPinyin.Token> tokens        = hanziToPinyin.get(name);
-        return tokens.get(0).target.substring(0, 1).toUpperCase();
-    }*/
-
 
     /**
      * 根据手机的分辨率从 dp 的单位 转成为 px(像素)
@@ -130,8 +200,10 @@ public class SystemUtil {
      */
     public static int getWidthPx(Activity activity) {
         // DisplayMetrics 一个描述普通显示信息的结构，例如显示大小、密度、字体尺寸
-        DisplayMetrics displaysMetrics = new DisplayMetrics();// 初始化一个结构
-        activity.getWindowManager().getDefaultDisplay().getMetrics(displaysMetrics);// 对该结构赋值
+        // 初始化一个结构
+        DisplayMetrics displaysMetrics = new DisplayMetrics();
+        // 对该结构赋值
+        activity.getWindowManager().getDefaultDisplay().getMetrics(displaysMetrics);
         return displaysMetrics.widthPixels;
     }
 
@@ -140,8 +212,10 @@ public class SystemUtil {
      */
     public static int getHeightPx(Activity activity) {
         // DisplayMetrics 一个描述普通显示信息的结构，例如显示大小、密度、字体尺寸
-        DisplayMetrics displaysMetrics = new DisplayMetrics();// 初始化一个结构
-        activity.getWindowManager().getDefaultDisplay().getMetrics(displaysMetrics);// 对该结构赋值
+        // 初始化一个结构
+        DisplayMetrics displaysMetrics = new DisplayMetrics();
+        // 对该结构赋值
+        activity.getWindowManager().getDefaultDisplay().getMetrics(displaysMetrics);
         return displaysMetrics.heightPixels;
     }
 
@@ -150,8 +224,10 @@ public class SystemUtil {
      */
     public static int getDensityDpi(Activity activity) {
         // DisplayMetrics 一个描述普通显示信息的结构，例如显示大小、密度、字体尺寸
-        DisplayMetrics displaysMetrics = new DisplayMetrics();// 初始化一个结构
-        activity.getWindowManager().getDefaultDisplay().getMetrics(displaysMetrics);// 对该结构赋值
+        // 初始化一个结构
+        DisplayMetrics displaysMetrics = new DisplayMetrics();
+        // 对该结构赋值
+        activity.getWindowManager().getDefaultDisplay().getMetrics(displaysMetrics);
         return displaysMetrics.densityDpi;
     }
 
@@ -161,15 +237,8 @@ public class SystemUtil {
     public static int getStatusHeight(Activity activity) {
         Rect frame = new Rect();
         activity.getWindow().getDecorView().getWindowVisibleDisplayFrame(frame);
-        int statusBarHeight = frame.top;
-        return statusBarHeight;
+        return frame.top;
     }
 
-    public static boolean matches(String code) {
-        if (null != code && code.length() > 0) {
-            Pattern pattern = Pattern.compile("[0-9]+");
-            return pattern.matcher(code).matches();
-        }
-        return false;
-    }
+
 }

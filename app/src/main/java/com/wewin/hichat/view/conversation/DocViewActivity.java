@@ -100,7 +100,7 @@ public class DocViewActivity extends BaseActivity {
         webSettings.setDatabaseEnabled(true);   //开启 database storage API 功能
         webSettings.setAppCacheEnabled(true);//开启 Application Caches 功能
 
-        webSettings.setAppCachePath(FileUtil.getInnerCachePath(getAppContext())); //设置  Application Caches 缓存目录
+        webSettings.setAppCachePath(FileUtil.getSDCachePath(getAppContext())); //设置  Application Caches 缓存目录
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
@@ -122,7 +122,7 @@ public class DocViewActivity extends BaseActivity {
 
         });
         webView.setWebChromeClient(new WebChromeClient() {
-
+            @Override
             public void onProgressChanged(WebView view, int progress) {
                 if (mProgressBar == null) {
                     return;

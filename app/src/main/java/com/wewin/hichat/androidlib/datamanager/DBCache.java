@@ -164,10 +164,6 @@ public class DBCache implements DataCache {
         db.close();
     }
 
-    /*public void setCacheAble(DataCacheAble cacheAble, boolean needEncrypt) {
-        put(cacheAble.getCacheKey(), cacheAble.toByteArr(), cacheAble.getSaveTime(), needEncrypt);
-    }*/
-
     private void put(String key, String data, long duration, boolean needEncrypt) {
         DBHelper dbHelper = new DBHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();

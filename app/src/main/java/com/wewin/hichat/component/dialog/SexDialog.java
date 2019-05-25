@@ -76,6 +76,9 @@ public class SexDialog extends Dialog {
                         sexDialog.dismiss();
                     }
                     break;
+
+                default:
+                    break;
             }
             if (sexDialog != null){
                 sexDialog.dismiss();

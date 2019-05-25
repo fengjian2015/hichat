@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?><!--图片-->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:paddingBottom="12dp"
+    android:background="@color/none_color">
+
+    <TextView
+        android:id="@+id/tv_message_chat_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="time"
+        android:textSize="@dimen/font_size_11"
+        android:textColor="@color/gray_ac"
+        android:gravity="center"
+        android:paddingBottom="9dp"
+        android:visibility="gone"
+        />
+
+    <include
+        layout="@layout/layout_item_message_extra_right"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="123dp"
+        android:layout_alignTop="@+id/iv_message_chat_right_img"
+        android:layout_alignBottom="@+id/iv_message_chat_right_img"
+        android:layout_below="@+id/tv_message_chat_date"
+        />
+
+    <!--图片-->
+    <com.wewin.hichat.androidlib.widget.CornerGifView
+        android:id="@+id/iv_message_chat_right_img"
+        android:layout_width="110dp"
+        android:layout_height="165dp"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="13dp"
+        android:scaleType="centerCrop"
+        tools:src="@drawable/con_img_vertical"
+        android:layout_below="@+id/tv_message_chat_date"
+        app:cornerSize="3dp"
+        />
+
+
+</RelativeLayout>

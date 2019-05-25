@@ -23,7 +23,7 @@ public class PhoneContactDao {
     public static final String INVITE_TIME = "invite_time";
     public static final String USER_ID = "user_id";
 
-    public static void addPhoneContactList(List<PhoneContact> contactList){
+    public static void addPhoneContactList(List<PhoneContact> contactList) {
         SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
         db.beginTransaction();
         try {
@@ -46,43 +46,51 @@ public class PhoneContactDao {
         }
     }
 
-    public static List<PhoneContact> getPhoneContactList(){
-        SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
-        Cursor cursor = db.rawQuery("select * from " + TABLE_NAME + " where " + USER_ID + " = ?",
-                new String[]{UserDao.user.getId()});
+    public static List<PhoneContact> getPhoneContactList() {
         List<PhoneContact> contactList = new ArrayList<>();
-        if (cursor != null && cursor.getCount() > 0){
-            while (cursor.moveToNext()){
-                contactList.add(parseCursorData(cursor));
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
+            Cursor cursor = db.rawQuery("select * from " + TABLE_NAME + " where " + USER_ID + " = ?",
+                    new String[]{UserDao.user.getId()});
+            if (cursor != null && cursor.getCount() > 0) {
+                while (cursor.moveToNext()) {
+                    contactList.add(parseCursorData(cursor));
+                }
+                cursor.close();
             }
-            cursor.close();
+            DbManager.getInstance().closeDatabase();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        DbManager.getInstance().closeDatabase();
         return contactList;
     }
 
-    public static void updatePhoneContact(PhoneContact contact){
+    public static void updatePhoneContact(PhoneContact contact) {
         SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
         db.replace(TABLE_NAME, null, packContentValue(contact));
         DbManager.getInstance().closeDatabase();
     }
 
-    private static PhoneContact getPhoneContact(String phone){
-        SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
-        Cursor cursor = db.rawQuery("select * from " + TABLE_NAME + " where " + PHONE + " =? and " +
-                        USER_ID + " = ?", new String[]{phone, UserDao.user.getId()});
+    private static PhoneContact getPhoneContact(String phone) {
         PhoneContact contact = null;
-        if (cursor != null){
-            if (cursor.moveToNext()){
-                contact = parseCursorData(cursor);
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
+            Cursor cursor = db.rawQuery("select * from " + TABLE_NAME + " where " + PHONE + " =? and " +
+                    USER_ID + " = ?", new String[]{phone, UserDao.user.getId()});
+            if (cursor != null) {
+                if (cursor.moveToNext()) {
+                    contact = parseCursorData(cursor);
+                }
+                cursor.close();
             }
-            cursor.close();
+            DbManager.getInstance().closeDatabase();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        DbManager.getInstance().closeDatabase();
         return contact;
     }
 
-    private static ContentValues packContentValue(PhoneContact contact){
+    private static ContentValues packContentValue(PhoneContact contact) {
         ContentValues values = new ContentValues();
         values.put(PHONE, contact.getPhone());
         values.put(NAME, contact.getName());
@@ -92,7 +100,7 @@ public class PhoneContactDao {
         return values;
     }
 
-    private static PhoneContact parseCursorData(Cursor cursor){
+    private static PhoneContact parseCursorData(Cursor cursor) {
         PhoneContact contact = new PhoneContact();
         contact.setPhone(cursor.getString(cursor.getColumnIndex(PHONE)));
         contact.setName(cursor.getString(cursor.getColumnIndex(NAME)));

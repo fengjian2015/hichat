@@ -16,6 +16,7 @@ import com.wewin.hichat.androidlib.utils.NotificationUtil;
 import com.wewin.hichat.androidlib.utils.ServiceUtil;
 import com.wewin.hichat.component.constant.LibCons;
 import com.wewin.hichat.component.constant.LoginCons;
+import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.component.service.ChatSocketService;
 import com.wewin.hichat.model.db.dao.UserDao;
 
@@ -44,27 +45,27 @@ public class UMMessage {
 
     /**
      * 初始化推送
-     * @param context
      */
-    public void init(final Context context){
-        notificationUtil=new NotificationUtil();
+    public void init(final Context context) {
+        notificationUtil = new NotificationUtil();
         notificationUtil.setNotification(context);
         UMConfigure.init(context, LibCons.UM_APP_KEY, LibCons.UM_CHANNEL, UMConfigure.DEVICE_TYPE_PHONE, LibCons.UMENG_MESSAGE_SECRET);
         UMConfigure.setLogEnabled(false);
         // 选用LEGACY_AUTO页面采集模式
         MobclickAgent.setPageCollectionMode(MobclickAgent.PageMode.LEGACY_MANUAL);
 
-        mPushAgent= PushAgent.getInstance(context);
+        mPushAgent = PushAgent.getInstance(context);
         mPushAgent.register(new IUmengRegisterCallback() {
             @Override
             public void onSuccess(String s) {
+                SpCons.setDeviceTokens(context,s);
                 startChatSocketService(context);
                 LogUtil.i(s);
             }
 
             @Override
             public void onFailure(String s, String s1) {
-                LogUtil.i(s+"   "+s1);
+                LogUtil.i(s + "   " + s1);
             }
         });
         setMessageHandler();
@@ -73,8 +74,10 @@ public class UMMessage {
     /**
      * 初始化透传消息
      */
-    private void setMessageHandler(){
-        if(mPushAgent==null)return;
+    private void setMessageHandler() {
+        if (mPushAgent == null) {
+            return;
+        }
         mPushAgent.setMessageHandler(umengMessageHandler);
     }
 
@@ -82,11 +85,11 @@ public class UMMessage {
      * 添加别名绑定
      * 登录时需要绑定
      */
-    public void setAlias(){
+    public void setAlias() {
         mPushAgent.setAlias(UserDao.user.getId(), "别名", new UTrack.ICallBack() {
             @Override
             public void onMessage(boolean isSuccess, String message) {
-                LogUtil.i("别名绑定："+isSuccess+"  "+message);
+                LogUtil.i("别名绑定：" + isSuccess + "  " + message);
             }
         });
     }
@@ -95,12 +98,12 @@ public class UMMessage {
      * 移除别名
      * 退出登录时调用
      */
-    public void deleteAlias(){
+    public void deleteAlias() {
         //移除别名ID
         mPushAgent.deleteAlias(UserDao.user.getId(), "别名", new UTrack.ICallBack() {
             @Override
             public void onMessage(boolean isSuccess, String message) {
-                LogUtil.i("别名绑定："+isSuccess+"  "+message);
+                LogUtil.i("别名绑定：" + isSuccess + "  " + message);
             }
         });
     }
@@ -108,24 +111,27 @@ public class UMMessage {
     /**
      * 消息透传
      */
-    UmengMessageHandler umengMessageHandler=new UmengMessageHandler(){
+    UmengMessageHandler umengMessageHandler = new UmengMessageHandler() {
         @Override
         public void dealWithCustomMessage(Context context, UMessage uMessage) {
             startChatSocketService(context);
             LogUtil.i(uMessage.custom);
             //启动app
             Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            if (intent == null){
+                return;
+            }
+            intent.setPackage(null);
             try {
-                Map map=JSONObject.parseObject(uMessage.custom,Map.class);
-                if("1".equals(map.get("type"))){
+                Map map = JSONObject.parseObject(uMessage.custom, Map.class);
+                if ("1".equals(map.get("type"))) {
                     //唤起服务
                     return;
                 }
-                notificationUtil.setContent(map.get("title")+"",map.get("content")+"")
+                notificationUtil.setContent(map.get("title") + "", map.get("content") + "")
                         .setIntent(intent)
                         .notifyNot();
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

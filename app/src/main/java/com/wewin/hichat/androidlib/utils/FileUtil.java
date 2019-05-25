@@ -21,6 +21,7 @@ public class FileUtil {
     private static final String DIR_NAME_VIDEO = "video/";
     private static final String DIR_NAME_DOC = "doc/";
     private static final String DIR_NAME_DEBUG_LOG = "debugLog/";
+    private static final String DIR_NAME_APK = "apk/";
     //声明各种类型文件的dataType
     private static final String DATA_TYPE_APK = "application/vnd.android.package-archive";
     private static final String DATA_TYPE_VIDEO = "video/*";
@@ -40,7 +41,7 @@ public class FileUtil {
     /**
      * 内部存储中的files路径
      */
-    public static String getInnerFilePath(Context context) {
+    private static String getInnerFilePath(Context context) {
         String internalFilePath = context.getFilesDir().getAbsolutePath();
         if (!internalFilePath.endsWith(File.separator)) {
             return internalFilePath + File.separator;
@@ -51,7 +52,7 @@ public class FileUtil {
     /**
      * 内部存储中的cache路径
      */
-    public static String getInnerCachePath(Context context) {
+    private static String getInnerCachePath(Context context) {
         String innerCachePath = context.getCacheDir().getAbsolutePath();
         if (!innerCachePath.endsWith(File.separator)) {
             return innerCachePath + File.separator;
@@ -64,7 +65,7 @@ public class FileUtil {
      */
     public static String getSDFilePath(Context context) {
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            File file = context.getExternalFilesDir("");
+            File file = context.getExternalFilesDir(DIR_NAME_MAIN);
             if (file != null) {
                 String filePath = file.getAbsolutePath();
                 if (!filePath.endsWith(File.separator)) {
@@ -105,7 +106,7 @@ public class FileUtil {
                 }
                 return path + DIR_NAME_MAIN;
             } else {
-                File file = Environment.getExternalStoragePublicDirectory("");
+                File file = Environment.getExternalStoragePublicDirectory(DIR_NAME_MAIN);
                 if (file != null) {
                     String externalPath = file.getAbsolutePath();
                     if (!externalPath.endsWith(File.separator)) {
@@ -126,20 +127,6 @@ public class FileUtil {
     }
 
     /**
-     * SD卡图片路径
-     */
-    public static String getSDImgPath(Context context) {
-        return getSDDirPath(context) + DIR_NAME_IMG;
-    }
-
-    /**
-     * SD卡视频路径
-     */
-    public static String getSdVideoPath(Context context) {
-        return getSDDirPath(context) + DIR_NAME_VIDEO;
-    }
-
-    /**
      * SD卡文档路径
      */
     public static String getSdDocPath(Context context) {
@@ -154,49 +141,64 @@ public class FileUtil {
     }
 
     /**
+     * apk下载路径
+     * @param context
+     * @return
+     */
+    public static String getSDApkPath(Context context){
+        createDir(getSDDirPath(context)+DIR_NAME_APK);
+        return getSDDirPath(context)+DIR_NAME_APK;
+    }
+
+    /**
      * SD卡录音路径
      */
     public static String getSDTapeRecordPath(Context context) {
         return getSDDirPath(context) + DIR_NAME_TAPE_RECORD;
     }
 
-//    /**
-//     * 删除文件夹及其下的文件
-//     */
-//    public static void deleteDir(String dirPath) {
-//        File dir = new File(dirPath);
-//        if (!dir.exists() || !dir.isDirectory())
-//            return;
-//
-//        for (File file : dir.listFiles()) {
-//            if (file.isFile())
-//                file.delete();
-//            else if (file.isDirectory())
-//                deleteDir(dirPath);
-//        }
-//        dir.delete();
-//    }
+    /**
+     * 创建apk下载文件名，传入版本号区分
+     * @param context
+     * @param versionName
+     * @return
+     */
+    public static File createAPKFile(Context context,String versionName) {
+        String root =getSDApkPath(context);
+        File file = new File(root,"hichat"+versionName+".apk");
+        if (file.exists()) {
+            file.delete();
+        }
+        try {
+            file.createNewFile();
+            return file;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null ;
+    }
+
 
     /**
      * 删除指定目录下文件及目录
-     *
-     * @param filePath
-     * @return
      */
     public static boolean deleteDir(String filePath) {
         if (!TextUtils.isEmpty(filePath)) {
             try {
                 File file = new File(filePath);
-                if (file.isDirectory()) {// 处理目录
-                    File files[] = file.listFiles();
-                    for (int i = 0; i < files.length; i++) {
-                        deleteDir(files[i].getAbsolutePath());
+                // 处理目录
+                if (file.isDirectory()) {
+                    File[] files = file.listFiles();
+                    for (File file1 : files) {
+                        deleteDir(file1.getAbsolutePath());
                     }
                 }
-                if (!file.isDirectory()) {// 如果是文件，删除
+                // 如果是文件，删除
+                if (!file.isDirectory()) {
                     file.delete();
-                } else {// 目录
-                    if (file.listFiles().length == 0) {// 目录下没有文件或者目录，删除
+                } else {
+                    // 目录下没有文件或者目录，删除
+                    if (file.listFiles().length == 0) {
                         file.delete();
                     }
                 }
@@ -210,24 +212,20 @@ public class FileUtil {
         }
     }
 
-    /**
-     * 删除sd卡图片文件夹
-     */
-    public static void deleteImgDir(Context context) {
-        deleteDir(getSDImgPath(context));
-    }
-
     public static boolean isFileExists(String path) {
+        if (TextUtils.isEmpty(path)){
+            return false;
+        }
         try {
             File f = new File(path);
-            if (!f.exists()) {
-                return false;
+            if (f.exists()) {
+                return true;
             }
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
-        return true;
+        return false;
     }
 
     /**
@@ -272,18 +270,15 @@ public class FileUtil {
         return FLAG_FAILED;
     }
 
+
     /**
      * 创建文件夹
-     *
-     * @param dirPath 文件夹路径
-     * @return 结果码
      */
-    public static int createDir(String dirPath) {
+    public static void createDir(String dirPath) {
         File dir = new File(dirPath);
         //文件夹是否已经存在
         if (dir.exists()) {
             LogUtil.i("The directory [ " + dirPath + " ] has already exists");
-            return FLAG_EXISTS;
         }
         //不是以路径分隔符"/"结束，则添加路径分隔符"/"
         if (!dirPath.endsWith(File.separator)) {
@@ -296,16 +291,13 @@ public class FileUtil {
             LogUtil.i("creating parent directory...");
             if (!dir.getParentFile().mkdirs()) {
                 LogUtil.i("created parent directory failed...");
-                return FLAG_FAILED;
             }
         }
         //创建文件夹
         if (dir.mkdirs()) {
             LogUtil.i("create directory [ " + dirPath + " ] success");
-            return FLAG_SUCCESS;
         }
         LogUtil.i("create directory [ " + dirPath + " ] failed");
-        return FLAG_FAILED;
     }
 
     /**
@@ -421,6 +413,18 @@ public class FileUtil {
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public static String formatFileLength(long originLength) {
+        if (originLength < 1024) {
+            return originLength + "B";
+        } else if (originLength < 1024 * 1024) {
+            return originLength / 1024 + "KB";
+        } else if (originLength < 1024 * 1024 *1024){
+            return originLength / 1024 / 1024 + "MB";
+        }else {
+            return originLength / 1024 / 1024 / 1024 + "G";
         }
     }
 

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".view.TestActivity">
+    <LinearLayout
+        android:id="@+id/ll_base_left_back_container"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="0dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingRight="15dp">
+
+        <ImageView
+            android:id="@+id/iv_base_left_back"
+            android:layout_width="8dp"
+            android:layout_height="15dp"
+            android:layout_marginLeft="12dp"
+            android:src="@drawable/arrow_left_black" />
+
+        <ImageView
+            android:id="@+id/iv_base_left_cancel"
+            android:layout_width="15dp"
+            android:layout_height="15dp"
+            android:layout_marginLeft="12dp"
+            android:src="@drawable/cancel_black"
+            android:visibility="gone" />
+        <TextView
+            android:id="@+id/tv_center_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black_00"
+            android:textStyle="bold"
+            android:textSize="@dimen/font_size_16"
+            android:layout_marginLeft="10dp"
+            />
+    </LinearLayout>
+    <com.wewin.hichat.androidlib.widget.HtmlWebView
+        android:id="@+id/html_webview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    </com.wewin.hichat.androidlib.widget.HtmlWebView>
+</LinearLayout>

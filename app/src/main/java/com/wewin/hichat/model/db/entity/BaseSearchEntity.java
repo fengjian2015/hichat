@@ -7,8 +7,8 @@ import java.util.Comparator;
  */
 public class BaseSearchEntity {
 
-    private String sortName;
-    private String sortLetter;
+    String sortName;
+    String sortLetter;
 
 
     public BaseSearchEntity() {
@@ -38,11 +38,11 @@ public class BaseSearchEntity {
     public static class SortComparator implements Comparator<BaseSearchEntity> {
         @Override
         public int compare(BaseSearchEntity o1, BaseSearchEntity o2) {
-            if (o1.getSortLetter().equals("@")
-                    || o2.getSortLetter().equals("#")) {
+            if ("@".equals(o1.getSortLetter())
+                    || "#".equals(o2.getSortLetter())) {
                 return -1;
-            } else if (o1.getSortLetter().equals("#")
-                    || o2.getSortLetter().equals("@")) {
+            } else if ("#".equals(o1.getSortLetter())
+                    || "@".equals(o2.getSortLetter())) {
                 return 1;
             } else {
                 return o1.getSortLetter().compareTo(o2.getSortLetter());

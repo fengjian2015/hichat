@@ -41,6 +41,7 @@ public class FileCache {
                 if (encryptData != null && encryptData.length > 0) {
                     outputStream.write(encryptData);
                 }
+                outputStream.close();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -246,17 +247,14 @@ public class FileCache {
     private static int createDir(String dirPath) {
         File dir = new File(dirPath);
         if (dir.exists()) {
-//            Log.i(TAG, "The directory [" + dirPath + "] has already exists");
             return FLAG_EXISTS;
         }
         if (!dirPath.endsWith(File.separator)) {
             dirPath = dirPath + File.separator;
         }
         if (dir.mkdirs()) {
-//            Log.i(TAG, "create directory [" + dirPath + "] success");
             return FLAG_SUCCESS;
         }
-//        Log.i(TAG, "create directory [" + dirPath + "] failed");
         return FLAG_FAILED;
     }
 

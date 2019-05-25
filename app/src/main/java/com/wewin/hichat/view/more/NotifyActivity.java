@@ -3,7 +3,6 @@ package com.wewin.hichat.view.more;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-
 import com.alibaba.fastjson.JSON;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
@@ -17,14 +16,18 @@ import com.wewin.hichat.androidlib.utils.ClassUtil;
 import com.wewin.hichat.component.adapter.NotifyListRcvAdapter;
 import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.androidlib.datamanager.SpCache;
-import com.wewin.hichat.model.db.dao.UserDao;
+import com.wewin.hichat.model.db.entity.ChatRoom;
 import com.wewin.hichat.model.db.entity.Notify;
 import com.wewin.hichat.androidlib.impl.HttpCallBack;
 import com.wewin.hichat.model.db.entity.Subgroup;
-import com.wewin.hichat.model.http.HttpNotify;
+import com.wewin.hichat.model.http.HttpMore;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 
 /**
  * 好友/群通知
@@ -33,12 +36,13 @@ import java.util.List;
 public class NotifyActivity extends BaseActivity {
 
     private RecyclerView containerRcv;
-    private List<Notify> notifyList = new ArrayList<>();
+    private List<Notify> mNotifyList = new ArrayList<>();
     private NotifyListRcvAdapter rcvAdapter;
     private Subgroup subgroup;
     private SmartRefreshLayout refreshLayout;
     private int mainCurrentPage = 1;
-    private int totalPages = 0;
+    private int totalCount = 0;
+    private final int LIMIT_PAGE = 15;
 
     @Override
     protected int getLayoutId() {
@@ -56,7 +60,6 @@ public class NotifyActivity extends BaseActivity {
         setCenterTitle(R.string.notify);
         setLeftText(R.string.back);
         initRecyclerView();
-        getNotifyList(null, 1);
         SpCons.setNotifyRedPointVisible(getAppContext(), false);
         EventTrans.post(EventMsg.CONTACT_NOTIFY_REFRESH);
     }
@@ -66,13 +69,13 @@ public class NotifyActivity extends BaseActivity {
         refreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
             @Override
             public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
-                getNotifyList(refreshLayout, mainCurrentPage + 1);
+                getNotifyList(mainCurrentPage + 1);
             }
         });
     }
 
     private void initRecyclerView() {
-        rcvAdapter = new NotifyListRcvAdapter(getHostActivity(), notifyList);
+        rcvAdapter = new NotifyListRcvAdapter(getHostActivity(), mNotifyList);
         LinearLayoutManager manager = new LinearLayoutManager(getAppContext());
         containerRcv.setLayoutManager(manager);
         containerRcv.setAdapter(rcvAdapter);
@@ -80,8 +83,8 @@ public class NotifyActivity extends BaseActivity {
         rcvAdapter.setOnBtnClickListener(new NotifyListRcvAdapter.OnBtnClickListener() {
             @Override
             public void agreeClick(int position) {
-                int notifyType = notifyList.get(position).getType();
-                if (notifyType == Notify.TYPE_FRIEND) {
+                String noticeType = mNotifyList.get(position).getNoticeType();
+                if (ChatRoom.TYPE_SINGLE.equals(noticeType)) {
                     if (subgroup == null) {
                         subgroup = (Subgroup) new SpCache(getAppContext())
                                 .getObject(SpCons.SP_KEY_FRIEND_SUBGROUP);
@@ -89,54 +92,61 @@ public class NotifyActivity extends BaseActivity {
                     if (subgroup != null) {
                         agreeFriendAdd(subgroup.getId(), position);
                     }
-                } else if (notifyType == Notify.TYPE_GROUP) {
-                    agreeGroupJoin(notifyList.get(position).getId(), position);
+                } else if (ChatRoom.TYPE_GROUP.equals(noticeType)) {
+                    agreeGroupJoin(mNotifyList.get(position).getNoticeId(), position);
                 }
             }
 
             @Override
             public void refuseClick(int position) {
-                int notifyType = notifyList.get(position).getType();
-                if (notifyType == Notify.TYPE_FRIEND) {
-                    refuseFriendAdd(notifyList.get(position).getId(), position);
-                } else if (notifyType == Notify.TYPE_GROUP) {
-                    refuseGroupJoin(notifyList.get(position).getId(), position);
+                String noticeType = mNotifyList.get(position).getNoticeType();
+                if (ChatRoom.TYPE_SINGLE.equals(noticeType)) {
+                    refuseFriendAdd(mNotifyList.get(position).getNoticeId(), position);
+                } else if (ChatRoom.TYPE_GROUP.equals(noticeType)) {
+                    refuseGroupJoin(mNotifyList.get(position).getNoticeId(), position);
                 }
             }
         });
     }
 
-    private void updateRcv(){
-        if (rcvAdapter != null){
+    private void updateRcv() {
+        if (rcvAdapter != null) {
+            Collections.sort(mNotifyList, new Notify.TimeRiseComparator());
             rcvAdapter.notifyDataSetChanged();
         }
     }
 
-    private void getNotifyList(final RefreshLayout refreshLayout, final int currentPage) {
-        HttpNotify.getNotifyList(UserDao.user.getId(), currentPage,
+    private void getNotifyList(final int currentPage) {
+        HttpMore.getNotifyList(LIMIT_PAGE, currentPage,
                 new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
                     @Override
-                    public void success(Object data, int count, int pages) {
+                    public void success(Object data, int count) {
                         LogUtil.i("currentPage", currentPage);
-                        LogUtil.i("pages", pages);
-                        totalPages = pages;
-                        if (refreshLayout != null) {
+                        LogUtil.i("count", count);
+                        if (currentPage == 1) {
+                            totalCount = count;
+                            mNotifyList.clear();
+                        } else {
                             refreshLayout.finishLoadMore(500);
                             mainCurrentPage++;
-                            if (currentPage >= totalPages) {
+                            if (mNotifyList.size() >= totalCount) {
                                 refreshLayout.setEnableLoadMore(false);
                             }
-                        } else {
-                            notifyList.clear();
                         }
                         if (data == null) {
                             return;
                         }
                         try {
                             List<Notify> dataList = JSON.parseArray(data.toString(), Notify.class);
-                            LogUtil.i("getNotifyList", dataList);
-                            notifyList.addAll(dataList);
+                            Set<Notify> dataSet = new HashSet<>();
+                            dataSet.addAll(dataList);
+                            dataSet.addAll(mNotifyList);
+                            mNotifyList.clear();
+                            mNotifyList.addAll(dataSet);
                             updateRcv();
+                            if (currentPage == 1){
+                                setNotifyRead(mNotifyList.get(0).getNoticeId());
+                            }
 
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -154,11 +164,11 @@ public class NotifyActivity extends BaseActivity {
     }
 
     private void agreeFriendAdd(String subgroupId, final int position) {
-        HttpNotify.agreeFriendAdd(subgroupId, notifyList.get(position).getId(),
+        HttpMore.agreeFriendAdd(subgroupId, mNotifyList.get(position).getNoticeId(),
                 new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
-                        notifyList.get(position).setStatus(Notify.STATUS_AGREE);
+                        mNotifyList.get(position).setStatus(Notify.STATUS_AGREE);
                         updateRcv();
                         EventTrans.post(EventMsg.CONTACT_FRIEND_ADD_REFRESH);
                     }
@@ -166,22 +176,22 @@ public class NotifyActivity extends BaseActivity {
     }
 
     private void refuseFriendAdd(String notifyId, final int position) {
-        HttpNotify.refuseFriendAdd(notifyId,
+        HttpMore.refuseFriendAdd(notifyId,
                 new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
-                        notifyList.get(position).setStatus(Notify.STATUS_REFUSE);
+                        mNotifyList.get(position).setStatus(Notify.STATUS_REFUSE);
                         updateRcv();
                     }
                 });
     }
 
     private void agreeGroupJoin(String msgId, final int position) {
-        HttpNotify.agreeGroupJoin(msgId,
+        HttpMore.agreeGroupJoin(msgId,
                 new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
-                        notifyList.get(position).setStatus(Notify.STATUS_AGREE);
+                        mNotifyList.get(position).setStatus(Notify.STATUS_AGREE);
                         updateRcv();
                         EventTrans.post(EventMsg.CONTACT_GROUP_AGREE_JOIN);
                     }
@@ -189,30 +199,51 @@ public class NotifyActivity extends BaseActivity {
     }
 
     private void refuseGroupJoin(String msgId, final int position) {
-        HttpNotify.refuseGroupJoin(msgId,
+        HttpMore.refuseGroupJoin(msgId,
                 new HttpCallBack(getApplicationContext(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
-                        notifyList.get(position).setStatus(Notify.STATUS_REFUSE);
+                        mNotifyList.get(position).setStatus(Notify.STATUS_REFUSE);
                         updateRcv();
+                    }
+                });
+    }
+
+    private void setNotifyRead(String noticeId){
+        HttpMore.setNotifyRead(noticeId,
+                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()){
+                    @Override
+                    public void success(Object data, int count) {
+                        super.success(data, count);
                     }
                 });
     }
 
     @Override
     public void onEventTrans(EventMsg msg) {
-        switch (msg.getKey()){
+        switch (msg.getKey()) {
             case EventMsg.CONTACT_NOTIFY_REFRESH:
-
+                Notify notifyInfo = (Notify) msg.getData();
+                if (notifyInfo != null) {
+                    boolean isMatch = false;
+                    for (int i = 0; i < mNotifyList.size(); i++) {
+                        if (mNotifyList.get(i).getNoticeId().equals(notifyInfo.getNoticeId())) {
+                            mNotifyList.remove(i);
+                            mNotifyList.add(i, notifyInfo);
+                            isMatch = true;
+                        }
+                    }
+                    if (!isMatch) {
+                        mNotifyList.add(0, notifyInfo);
+                    }
+                } else {
+                    getNotifyList(mainCurrentPage);
+                }
                 break;
 
-            case EventMsg.CONTACT_GROUP_AGREE_JOIN:
-
+            default:
                 break;
-
-
         }
-
     }
 
 }

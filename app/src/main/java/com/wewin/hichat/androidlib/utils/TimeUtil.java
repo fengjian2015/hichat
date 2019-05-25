@@ -12,11 +12,12 @@ import java.util.Date;
 
 /**
  * 日期工具类
- * Created by bob on 2015/2/28.
+ * @author Darren
+ * Created by Darren on 2015/2/28.
  */
 public class TimeUtil {
 
-    private static String dayNames[] = {"周日", "周一", "周二", "周三", "周四", "周五", "周六"};
+    private static String[] dayNameArr = {"周日", "周一", "周二", "周三", "周四", "周五", "周六"};
     private static long appLaunchSystemTimestamp;
     private static long appLaunchServiceTimestamp;
 
@@ -256,7 +257,7 @@ public class TimeUtil {
                         if (dayOfMonth == todayOfMonth) {//表示是同一周
                             int dayOfWeek = otherCalendar.get(Calendar.DAY_OF_WEEK);
                             if (dayOfWeek != 1) {//判断当前是不是星期日   如想显示为：周日 12:09 可去掉此判断
-                                result = dayNames[otherCalendar.get(Calendar.DAY_OF_WEEK) - 1] + getHourAndMin(timestamp);
+                                result = dayNameArr[otherCalendar.get(Calendar.DAY_OF_WEEK) - 1] + getHourAndMin(timestamp);
                             } else {
                                 result = getTime(timestamp, timeFormat);
                             }
@@ -311,7 +312,7 @@ public class TimeUtil {
                         if (dayOfMonth == todayOfMonth) {//表示是同一周
                             int dayOfWeek = otherCalendar.get(Calendar.DAY_OF_WEEK);
                             if (dayOfWeek != 1) {//判断当前是不是星期日   如想显示为：周日 12:09 可去掉此判断
-                                result = dayNames[otherCalendar.get(Calendar.DAY_OF_WEEK) - 1];
+                                result = dayNameArr[otherCalendar.get(Calendar.DAY_OF_WEEK) - 1];
                             } else {
                                 result = getTime(timestamp, timeFormat);
                             }

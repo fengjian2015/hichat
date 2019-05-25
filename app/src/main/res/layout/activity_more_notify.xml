@@ -11,6 +11,7 @@
         android:layout_height="match_parent"
         app:srlEnableRefresh="false"
         app:srlEnableAutoLoadMore="false"
+        android:background="@color/gray_f9"
         >
 
         <android.support.v7.widget.RecyclerView

@@ -1,32 +1,87 @@
 package com.wewin.hichat.component.manager;
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.Handler;
 import android.util.Log;
-import com.wewin.hichat.R;
-import com.wewin.hichat.androidlib.utils.LogUtil;
 
+import com.wewin.hichat.androidlib.event.EventMsg;
+import com.wewin.hichat.androidlib.event.EventTrans;
+import com.wewin.hichat.androidlib.utils.LogUtil;
+import com.wewin.hichat.androidlib.utils.SpeakerUtil;
+import com.wewin.hichat.androidlib.widget.CustomCountDownTimer;
+import com.wewin.hichat.component.constant.ContactCons;
+import com.wewin.hichat.component.constant.LibCons;
+import com.wewin.hichat.component.dialog.CallSmallDialog;
+import com.wewin.hichat.model.db.entity.ChatRoom;
+import com.wewin.hichat.model.db.entity.VoiceCall;
+import com.wewin.hichat.model.socket.ChatSocket;
+import com.wewin.hichat.view.conversation.ChatVoiceCallActivity;
+
+import io.agora.rtc.Constants;
 import io.agora.rtc.IRtcEngineEventHandler;
 import io.agora.rtc.RtcEngine;
 
 /**
  * 语音通话
+ * @author Darren
  * Created by Darren on 2019/2/12
  */
 public class VoiceCallManager {
 
     private static VoiceCallManager instance;
     private RtcEngine mRtcEngine;
-    private boolean isJoined = false;
-    private boolean isInit = false;
     private OnCallStateChangeListener stateChangeListener;
-    private int callType;//当前通话状态
-    private int openType;//通话界面打开状态
-    private int calledTime;//已通话时间
-    private long callingDismissTime;//通话界面关闭时间
+    private OnDurationChangeListener durationChangeListener;
+    private boolean isJoined = false;//是否已进入聊天频道
+    private boolean isRunning = false;//语音通话sdk是否初始化
+    private int duration = 0;//已通话时间
+    private ChatRoom callChatRoom;//保存通话界面chatRoom实例
+    private VoiceCall voiceCall;//保存通话界面的voiceCall实例
+    private boolean muteState = false;//是否静音
+    public static final int TYPE_CALL_INVITING = 0;
+    public static final int TYPE_CALL_WAIT_ANSWER = 1;
+    public static final int TYPE_CALL_CONNECTING = 2;
+    public static final int TYPE_CALL_CALLING = 3;
+    public static final int TYPE_CALL_FINISH = 4;
+    private int callType = TYPE_CALL_FINISH;//当前通话状态
+    private final int MAX_WAIT_TIME = 60 * 1000;//60S超时挂断
+
+    private CustomCountDownTimer waitTimer = new CustomCountDownTimer(MAX_WAIT_TIME, 1000) {
+        @Override
+        public void onFinish() {
+            if (VoiceCallManager.get().getCallType() == VoiceCallManager.TYPE_CALL_INVITING) {
+                if (VoiceCallManager.get().getVoiceCall() != null) {
+                    VoiceCall voiceCall = VoiceCallManager.get().getVoiceCall();
+                    voiceCall.setConnectState(VoiceCall.TIME_OUT);
+                    ChatSocket.getInstance().send(ChatRoomManager
+                            .packVoiceCallMsg(VoiceCallManager.get().getCallChatRoom(), voiceCall));
+                }
+                stop(null);
+
+            } else if (VoiceCallManager.get().getCallType() == VoiceCallManager.TYPE_CALL_WAIT_ANSWER) {
+                stop(null);
+            }
+            EventTrans.post(EventMsg.CONVERSATION_VOICE_CALL_FINISH);
+        }
+    };
 
 
-    private final IRtcEngineEventHandler mRtcEventHandler = new IRtcEngineEventHandler() { // Tutorial Step 1
+    private Handler handler = new Handler();
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            if (callType == TYPE_CALL_CALLING) {
+                if (durationChangeListener != null) {
+                    durationChangeListener.durationChange(duration);
+                }
+                duration++;
+                handler.postDelayed(this, 1000);
+            }
+        }
+    };
 
+    private final IRtcEngineEventHandler mRtcEventHandler = new IRtcEngineEventHandler() {
         @Override
         public void onUserOffline(final int uid, final int reason) {
             if (stateChangeListener != null) {
@@ -40,9 +95,11 @@ public class VoiceCallManager {
         }
     };
 
-    private VoiceCallManager(){}
+    private VoiceCallManager() {
 
-    public static VoiceCallManager getInstance() {
+    }
+
+    public static VoiceCallManager get() {
         if (instance == null) {
             synchronized (VoiceCallManager.class) {
                 if (instance == null) {
@@ -53,117 +110,198 @@ public class VoiceCallManager {
         return instance;
     }
 
-    public interface OnCallStateChangeListener {
-        void joinChannelSuccess(String channel);
-
-        void joinChannelFailure(int joinResult);
-
-        void otherSideOffline();
-    }
-
-    public void setOnCallStateChangeListener(OnCallStateChangeListener stateChangeListener) {
-        this.stateChangeListener = stateChangeListener;
-    }
-
-    //初始化
+    /**
+     * 初始化
+     */
     public void init(Context context) {
-        initAgoraEngine(context);
+        try {
+            if (mRtcEngine == null) {
+                mRtcEngine = RtcEngine.create(context, LibCons.AGORA_APP_ID, mRtcEventHandler);
+                mRtcEngine.setChannelProfile(Constants.CHANNEL_PROFILE_COMMUNICATION);
+                isRunning = true;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("NEED TO check rtc sdk init fatal error\n"
+                    + Log.getStackTraceString(e));
+        }
     }
 
-    //进入频道
-    public void joinChannel(String channel) {
+    /**
+     * 进入频道
+     */
+    public void joinChannel(Context context, String channel) {
         if (mRtcEngine != null && !isJoined) {
-            int joinResult = mRtcEngine.joinChannel(null, channel, "", 0); // if you do not specify the uid, we will generate the uid for you
+            // if you do not specify the uid, we will generate the uid for you
+            int joinResult = mRtcEngine.joinChannel(null, channel, "", 0);
             LogUtil.i("joinResult", joinResult);
             LogUtil.i("joinChannel", channel);
 
-            if (joinResult == 0 && stateChangeListener != null) {
-                stateChangeListener.joinChannelSuccess(channel);
+            if (joinResult == 0) {
+                setHandFree(context, false);
+                mRtcEngine.setDefaultAudioRoutetoSpeakerphone(true);
+                mRtcEngine.adjustRecordingSignalVolume(150);//调节录音音量
+                mRtcEngine.adjustPlaybackSignalVolume(150);//调节播放音量
                 isJoined = true;
-
+                if (stateChangeListener != null) {
+                    stateChangeListener.joinChannelSuccess(channel);
+                }
             } else if (joinResult < 0 && stateChangeListener != null) {
                 stateChangeListener.joinChannelFailure(joinResult);
             }
         }
     }
 
+    //开始通话计时
+    public void startCallTimeCount() {
+        if (handler != null) {
+            handler.removeCallbacks(runnable);
+            handler.post(runnable);
+        }
+    }
+
+    //开始等待接听倒计时
+    public void startWaitTimeCount(){
+        if (waitTimer != null){
+            waitTimer.start();
+        }
+    }
+
+    //取消等待接听倒计时
+    public void cancelWaitTimeCount(){
+        if (waitTimer != null){
+            waitTimer.cancel();
+        }
+    }
+
     //静音
-    public void setMute(boolean isMute) {
+    public void setMute(boolean muteState) {
         if (mRtcEngine != null) {
-            mRtcEngine.muteLocalAudioStream(isMute);
+            mRtcEngine.muteLocalAudioStream(muteState);
+            this.muteState = muteState;
         }
     }
 
     //免提
-    public void setHandFree(boolean isHandFree) {
-        if (mRtcEngine != null) {
-            mRtcEngine.setEnableSpeakerphone(isHandFree);
+    public void setHandFree(Context context, boolean isSpeakerOn) {
+        if (isSpeakerOn) {
+            SpeakerUtil.setSpeakerphoneOn(context);
+            if (mRtcEngine != null){
+                mRtcEngine.setEnableSpeakerphone(true);
+            }
+        } else {
+            SpeakerUtil.setCallPhoneOn(context);
+            if (mRtcEngine != null){
+                mRtcEngine.setEnableSpeakerphone(false);
+            }
         }
     }
 
-    public void setCallType(int callType){
-        this.callType = callType;
+    public boolean isHandFree(Context context) {
+        return SpeakerUtil.isSpeakerphoneOn(context);
     }
 
-    public int getCallType(){
-        return callType;
+    public boolean isMute() {
+        return muteState;
     }
 
-    public void setOpenType(int openType){
-        this.openType = openType;
-    }
-
-    public int getOpenType(){
-        return openType;
-    }
-
-    public void setCalledTime(int calledTime){
-        this.calledTime = calledTime;
-    }
-
-    public int getCalledTime(){
-        return calledTime;
-    }
-
-    public void setCallingDismissTime(long dismissTimestamp){
-        this.callingDismissTime = dismissTimestamp;
-    }
-
-    public long getCallingDismissTime() {
-        return callingDismissTime;
-    }
-
-    public boolean isRunning() {
-        return isInit;
-    }
-
-    public void stop() {
+    public void stop(Context context) {
+        LogUtil.i("stop");
+        if (!isRunning){
+            return;
+        }
+        isRunning = false;
         if (mRtcEngine != null) {
             mRtcEngine.leaveChannel();
             mRtcEngine = null;
         }
+        if (handler != null) {
+            handler.removeCallbacks(runnable);
+        }
+        if (waitTimer != null){
+            waitTimer.cancel();
+        }
+        CallSmallDialog.getInstance().dismissWindow(true);
         RtcEngine.destroy();
-        callType = -1;
-        calledTime = -1;
-        callingDismissTime = -1;
         isJoined = false;
-        isInit = false;
+        duration = 0;
+        callChatRoom = null;
+        voiceCall = null;
+        muteState = false;
+        callType = TYPE_CALL_FINISH;
+        SpeakerUtil.setSpeakerphoneOn(context);
     }
 
-    private void initAgoraEngine(Context context) {
-        try {
-            if (mRtcEngine == null){
-                mRtcEngine = RtcEngine.create(context, context.getString(R.string.agora_app_id),
-                        mRtcEventHandler);
-                mRtcEngine.setEnableSpeakerphone(false);
-                isInit = true;
-            }
+    //启动语音通话界面(等待接听)
+    void startVoiceCallWaitActivity(Context context, ChatRoom chatRoom) {
+        this.callType = TYPE_CALL_WAIT_ANSWER;
+        startVoiceCallActivity(context, chatRoom);
+    }
 
-        } catch (Exception e) {
-            Log.e("VoiceCallManager", Log.getStackTraceString(e));
-            throw new RuntimeException("NEED TO check rtc sdk init fatal error\n"
-                    + Log.getStackTraceString(e));
+    //启动语音通话界面
+    public void startVoiceCallActivity(Context context, ChatRoom chatRoom) {
+        if (chatRoom != null){
+            VoiceCallManager.get().setCallChatRoom(chatRoom);
         }
+        Intent intent = new Intent(context, ChatVoiceCallActivity.class);
+        intent.putExtra(ContactCons.EXTRA_CONTACT_CHAT_ROOM, chatRoom);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(intent);
+    }
+
+    public void setOnDurationChangeListener(OnDurationChangeListener durationChangeListener) {
+        this.durationChangeListener = durationChangeListener;
+    }
+
+    public void setOnCallStateChangeListener(OnCallStateChangeListener stateChangeListener) {
+        this.stateChangeListener = stateChangeListener;
+    }
+
+    public VoiceCall getVoiceCall() {
+        return voiceCall;
+    }
+
+    public void setVoiceCall(VoiceCall voiceCall) {
+        this.voiceCall = voiceCall;
+    }
+
+    public void setCallType(int callType) {
+        this.callType = callType;
+    }
+
+    public int getCallType() {
+        return callType;
+    }
+
+    public ChatRoom getCallChatRoom() {
+        return callChatRoom;
+    }
+
+    public void setCallChatRoom(ChatRoom callChatRoom) {
+        this.callChatRoom = callChatRoom;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+
+    public boolean isRunning() {
+        return isRunning;
+    }
+
+    public interface OnDurationChangeListener {
+        void durationChange(int duration);
+    }
+
+    public interface OnCallStateChangeListener {
+        void joinChannelSuccess(String channel);
+
+        void joinChannelFailure(int joinResult);
+
+        void otherSideOffline();
     }
 
 }

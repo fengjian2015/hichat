@@ -2,6 +2,7 @@ package com.wewin.hichat.view.search;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.AdapterView;
@@ -12,11 +13,12 @@ import android.widget.TextView;
 
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.impl.CustomTextWatcher;
+import com.wewin.hichat.androidlib.utils.SystemUtil;
 import com.wewin.hichat.androidlib.widget.SideBarView;
 import com.wewin.hichat.component.adapter.SearchCountryLvAdapter;
 import com.wewin.hichat.component.base.BaseActivity;
 import com.wewin.hichat.component.constant.LoginCons;
-import com.wewin.hichat.model.db.entity.CountryCode;
+import com.wewin.hichat.model.db.entity.CountryInfo;
 import com.wewin.hichat.model.db.entity.SortModel;
 
 import java.util.ArrayList;
@@ -40,7 +42,7 @@ public class CountrySearchActivity extends BaseActivity {
     private EditText inputEt;
     private ImageView clearIv;
     private SearchCountryLvAdapter lvAdapter;
-    private CountryCode countryCode;
+    private CountryInfo countryInfo;
 
 
     @Override
@@ -58,7 +60,7 @@ public class CountrySearchActivity extends BaseActivity {
 
     @Override
     protected void getIntentData() {
-        countryCode = (CountryCode)getIntent()
+        countryInfo = (CountryInfo)getIntent()
                 .getSerializableExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE);
     }
 
@@ -71,16 +73,14 @@ public class CountrySearchActivity extends BaseActivity {
         characterParser = CharacterParser.getInstance();
         pinyinComparator = new PinyinComparator();
 
-        List<CountryCode> countryCodeList = getCountryCode(getApplicationContext());
+        List<CountryInfo> countryInfoList = getCountryCode(getApplicationContext());
 
-        if (countryCodeList != null && !countryCodeList.isEmpty()){
-            sortModelList = filledData(countryCodeList);
+        if (countryInfoList != null && !countryInfoList.isEmpty()){
+            sortModelList = filledData(countryInfoList);
             // 根据a-z进行排序源数据
             Collections.sort(sortModelList, pinyinComparator);
-
             initListView();
         }
-
     }
 
     @Override
@@ -134,31 +134,28 @@ public class CountrySearchActivity extends BaseActivity {
         });
     }
 
-    private static List<CountryCode> getCountryCode(Context context){
-        List<CountryCode> countryCodeList = new ArrayList<>();
-        countryCodeList.add(new CountryCode(context.getString(R.string.china), "+86"));
-        countryCodeList.add(new CountryCode(context.getString(R.string.taiwan), "+886"));
-        countryCodeList.add(new CountryCode(context.getString(R.string.philippines), "+63"));
-        countryCodeList.add(new CountryCode(context.getString(R.string.hongkong), "+852"));
-        countryCodeList.add(new CountryCode(context.getString(R.string.macao), "+853"));
-        countryCodeList.add(new CountryCode(context.getString(R.string.malaysia), "+60"));
-        countryCodeList.add(new CountryCode(context.getString(R.string.indonesia), "+62"));
-        countryCodeList.add(new CountryCode(context.getString(R.string.vietnam), "+84"));
-        countryCodeList.add(new CountryCode(context.getString(R.string.cambodia), "+855"));
-        return countryCodeList;
+    private static List<CountryInfo> getCountryCode(Context context){
+        List<CountryInfo> countryInfoList = new ArrayList<>();
+        countryInfoList.add(new CountryInfo(context.getString(R.string.china), "+86"));
+        countryInfoList.add(new CountryInfo(context.getString(R.string.taiwan), "+886"));
+        countryInfoList.add(new CountryInfo(context.getString(R.string.hongkong), "+852"));
+        countryInfoList.add(new CountryInfo(context.getString(R.string.philippines), "+63"));
+        countryInfoList.add(new CountryInfo(context.getString(R.string.malaysia), "+60"));
+        countryInfoList.add(new CountryInfo(context.getString(R.string.cambodia), "+855"));
+        return countryInfoList;
     }
 
     /**
      * 为ListView填充数据
      */
-    private List<SortModel> filledData(List<CountryCode> countryCodeList) {
+    private List<SortModel> filledData(List<CountryInfo> countryInfoList) {
         List<SortModel> mSortList = new ArrayList<>();
-        for (CountryCode country : countryCodeList) {
+        for (CountryInfo country : countryInfoList) {
             SortModel sortModel = new SortModel();
             sortModel.setName(country.getCountry());
             sortModel.setCode(country.getCode());
-            if (this.countryCode != null
-                    && this.countryCode.getCountry().equals(country.getCountry())){
+            if (this.countryInfo != null
+                    && this.countryInfo.getCountry().equals(country.getCountry())){
                 sortModel.setChecked(true);
             }
 

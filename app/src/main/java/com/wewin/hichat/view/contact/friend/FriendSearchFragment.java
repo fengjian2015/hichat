@@ -1,6 +1,7 @@
 package com.wewin.hichat.view.contact.friend;
 
 import android.content.Intent;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.view.View;
@@ -11,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
 import com.alibaba.fastjson.JSON;
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.datamanager.DataCache;
@@ -24,6 +26,8 @@ import com.wewin.hichat.androidlib.utils.ClassUtil;
 import com.wewin.hichat.androidlib.impl.HttpCallBack;
 import com.wewin.hichat.androidlib.utils.ImgUtil;
 import com.wewin.hichat.androidlib.utils.LogUtil;
+import com.wewin.hichat.androidlib.utils.PhoneUtil;
+import com.wewin.hichat.androidlib.utils.SystemUtil;
 import com.wewin.hichat.androidlib.utils.ToastUtil;
 import com.wewin.hichat.component.base.BaseFragment;
 import com.wewin.hichat.component.constant.ContactCons;
@@ -31,17 +35,17 @@ import com.wewin.hichat.component.constant.LoginCons;
 import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.component.dialog.PromptDialog;
 import com.wewin.hichat.component.manager.ChatRoomManager;
-import com.wewin.hichat.model.db.dao.FriendDao;
-import com.wewin.hichat.model.db.dao.UserDao;
-import com.wewin.hichat.model.db.entity.CountryCode;
+import com.wewin.hichat.model.db.entity.CountryInfo;
 import com.wewin.hichat.model.db.entity.FriendInfo;
 import com.wewin.hichat.model.db.entity.SortModel;
 import com.wewin.hichat.model.db.entity.Subgroup;
 import com.wewin.hichat.model.http.HttpContact;
 import com.wewin.hichat.view.search.CountrySearchActivity;
 import com.wewin.hichat.view.search.PhoneContactSearchActivity;
+
 import java.util.HashMap;
 import java.util.List;
+
 import static android.app.Activity.RESULT_OK;
 
 /**
@@ -56,7 +60,7 @@ public class FriendSearchFragment extends BaseFragment {
     private LinearLayout resultContainerLl;
     private TextView countryTv, codeTv, promptTv, resultNameTv, resultSignTv, resultGroupingNameTv,
             verifyCountTv;
-    private CountryCode selectCountryCode;
+    private CountryInfo selectCountryInfo;
     private EditText phoneInputEt, resultVerifyInputEt;
     private Button resultApplyBtn;
     private PromptDialog promptDialog;
@@ -66,6 +70,17 @@ public class FriendSearchFragment extends BaseFragment {
     private boolean isResultContainerVisible = false;
     private boolean isPromptVisible = false;
     private Subgroup friendSubgroup;
+    private Handler handler = new Handler();
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            if (phoneInputEt == null){
+                return;
+            }
+            phoneInputEt.requestFocus();
+            SystemUtil.showKeyboard(getHostActivity(), phoneInputEt);
+        }
+    };
 
     @Override
     protected int getLayoutId() {
@@ -95,21 +110,23 @@ public class FriendSearchFragment extends BaseFragment {
 
     @Override
     protected void initViewsData() {
-        selectCountryCode = new CountryCode();
+        selectCountryInfo = new CountryInfo();
         if (!TextUtils.isEmpty(SpCons.getCountryName(getContext())) &&
                 !TextUtils.isEmpty(SpCons.getCountryCode(getContext()))) {
-            selectCountryCode.setCountry(SpCons.getCountryName(getContext()));
-            selectCountryCode.setCode(SpCons.getCountryCode(getContext()));
+            selectCountryInfo.setCountry(SpCons.getCountryName(getContext()));
+            selectCountryInfo.setCode(SpCons.getCountryCode(getContext()));
         } else {
-            selectCountryCode.setCountry(getString(R.string.philippines));
-            selectCountryCode.setCode("+63");
+            selectCountryInfo.setCountry(getString(R.string.philippines));
+            selectCountryInfo.setCode("+63");
         }
-        countryTv.setText(selectCountryCode.getCountry());
-        codeTv.setText(selectCountryCode.getCode());
+        countryTv.setText(selectCountryInfo.getCountry());
+        codeTv.setText(selectCountryInfo.getCode());
 
         DataCache spCache = new SpCache(getActivity());
         friendSubgroup = (Subgroup) spCache.getObject(SpCons.SP_KEY_FRIEND_SUBGROUP);
 
+        //输入框获取焦点，弹出键盘
+        handler.postDelayed(runnable, 300);
     }
 
     @Override
@@ -123,14 +140,7 @@ public class FriendSearchFragment extends BaseFragment {
         phoneInputEt.addTextChangedListener(new CustomTextWatcher() {
             @Override
             public void afterTextChanged(Editable s) {
-                if (isResultContainerVisible) {
-                    isResultContainerVisible = false;
-                    resultContainerLl.setVisibility(View.GONE);
-                }
-                if (isPromptVisible) {
-                    isPromptVisible = false;
-                    promptTv.setVisibility(View.GONE);
-                }
+                resetResultView();
             }
         });
 
@@ -148,16 +158,21 @@ public class FriendSearchFragment extends BaseFragment {
         switch (v.getId()) {
             case R.id.iv_contact_add_friend_search:
                 String phoneNum = phoneInputEt.getText().toString().trim();
+
                 if (TextUtils.isEmpty(phoneNum)) {
                     setPrompt(R.string.please_input_search_phone_num);
+                } else if (!PhoneUtil.isPhoneNumValid(selectCountryInfo.getCode(), phoneNum)) {
+
+                    setPrompt(R.string.phone_num_format_error);
                 } else {
                     searchFriend(phoneNum);
                 }
                 break;
 
             case R.id.rl_contact_add_country_container:
+                SystemUtil.hideKeyboard(getHostActivity());
                 Intent intent = new Intent(getActivity(), CountrySearchActivity.class);
-                intent.putExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE, selectCountryCode);
+                intent.putExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE, selectCountryInfo);
                 startActivityForResult(intent, LoginCons.INTENT_REQ_COUNTRY_SEARCH);
                 break;
 
@@ -198,17 +213,36 @@ public class FriendSearchFragment extends BaseFragment {
                     }
                 }
                 break;
+
+            default:
+
+                break;
         }
     }
 
     private void setPrompt(int resourceId) {
+        resetResultView();
         promptTv.setVisibility(View.VISIBLE);
         isPromptVisible = true;
         promptTv.setText(getString(resourceId));
     }
 
-    private void searchFriend(final String phoneNum) {
-        HttpContact.searchFriend(1, "friend", phoneNum, new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
+    private void resetResultView(){
+        if (isResultContainerVisible) {
+            isResultContainerVisible = false;
+            resultContainerLl.setVisibility(View.GONE);
+        }
+        if (isPromptVisible) {
+            isPromptVisible = false;
+            promptTv.setVisibility(View.GONE);
+        }
+    }
+
+    private void searchFriend(String phoneNum) {
+        if ("+63".equals(selectCountryInfo.getCode())){
+            phoneNum = phoneNum.substring(1, phoneNum.length());
+        }
+        HttpContact.searchFriend(1, phoneNum, new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
             @Override
             public void success(Object data, int count) {
                 if (data == null) {
@@ -235,7 +269,7 @@ public class FriendSearchFragment extends BaseFragment {
             resultNameTv.setText(backFriend.getUsername());
             resultSignTv.setText(backFriend.getSign());
 
-            if (backFriend.getId().equals(UserDao.user.getId())) {
+            if (backFriend.getId().equals(SpCons.getUser(getHostActivity()).getId())) {
                 resultGroupingFl.setVisibility(View.GONE);
                 verifyFl.setVisibility(View.GONE);
                 resultApplyBtn.setText(getString(R.string.personal_info));
@@ -253,23 +287,17 @@ public class FriendSearchFragment extends BaseFragment {
     }
 
     private void setFriendshipView() {
-        List<FriendInfo> friendList = FriendDao.getFriendList();
-        boolean isFriend = false;
-        resultApplyBtn.setVisibility(View.VISIBLE);
-        for (FriendInfo friend : friendList) {
-            if (friend != null && backFriend != null && friend.getId().equals(backFriend.getId())
-                    && !backFriend.getId().equals(UserDao.user.getId())) {
-
-                resultGroupingFl.setVisibility(View.GONE);
-                verifyFl.setVisibility(View.GONE);
-                resultApplyBtn.setText(getString(R.string.send_message));
-                resultApplyBtn.setEnabled(true);
-                friendType = 1;
-                isFriend = true;
-                break;
-            }
+        if (backFriend == null){
+            return;
         }
-        if (!isFriend) {
+        resultApplyBtn.setVisibility(View.VISIBLE);
+        if (backFriend.getFriendship() == 1) {
+            resultGroupingFl.setVisibility(View.GONE);
+            verifyFl.setVisibility(View.GONE);
+            resultApplyBtn.setText(getString(R.string.send_message));
+            resultApplyBtn.setEnabled(true);
+            friendType = 1;
+        } else {
             resultGroupingFl.setVisibility(View.VISIBLE);
             verifyFl.setVisibility(View.VISIBLE);
             resultApplyBtn.setText(getString(R.string.send_apply));
@@ -281,13 +309,16 @@ public class FriendSearchFragment extends BaseFragment {
     private void showPromptDialog() {
         if (promptDialog == null) {
             PromptDialog.PromptBuilder promptBuilder = new PromptDialog.PromptBuilder(getActivity());
-            promptDialog = promptBuilder.setPromptContent(R.string.search_friend_null).create();
+            promptDialog = promptBuilder
+                    .setPromptContent(R.string.search_friend_null)
+                    .setCancelVisible(false)
+                    .create();
         }
         promptDialog.show();
     }
 
     private void applyAddFriend(String friendId, String verifyInfo, String groupingId) {
-        HttpContact.applyAddFriend(friendId, verifyInfo, groupingId, UserDao.user.getId(),
+        HttpContact.applyAddFriend(friendId, verifyInfo, groupingId, SpCons.getUser(getHostActivity()).getId(),
                 new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
@@ -300,7 +331,6 @@ public class FriendSearchFragment extends BaseFragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        LogUtil.i("FriendSearchFragment onActivityResult");
         if (resultCode == RESULT_OK) {
             if (requestCode == LoginCons.INTENT_REQ_COUNTRY_SEARCH) {
                 SortModel sortModel = (SortModel) data.getSerializableExtra(
@@ -308,8 +338,9 @@ public class FriendSearchFragment extends BaseFragment {
                 if (sortModel != null) {
                     countryTv.setText(sortModel.getName());
                     codeTv.setText(sortModel.getCode());
-                    selectCountryCode.setCountry(sortModel.getName());
-                    selectCountryCode.setCode(sortModel.getCode());
+                    selectCountryInfo.setCountry(sortModel.getName());
+                    selectCountryInfo.setCode(sortModel.getCode());
+                    resetResultView();
                 }
             } else if (requestCode == ContactCons.REQ_CONTACT_FRIEND_GROUPING_SELECT) {
                 String subgroupId = data.getStringExtra(ContactCons.EXTRA_CONTACT_FRIEND_SUBGROUP_ID);
@@ -323,12 +354,36 @@ public class FriendSearchFragment extends BaseFragment {
 
     @Override
     public void onEventTrans(EventMsg msg) {
-        if (msg.getKey() == EventMsg.CONTACT_ADD_FRIEND_PROCESS_REFRESH) {
-            setFriendshipView();
-        } else if (msg.getKey() == EventMsg.CONTACT_DELETE_BY_OTHER) {
-//            ToastUtil.showShort(getHostActivity(), R.string.other_side_deleted_you);
-//            getHostActivity().finish();
+        switch (msg.getKey()){
+            case EventMsg.CONTACT_FRIEND_AGREE_REFRESH:
+                String friendId = msg.getData().toString();
+                if (backFriend != null && !TextUtils.isEmpty(friendId)){
+                    backFriend.setFriendship(1);
+                    friendType = 1;
+                    setFriendshipView();
+                }
+                break;
+
+            case EventMsg.CONTACT_PHONE_CONTACT_REFRESH:
+                String phoneNum = phoneInputEt.getText().toString().trim();
+                if (backFriend != null && !TextUtils.isEmpty(phoneNum)){
+                    searchFriend(phoneNum);
+                }
+                break;
+
+            default:
+
+                break;
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        if (handler != null){
+            handler.removeCallbacks(runnable);
+            handler = null;
+        }
+        super.onDestroy();
     }
 
 }

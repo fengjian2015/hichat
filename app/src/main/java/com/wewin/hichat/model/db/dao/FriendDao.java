@@ -34,7 +34,7 @@ public class FriendDao {
     public static final String FRIENDSHIP_MARK = "friendship_mark";
     public static final String USER_ID = "user_id";
 
-    public static void addFriend(FriendInfo friendInfo, Subgroup subgroup) {
+    public static void addFriend(FriendInfo friendInfo, Subgroup subgroup){
         List<FriendInfo> friendList = new ArrayList<>();
         friendList.add(friendInfo);
         addFriendList(friendList, subgroup);
@@ -64,47 +64,54 @@ public class FriendDao {
     }
 
     public static List<FriendInfo> getFriendList() {
-        SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
-        Cursor cursor = db.rawQuery("select * from " + TABLE_NAME + " where "
-                + USER_ID + " = ?", new String[]{UserDao.user.getId()});
         List<FriendInfo> contactList = new ArrayList<>();
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                contactList.add(packCursorData(cursor));
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
+            Cursor cursor = db.rawQuery("select * from " + TABLE_NAME + " where " + FRIENDSHIP_MARK +
+                    " =1 and " + USER_ID + " = ?", new String[]{UserDao.user.getId()});
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    contactList.add(packCursorData(cursor));
+                }
+                cursor.close();
             }
-            cursor.close();
+            DbManager.getInstance().closeDatabase();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        DbManager.getInstance().closeDatabase();
         return contactList;
     }
 
     public static FriendInfo getFriendInfo(String friendId) {
-        SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
-        String sql = "select * from " + TABLE_NAME + " where " + FRIEND_ID + " = ? and "
-                + USER_ID + " = ?";
-        Cursor cursor = db.rawQuery(sql, new String[]{friendId, UserDao.user.getId()});
-        FriendInfo friendInfo =null;
-        if (cursor != null) {
-            if (cursor.getCount() > 0 && cursor.moveToNext()) {
-                friendInfo = packCursorData(cursor);
+        FriendInfo friendInfo = null;
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
+            String sql = "select * from " + TABLE_NAME + " where " + FRIEND_ID + " = ? and "
+                    + USER_ID + " = ?";
+            Cursor cursor = db.rawQuery(sql, new String[]{friendId, UserDao.user.getId()});
+            if (cursor != null) {
+                if (cursor.getCount() > 0 && cursor.moveToNext()) {
+                    friendInfo = packCursorData(cursor);
+                }
+                cursor.close();
             }
-            cursor.close();
+            DbManager.getInstance().closeDatabase();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        DbManager.getInstance().closeDatabase();
         return friendInfo;
     }
 
     /**
      * 获取是否为好友状态 0非好友 1 好友
-     *
-     * @return
      */
     public static int findFriendshipMark(String friendId) {
+        int friendship = 0;
         try {
             SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
             Cursor cursor = db.rawQuery("select " + FRIENDSHIP_MARK + " from " + TABLE_NAME +
-                            " where " + FRIEND_ID + "=?", new String[]{friendId});
-            int friendship = 0;
+                    " where " + FRIEND_ID + "=? and " + USER_ID + " =?",
+                    new String[]{friendId, UserDao.user.getId()});
             if (cursor != null) {
                 if (cursor.getCount() > 0 && cursor.moveToNext()) {
                     friendship = cursor.getInt(cursor.getColumnIndex(FRIENDSHIP_MARK));
@@ -112,19 +119,10 @@ public class FriendDao {
                 cursor.close();
             }
             DbManager.getInstance().closeDatabase();
-            return friendship;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return 0;
-    }
-
-    public static void updateFriendInfo(FriendInfo friendInfo) {
-        SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
-        String sql = "update " + TABLE_NAME + " set " + USERNAME + " =? and " + AVATAR + " =? where " +
-                FRIEND_ID + " =?";
-        db.execSQL(sql, new String[]{friendInfo.getUsername(), friendInfo.getAvatar(), friendInfo.getId()});
-        DbManager.getInstance().closeDatabase();
+        return friendship;
     }
 
     public static void updateGender(String friendId, int gender) {
@@ -156,19 +154,44 @@ public class FriendDao {
     }
 
     public static void updateSubgroup(String friendId, Subgroup subgroup) {
-        SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
-        String sql = "update " + TABLE_NAME + " set " + SUBGROUP_ID + " =? and " + SUBGROUP_NAME +
-                " =? and " + SUBGROUP_TYPE + " = ? where " + FRIEND_ID + " = ? and " + USER_ID + " = ?";
-        db.execSQL(sql, new String[]{subgroup.getId(), subgroup.getGroupName(),
-                String.valueOf(subgroup.getIsDefault()), friendId, UserDao.user.getId()});
-        DbManager.getInstance().closeDatabase();
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
+            String sql = "update " + TABLE_NAME + " set " + SUBGROUP_ID + " =? and " + SUBGROUP_NAME +
+                    " =? and " + SUBGROUP_TYPE + " = ? where " + FRIEND_ID + " = ? and " + USER_ID + " = ?";
+            db.execSQL(sql, new String[]{subgroup.getId(), subgroup.getGroupName(),
+                    String.valueOf(subgroup.getIsDefault()), friendId, UserDao.user.getId()});
+            DbManager.getInstance().closeDatabase();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static void update(String friendId, String columnName, String columnValue) {
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
+            String sql = "update " + TABLE_NAME + " set " + columnName + " = ? where " + FRIEND_ID +
+                    " = ? and " + USER_ID + " = ?";
+            db.execSQL(sql, new String[]{columnValue, friendId, UserDao.user.getId()});
+            DbManager.getInstance().closeDatabase();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void updateFriendInfo(FriendInfo friendInfo){
         SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
-        String sql = "update " + TABLE_NAME + " set " + columnName + " = ? where " + FRIEND_ID +
-                " = ? and " + USER_ID + " = ?";
-        db.execSQL(sql, new String[]{columnValue, friendId, UserDao.user.getId()});
+        ContentValues values = new ContentValues();
+        values.put(USERNAME, friendInfo.getUsername());
+        values.put(AVATAR, friendInfo.getAvatar());
+        values.put(FRIEND_NOTE, friendInfo.getFriendNote());
+        values.put(PHONE, friendInfo.getPhone());
+        values.put(SIGN, friendInfo.getSign());
+        values.put(GENDER, friendInfo.getGender());
+        values.put(TOP_MARK, friendInfo.getTopMark());
+        values.put(SHIELD_MARK, friendInfo.getShieldMark());
+        values.put(FRIENDSHIP_MARK, friendInfo.getFriendship());
+        String whereSql = FRIEND_ID + " =? and " + USER_ID + " =?";
+        db.update(TABLE_NAME, values, whereSql, new String[]{friendInfo.getId(), UserDao.user.getId()});
         DbManager.getInstance().closeDatabase();
     }
 

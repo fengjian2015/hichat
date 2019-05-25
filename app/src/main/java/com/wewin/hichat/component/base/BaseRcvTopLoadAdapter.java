@@ -30,7 +30,6 @@ public abstract class BaseRcvTopLoadAdapter extends RecyclerView.Adapter<Recycle
     private boolean hasData = true;
     private List objectList;
     private TopPullViewHolder baseTpHolder;
-    public OnItemClickListener itemClickListener;
     private OnLoadDataListener loadDataListener;
     private LoadHandler loadHandler = new LoadHandler(new WeakReference<>(this));
 
@@ -46,27 +45,22 @@ public abstract class BaseRcvTopLoadAdapter extends RecyclerView.Adapter<Recycle
         void itemClick(int position);
     }
 
-    public interface OnLoadDataListener{
+    public interface OnLoadDataListener {
         void loadData();
     }
 
-    //条目点击
-    public void setOnItemClickListener(OnItemClickListener itemListener) {
-        this.itemClickListener = itemListener;
-    }
-
     //数据加载
-    public void setOnLoadDataListener(OnLoadDataListener loadDataListener){
-        if (hasData){
+    public void setOnLoadDataListener(OnLoadDataListener loadDataListener) {
+        if (hasData) {
             this.loadDataListener = loadDataListener;
         }
     }
 
-    public void setTopPullViewVisible(boolean state){
+    public void setTopPullViewVisible(boolean state) {
         baseTpHolderVisible = state;
     }
 
-    public boolean getTopPullViewVisible(){
+    public boolean getTopPullViewVisible() {
         return baseTpHolderVisible;
     }
 
@@ -107,10 +101,14 @@ public abstract class BaseRcvTopLoadAdapter extends RecyclerView.Adapter<Recycle
             }
 
         } else if (objectList != null && objectList.size() > 0) {
-            if (baseTpHolderVisible){
-                bindViewData(holder, position - 1);
-            }else {
-                bindViewData(holder, position);
+            try {
+                if (baseTpHolderVisible) {
+                    bindViewData(holder, position - 1);
+                } else {
+                    bindViewData(holder, position);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
@@ -130,9 +128,9 @@ public abstract class BaseRcvTopLoadAdapter extends RecyclerView.Adapter<Recycle
         }
         if (objectList == null) {
             return 0;
-        } else if (baseTpHolderVisible){
+        } else if (baseTpHolderVisible) {
             return objectList.size() + 1;
-        }else {
+        } else {
             return objectList.size();
         }
     }
@@ -148,7 +146,7 @@ public abstract class BaseRcvTopLoadAdapter extends RecyclerView.Adapter<Recycle
         }
     }
 
-    private static class LoadHandler extends Handler{
+    private static class LoadHandler extends Handler {
 
         private static final int HANDLER_MSG_TOP_PULL = 100;
         private WeakReference<BaseRcvTopLoadAdapter> reference;
@@ -161,19 +159,19 @@ public abstract class BaseRcvTopLoadAdapter extends RecyclerView.Adapter<Recycle
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            if (reference == null){
+            if (reference == null) {
                 return;
             }
             if (msg.what == HANDLER_MSG_TOP_PULL) {
                 reference.get().baseTpHolder.loadingIv.clearAnimation();
                 reference.get().baseTpHolder.loadingIv.setVisibility(View.GONE);
-                if (!reference.get().hasData){
+                if (!reference.get().hasData) {
                     reference.get().baseTpHolder.botTv.setText("没有更多数据了");
                     reference.get().baseTpHolder.botTv.setVisibility(View.VISIBLE);
-                }else {
+                } else {
                     reference.get().baseTpHolder.botTv.setText("加载中...");
                     reference.get().baseTpHolder.botTv.setVisibility(View.INVISIBLE);
-                    if (reference.get().loadDataListener != null){
+                    if (reference.get().loadDataListener != null) {
                         reference.get().loadDataListener.loadData();
                     }
                 }

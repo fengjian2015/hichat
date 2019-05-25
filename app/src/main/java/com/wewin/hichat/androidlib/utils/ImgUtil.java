@@ -13,17 +13,16 @@ import android.support.v4.content.FileProvider;
 import android.text.TextUtils;
 import android.widget.ImageView;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
 import com.wewin.hichat.BuildConfig;
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.permission.Permission;
 import com.wewin.hichat.androidlib.permission.PermissionCallback;
 import com.wewin.hichat.androidlib.permission.Rigger;
-
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
-
 import top.zibin.luban.CompressionPredicate;
 import top.zibin.luban.Luban;
 
@@ -34,6 +33,7 @@ public class ImgUtil {
 
     public static String cameraOutputPath;
     public static String cropOutputPath;
+
     public static final int IMG_CROP_SIZE_1 = 1;
     public static final int IMG_CROP_SIZE_2 = 2;
     public static final int IMG_CROP_SIZE_3 = 3;
@@ -49,11 +49,18 @@ public class ImgUtil {
     public static final String IMG_CLICK_POSITION = "IMG_CLICK_POSITION";
     public static final String IMG_BEAN_LIST_KEY = "IMG_BEAN_LIST_KEY";
 
-    public static void load(Activity activity, String imgUrl, ImageView imageView){
+    private static RequestOptions circleOptions = new RequestOptions()
+            .placeholder(R.drawable.img_avatar_default)
+            .error(R.drawable.img_avatar_default)
+            .centerCrop()
+            .circleCrop()
+            .fallback(R.drawable.img_avatar_default);
+
+    public static void load(Activity activity, String imgUrl, ImageView imageView) {
         load(activity, imgUrl, imageView, R.drawable.img_avatar_default);
     }
 
-    public static void load(Activity activity, int resourceId, ImageView imageView){
+    public static void load(Activity activity, int resourceId, ImageView imageView) {
         load(activity, resourceId, imageView, R.drawable.img_avatar_default);
     }
 
@@ -97,7 +104,14 @@ public class ImgUtil {
         Glide.with(context).load(resourceId).apply(getRequestOptions(defaultId)).into(imageView);
     }
 
-    private static RequestOptions getRequestOptions(int defaultId){
+    //圆形
+    public static void loadCircle(Context context, String imgUrl, ImageView imageView) {
+        Glide.with(context).load(imgUrl)
+                .apply(circleOptions)
+                .into(imageView);
+    }
+
+    private static RequestOptions getRequestOptions(int defaultId) {
         return new RequestOptions()
                 .placeholder(defaultId)
                 .error(defaultId)
@@ -105,7 +119,7 @@ public class ImgUtil {
                 .fallback(defaultId);
     }
 
-    public static void compress(Context context, File originFile, LubanCallBack lubanCallBack){
+    public static void compress(Context context, File originFile, LubanCallBack lubanCallBack) {
         try {
             Luban.with(context)
                     .load(originFile)
@@ -179,8 +193,8 @@ public class ImgUtil {
      */
     private static void takePhoto(Activity activity) {
         try {
-            FileUtil.createDir(FileUtil.getInnerFilePath(activity));
-            cameraOutputPath = FileUtil.getInnerFilePath(activity)
+            FileUtil.createDir(FileUtil.getSDCachePath(activity));
+            cameraOutputPath = FileUtil.getSDCachePath(activity)
                     + TimeUtil.getCurrentTime("yyyyMMdd_HHmmss") + ".jpg";
             File file = new File(cameraOutputPath);
             Uri imgUri;
@@ -209,8 +223,8 @@ public class ImgUtil {
         try {
             Uri inputUri;
             Uri outputUri;
-            FileUtil.createDir(FileUtil.getInnerFilePath(activity));
-            cropOutputPath = FileUtil.getInnerFilePath(activity)
+            FileUtil.createDir(FileUtil.getSDCachePath(activity));
+            cropOutputPath = FileUtil.getSDCachePath(activity)
                     + TimeUtil.getCurrentTime("yyyyMMdd_HHmmss") + ".jpg";
             Intent intent = new Intent("com.android.camera.action.CROP");
 

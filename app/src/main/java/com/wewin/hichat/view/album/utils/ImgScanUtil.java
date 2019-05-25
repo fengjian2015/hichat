@@ -79,9 +79,10 @@ public class ImgScanUtil {
 
             // 只查询jpeg和png的图片
             Cursor mCursor = mContentResolver.query(mImageUri, null,
+                    MediaStore.Images.Media.MIME_TYPE + " = ? or " +
                     MediaStore.Images.Media.MIME_TYPE + " = ? or "
                             + MediaStore.Images.Media.MIME_TYPE + " = ? ",
-                    new String[]{"image/jpeg", "image/png"},
+                    new String[]{"image/jpeg", "image/png", "image/gif"},
                     MediaStore.Images.Media.DATE_MODIFIED);
 
             if (mCursor != null && mCursor.getCount() > 0) {
@@ -91,12 +92,14 @@ public class ImgScanUtil {
                             .getColumnIndex(MediaStore.Images.Media.DATA));
 
                     // 拿到第一张图片的路径
-                    if (firstImage == null)
+                    if (firstImage == null) {
                         firstImage = path;
+                    }
                     // 获取该图片的父路径名
                     File parentFile = new File(path).getParentFile();
-                    if (parentFile == null)
+                    if (parentFile == null) {
                         continue;
+                    }
                     String dirPath = parentFile.getAbsolutePath();
                     ImageFolder imageFolder;
                     // 利用一个HashSet防止多次扫描同一个文件夹（不加这个判断，图片多起来还是相当恐怖的~~）
@@ -114,7 +117,8 @@ public class ImgScanUtil {
                     List<String> imgList = new ArrayList<>();
                     if (fileNameArr != null && fileNameArr.length > 0) {
                         for (String s : fileNameArr) {
-                            if (s.endsWith(".jpg") || s.endsWith(".png")|| s.endsWith(".jpeg")) {
+                            if (s.endsWith(".jpg") || s.endsWith(".png")|| s.endsWith(".jpeg")
+                                    || s.endsWith(".gif")) {
                                 imgList.add(s);
                             }
                         }

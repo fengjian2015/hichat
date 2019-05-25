@@ -52,6 +52,7 @@ public class VideoPlayActivity extends BaseActivity {
     private ProgressBar mProgressBar;
     private FrameLayout downloadFl;
     private FileInfo fileInfo;
+    private long playerCurrentPosition = 0;
 
     @Override
     protected int getLayoutId() {
@@ -78,7 +79,6 @@ public class VideoPlayActivity extends BaseActivity {
         } else if (!TextUtils.isEmpty(fileInfo.getDownloadPath())) {
             playerUri = Uri.parse(fileInfo.getDownloadPath());
         }
-        LogUtil.i("playerUri", playerUri);
     }
 
     @Override
@@ -139,15 +139,14 @@ public class VideoPlayActivity extends BaseActivity {
         //测量播放过程中的带宽。 如果不需要，可以为null。
         DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
         // 生成加载媒体数据的DataSource实例。
-        DataSource.Factory dataSourceFactory
-                = new DefaultDataSourceFactory(VideoPlayActivity.this,
+        DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(VideoPlayActivity.this,
                 Util.getUserAgent(VideoPlayActivity.this, "useExoPlayer"), bandwidthMeter);
         // 生成用于解析媒体数据的Extractor实例。
         ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
 
         // MediaSource代表要播放的媒体。
-        MediaSource videoSource = new ExtractorMediaSource(playerUri, dataSourceFactory, extractorsFactory,
-                null, null);
+        MediaSource videoSource = new ExtractorMediaSource(playerUri, dataSourceFactory,
+                extractorsFactory, null, null);
         //Prepare the player with the source.
         mSimpleExoPlayer.prepare(videoSource);
         //添加监听的listener
@@ -195,6 +194,9 @@ public class VideoPlayActivity extends BaseActivity {
                 case Player.STATE_IDLE:
                     LogUtil.i("ExoPlayer idle!");
                     break;
+
+                default:
+                    break;
             }
         }
 
@@ -223,7 +225,9 @@ public class VideoPlayActivity extends BaseActivity {
      * Starts or stops playback. Also takes care of the Play/Pause button toggling
      */
     private void setPlayPause(boolean play) {
-        mSimpleExoPlayer.setPlayWhenReady(play);
+        if (mSimpleExoPlayer != null){
+            mSimpleExoPlayer.setPlayWhenReady(play);
+        }
     }
 
     private String stringForTime(int timeMs) {
@@ -247,14 +251,24 @@ public class VideoPlayActivity extends BaseActivity {
 
     @Override
     protected void onPause() {
-        mSimpleExoPlayer.stop();
+        playerCurrentPosition = mSimpleExoPlayer.getCurrentPosition();
+        setPlayPause(false);
+        LogUtil.i("onPause playerCurrentPosition", playerCurrentPosition);
         super.onPause();
     }
 
     @Override
-    protected void onStop() {
-        mSimpleExoPlayer.release();
-        super.onStop();
+    protected void onResume() {
+        super.onResume();
+        LogUtil.i("onResume playerCurrentPosition", playerCurrentPosition);
+        mSimpleExoPlayer.seekTo(playerCurrentPosition);
+        setPlayPause(true);
     }
 
+    @Override
+    protected void onDestroy() {
+        mSimpleExoPlayer.stop();
+        mSimpleExoPlayer.release();
+        super.onDestroy();
+    }
 }

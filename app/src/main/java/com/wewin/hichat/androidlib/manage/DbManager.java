@@ -4,7 +4,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Handler;
 
-import com.wewin.hichat.model.db.dbHelper.SQLiteHelper;
+import com.wewin.hichat.model.db.dbhelper.SQLiteHelper;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -24,8 +24,9 @@ public class DbManager {
     private Runnable mRunnable= new Runnable() {
         @Override
         public void run() {
-            if (mDatabase != null)
+            if (mDatabase != null) {
                 mDatabase.close();
+            }
         }
     };
 

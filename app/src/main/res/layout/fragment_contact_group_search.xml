@@ -26,6 +26,7 @@
             android:textColorHint="@color/gray_be"
             android:textColor="@color/black_00"
             android:paddingLeft="5dp"
+            android:inputType="number"
             />
 
         <ImageView

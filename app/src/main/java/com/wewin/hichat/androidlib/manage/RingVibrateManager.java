@@ -49,35 +49,50 @@ public class RingVibrateManager {
         return instance;
     }
 
-    /**
-     * 播放铃声
-     */
-    public void playRingTone(Context context) {
+    //获取手机默认来电铃声的Uri
+    public void playCallRing(Context context){
+        Uri ringUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
+        playRing(context, ringUri);
+    }
+
+    //获取手机默认短信铃声的Uri
+    public void playSmsRing(Context context){
+        Uri ringUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        playRing(context, ringUri);
+    }
+
+    //播放铃声
+    private void playRing(Context context, Uri ringUri) {
         if (!canPlayRing){
             return;
         }
         try {
             canPlayRing = false;
             ringCountDownTimer.start();
-            playEndOrFail();
-            //用于获取手机默认铃声的Uri
-            Uri alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            stop();
             mediaPlayer = new MediaPlayer();
-            mediaPlayer.setDataSource(context, alert);
+            mediaPlayer.setDataSource(context, ringUri);
             //播放铃声流
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_RING);
+            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mediaPlayer) {
+                    mediaPlayer.start();
+                }
+            });
+
             //设置播放监听事件
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
-                    playEndOrFail();
+                    stop();
                 }
             });
             //播放发生错误监听事件
             mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
                 @Override
                 public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-                    playEndOrFail();
+                    stop();
                     return true;
                 }
             });
@@ -87,18 +102,17 @@ public class RingVibrateManager {
             mediaPlayer.setLooping(false);
             //准备及播放
             mediaPlayer.prepare();
-            mediaPlayer.start();
 
         } catch (Exception e) {
             e.printStackTrace();
             //播放失败处理
-            playEndOrFail();
+            stop();
         }
     }
 
     //停止播放或播放失败处理
-    private void playEndOrFail() {
-        if (null != mediaPlayer) {
+    public void stop() {
+        if (mediaPlayer != null) {
             mediaPlayer.setOnCompletionListener(null);
             mediaPlayer.setOnErrorListener(null);
             mediaPlayer.stop();

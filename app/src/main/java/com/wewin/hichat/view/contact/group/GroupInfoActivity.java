@@ -19,6 +19,7 @@ import com.wewin.hichat.androidlib.utils.ToastUtil;
 import com.wewin.hichat.androidlib.utils.TransUtil;
 import com.wewin.hichat.component.base.BaseActivity;
 import com.wewin.hichat.component.constant.ContactCons;
+import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.component.dialog.PromptDialog;
 import com.wewin.hichat.component.manager.ChatRoomManager;
 import com.wewin.hichat.model.db.dao.ChatRoomDao;
@@ -40,11 +41,11 @@ import java.util.List;
 public class GroupInfoActivity extends BaseActivity {
 
     private ImageView avatarIv, chatIv, makeTopIv, shieldIv, allowSearchIv, needVerifyIv,
-            allowInviteIv, bannedSpeakIv;
+            allowInviteIv, bannedSpeakIv, allowAddIv;
     private TextView nameTv, groupIdTv, descTv, nicknameTv, memberSumTv, clearConversationTv,
             exitGroupTv;
     private FrameLayout inviteNewMemberFl, checkMemberFl, announcementFl, makeTopFl, shieldFl,
-            allowSearchFl, needVerifyFl, allowInviteFl, bannedSpeakFl;
+            allowSearchFl, needVerifyFl, allowInviteFl, bannedSpeakFl, allowAddFl;
     private LinearLayout permissionContainerLl;
     private GroupInfo mGroupInfo;
     private String quitPromptStr;
@@ -84,6 +85,8 @@ public class GroupInfoActivity extends BaseActivity {
         allowInviteIv = findViewById(R.id.iv_contact_group_info_allow_member_invite);
         bannedSpeakIv = findViewById(R.id.iv_contact_group_info_talk_banned);
         permissionContainerLl = findViewById(R.id.ll_contact_group_permission_container);
+        allowAddFl = findViewById(R.id.fl_contact_group_info_allow_member_add);
+        allowAddIv = findViewById(R.id.iv_contact_group_info_allow_member_add);
     }
 
     @Override
@@ -111,6 +114,7 @@ public class GroupInfoActivity extends BaseActivity {
         bannedSpeakFl.setOnClickListener(this);
         clearConversationTv.setOnClickListener(this);
         exitGroupTv.setOnClickListener(this);
+        allowAddFl.setOnClickListener(this);
     }
 
     @Override
@@ -161,9 +165,9 @@ public class GroupInfoActivity extends BaseActivity {
                 if (mGroupInfo != null) {
                     int allowSearch = 1 - mGroupInfo.getSearchFlag();
                     if (allowSearch == 1) {
-                        editGroupPermission(mGroupInfo.getId(), allowSearch, -1, -1, -1);
+                        editGroupPermission(mGroupInfo.getId(), allowSearch, -1, -1, -1,-1);
                     } else if (allowSearch == 0) {
-                        editGroupPermission(mGroupInfo.getId(), allowSearch, 0, -1, -1);
+                        editGroupPermission(mGroupInfo.getId(), allowSearch, 0, -1, -1,-1);
                     }
                 }
                 break;
@@ -172,7 +176,7 @@ public class GroupInfoActivity extends BaseActivity {
                 if (mGroupInfo != null && allowSearchIv.isSelected()) {
                     needVerifyIv.setEnabled(true);
                     int needVerify = 1 - mGroupInfo.getGroupValid();
-                    editGroupPermission(mGroupInfo.getId(), -1, needVerify, -1, -1);
+                    editGroupPermission(mGroupInfo.getId(), -1, needVerify, -1, -1,-1);
                 } else {
                     needVerifyIv.setEnabled(false);
                 }
@@ -181,14 +185,14 @@ public class GroupInfoActivity extends BaseActivity {
             case R.id.fl_contact_group_info_allow_member_invite:
                 if (mGroupInfo != null) {
                     int allowInvite = 1 - mGroupInfo.getInviteFlag();
-                    editGroupPermission(mGroupInfo.getId(), -1, -1, allowInvite, -1);
+                    editGroupPermission(mGroupInfo.getId(), -1, -1, allowInvite, -1,-1);
                 }
                 break;
 
             case R.id.fl_contact_group_info_talk_banned:
                 if (mGroupInfo != null) {
                     int bannedTalk = 1 - mGroupInfo.getGroupSpeak();
-                    editGroupPermission(mGroupInfo.getId(), -1, -1, -1, bannedTalk);
+                    editGroupPermission(mGroupInfo.getId(), -1, -1, -1, bannedTalk,-1);
                 }
                 break;
 
@@ -199,6 +203,17 @@ public class GroupInfoActivity extends BaseActivity {
 
             case R.id.tv_contact_group_info_exit_group:
                 showPromptDialog(TYPE_PROMPT_QUIT_GROUP, quitPromptStr);
+                break;
+
+            case R.id.fl_contact_group_info_allow_member_add:
+                if (mGroupInfo != null) {
+                    int allowAdd = 1 - mGroupInfo.getAddFlag();
+                    editGroupPermission(mGroupInfo.getId(), -1, -1, -1, -1,allowAdd);
+
+                }
+                break;
+            default:
+
                 break;
         }
     }
@@ -219,8 +234,8 @@ public class GroupInfoActivity extends BaseActivity {
                     @Override
                     public void confirmClick() {
                         if (mGroupInfo != null && promptType == TYPE_PROMPT_CLEAR_CONVERSATION) {
-                            ChatRoomDao.clearConversation(mGroupInfo.getId(), "group");
-                            MessageDao.updateShowMark(mGroupInfo.getId(), "group");
+                            ChatRoomDao.clearConversation(mGroupInfo.getId(), ChatRoom.TYPE_GROUP);
+                            MessageDao.updateShowMark(mGroupInfo.getId(), ChatRoom.TYPE_GROUP);
                             EventTrans.post(EventMsg.CONVERSATION_CLEAR_REFRESH, mGroupInfo.getId());
 
                         } else if (mGroupInfo != null && promptType == TYPE_PROMPT_QUIT_GROUP) {
@@ -280,15 +295,11 @@ public class GroupInfoActivity extends BaseActivity {
     }
 
     private void editGroupPermission(String groupId, final int allowSearch, final int needVerify,
-                                     final int allowInvite, final int banSpeak) {
+                                     final int allowInvite, final int banSpeak,final int allowAdd) {
         HttpContact.editGroupPermission(groupId, -1, banSpeak, needVerify, allowInvite, allowSearch,
                 new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
-                        LogUtil.i("allowSearch", allowSearch);
-                        LogUtil.i("needVerify", needVerify);
-                        LogUtil.i("allowInvite", allowInvite);
-                        LogUtil.i("banSpeak", banSpeak);
                         if (banSpeak != -1) {
                             mGroupInfo.setGroupSpeak(banSpeak);
                         }
@@ -301,6 +312,10 @@ public class GroupInfoActivity extends BaseActivity {
                         if (allowSearch != -1) {
                             mGroupInfo.setSearchFlag(allowSearch);
                         }
+                        if(allowAdd!=-1){
+                            mGroupInfo.setAddFlag(allowAdd);
+                        }
+                        GroupDao.updatePermission(mGroupInfo);
                         EventTrans.post(EventMsg.CONTACT_GROUP_PERMISSION_REFRESH, mGroupInfo);
                         setGroupPermissionView(true);
                     }
@@ -314,9 +329,9 @@ public class GroupInfoActivity extends BaseActivity {
                 if (mGroupInfo != null) {
                     mGroupInfo.setTopMark(topMark);
                     makeTopIv.setSelected(TransUtil.intToBoolean(topMark));
-                    ChatRoomDao.updateTopMark(groupId, "group", topMark);
+                    ChatRoomDao.updateTopMark(groupId, ChatRoom.TYPE_GROUP, topMark);
                     GroupDao.updateTopMark(groupId, topMark);
-                    EventTrans.post(EventMsg.CONTACT_GROUP_MAKE_TOP_REFRESH, mGroupInfo);
+                    EventTrans.post(EventMsg.CONTACT_GROUP_MAKE_TOP_REFRESH, groupId, topMark);
                 }
             }
         });
@@ -330,9 +345,9 @@ public class GroupInfoActivity extends BaseActivity {
                     mGroupInfo.setShieldMark(shieldMark);
                     shieldIv.setSelected(TransUtil.intToBoolean(shieldMark));
                     LogUtil.i("shieldCb.isChecked", shieldIv.isSelected());
-                    ChatRoomDao.updateShieldMark(groupId, "group", shieldMark);
+                    ChatRoomDao.updateShieldMark(groupId, ChatRoom.TYPE_GROUP, shieldMark);
                     GroupDao.updateShieldMark(groupId, shieldMark);
-                    EventTrans.post(EventMsg.CONTACT_GROUP_SHIELD_REFRESH, mGroupInfo);
+                    EventTrans.post(EventMsg.CONTACT_GROUP_SHIELD_REFRESH, mGroupInfo.getId(), shieldMark);
                 }
             }
         });
@@ -349,7 +364,8 @@ public class GroupInfoActivity extends BaseActivity {
                 if (mGroupInfo.getGrade() == GroupInfo.TYPE_GRADE_OWNER) {
                     EventTrans.post(EventMsg.CONTACT_GROUP_DISBAND, groupId);
                 } else {
-                    EventTrans.post(EventMsg.CONTACT_GROUP_QUIT, mGroupInfo.getId(), UserDao.user.getId());
+                    EventTrans.post(EventMsg.CONTACT_GROUP_QUIT, mGroupInfo.getId(),
+                            SpCons.getUser(getAppContext()).getId());
                 }
                 GroupInfoActivity.this.finish();
             }
@@ -369,6 +385,7 @@ public class GroupInfoActivity extends BaseActivity {
             needVerifyIv.setSelected(false);
         }
         allowInviteIv.setSelected(TransUtil.intToBoolean(mGroupInfo.getInviteFlag()));
+        allowAddIv.setSelected(TransUtil.intToBoolean(mGroupInfo.getAddFlag()));
         if (mGroupInfo.getInviteFlag() == 1) {
             inviteNewMemberFl.setVisibility(View.VISIBLE);
             if (!needRefreshUI) {
@@ -390,6 +407,7 @@ public class GroupInfoActivity extends BaseActivity {
             exitGroupTv.setText(R.string.disband_group);
             quitPromptStr = getString(R.string.prompt_disband_group_confirm);
             permissionContainerLl.setVisibility(View.VISIBLE);
+            setRightTv(R.string.edit);
 
         } else {
             if (mGroupInfo.getGrade() == GroupInfo.TYPE_GRADE_MANAGER) {
@@ -401,7 +419,8 @@ public class GroupInfoActivity extends BaseActivity {
             exitGroupTv.setText(R.string.quit_group);
             quitPromptStr = getString(R.string.prompt_quit_group_confirm);
         }
-        ImgUtil.load(getAppContext(), mGroupInfo.getGroupAvatar(), avatarIv);
+        ImgUtil.load(getAppContext(), mGroupInfo.getGroupAvatar(), avatarIv,
+                R.drawable.img_avatar_group_default);
         nicknameTv.setText(mGroupInfo.getGroupName());
         groupIdTv.setText("ID: " + mGroupInfo.getGroupNum());
         nameTv.setText(mGroupInfo.getGroupName());
@@ -467,7 +486,7 @@ public class GroupInfoActivity extends BaseActivity {
                     return;
                 }
                 if (groupInfo3.getId().equals(mGroupInfo.getId())) {
-                    if (receiver3.getId().equals(UserDao.user.getId())) {
+                    if (receiver3.getId().equals(SpCons.getUser(getAppContext()).getId())) {
                         ToastUtil.showShort(getAppContext(), R.string.you_are_moved_out_from_group);
                         getHostActivity().finish();
                     } else {
@@ -479,7 +498,8 @@ public class GroupInfoActivity extends BaseActivity {
 
             case EventMsg.CONTACT_GROUP_PERMISSION_REFRESH:
                 GroupInfo groupInfo2 = (GroupInfo) msg.getData();
-                if (groupInfo2 == null || TextUtils.isEmpty(groupInfo2.getId())) {
+                if (groupInfo2 == null || TextUtils.isEmpty(groupInfo2.getId())
+                        || !groupInfo2.getId().equals(mGroupInfo.getId())) {
                     return;
                 }
                 if (groupInfo2.getAddFriendMark() != -1) {
@@ -497,7 +517,14 @@ public class GroupInfoActivity extends BaseActivity {
                 if (groupInfo2.getGroupValid() != -1) {
                     mGroupInfo.setGroupValid(groupInfo2.getGroupValid());
                 }
+                if (groupInfo2.getAddFlag() != -1) {
+                    mGroupInfo.setAddFlag(groupInfo2.getAddFlag());
+                }
                 setGroupPermissionView(true);
+                break;
+
+            default:
+
                 break;
         }
     }

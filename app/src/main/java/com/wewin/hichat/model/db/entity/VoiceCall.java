@@ -13,10 +13,11 @@ public class VoiceCall implements Serializable {
     public static final int CANCEL = 3;//取消
     public static final int FINISH = 4;//结束
     public static final int TIME_OUT = 5;//超时
+    public static final int BUSY = 6;//用户正忙
 
     private String inviteUserId;//发起邀请者id
     private String channel;//通话频道号
-    private int connectState;//是否接通语音通话, 0:邀请; 1:接通; 2:拒绝, 3:取消, 4,结束, 5:超时
+    private int connectState;//是否接通语音通话, 0:邀请; 1:接通; 2:拒绝, 3:取消, 4:结束, 5:超时, 6:用户正忙
     private long duration;
 
     public VoiceCall() {}
@@ -75,4 +76,5 @@ public class VoiceCall implements Serializable {
                 ", duration=" + duration +
                 '}';
     }
+
 }

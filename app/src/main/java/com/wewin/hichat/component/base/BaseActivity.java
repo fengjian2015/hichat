@@ -15,10 +15,14 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
+import com.umeng.analytics.MobclickAgent;
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.event.EventTrans;
 import com.wewin.hichat.androidlib.event.EventMsg;
+import com.wewin.hichat.androidlib.utils.MyLifecycleHandler;
 import com.wewin.hichat.androidlib.utils.StatusBarUtil;
+import com.wewin.hichat.androidlib.utils.SystemUtil;
+import com.wewin.hichat.component.dialog.CallSmallDialog;
 
 import java.lang.reflect.Field;
 
@@ -38,6 +42,7 @@ public abstract class BaseActivity extends AppCompatActivity
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_base);
+        getWindow().setBackgroundDrawable(null);
         baseInstance = this;
         init();
 
@@ -102,6 +107,7 @@ public abstract class BaseActivity extends AppCompatActivity
             baseLeftContainerLl.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    SystemUtil.hideKeyboard(getHostActivity());
                     BaseActivity.this.finish();
                 }
             });
@@ -119,6 +125,8 @@ public abstract class BaseActivity extends AppCompatActivity
         baseLeftContainerLl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //隐藏软键盘
+                SystemUtil.hideKeyboard(getHostActivity());
                 BaseActivity.this.finish();
             }
         });
@@ -135,6 +143,8 @@ public abstract class BaseActivity extends AppCompatActivity
         baseLeftContainerLl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //隐藏软键盘
+                SystemUtil.hideKeyboard(getHostActivity());
                 BaseActivity.this.finish();
             }
         });
@@ -198,13 +208,8 @@ public abstract class BaseActivity extends AppCompatActivity
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (null != this.getCurrentFocus()) {
-            //点击空白位置 隐藏软键盘
-            InputMethodManager manager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-            if (manager != null) {
-                return manager.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(), 0);
-            }
-        }
+        //点击空白位置 隐藏软键盘
+        SystemUtil.hideKeyboard(getHostActivity());
         return super.onTouchEvent(event);
     }
 
@@ -214,6 +219,21 @@ public abstract class BaseActivity extends AppCompatActivity
         if (hasFocus) {
             onWindowFocus();
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        MobclickAgent.onPageStart(getClass().getSimpleName());
+        MobclickAgent.onResume(this);
+        CallSmallDialog.getInstance().alertWindow();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        MobclickAgent.onPageEnd(getClass().getSimpleName());
+        MobclickAgent.onPause(this);
     }
 
     @Override

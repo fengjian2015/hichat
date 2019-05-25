@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.wewin.hichat.R;
@@ -46,21 +47,9 @@ public class MessageMoveGroupingRcvAdapter extends BaseRcvAdapter {
             ItemViewHolder iHolder = (ItemViewHolder)holder;
 
             iHolder.groupingNameTv.setText(subgroupList.get(position).getGroupName());
-            if (subgroupList.get(position).getCheckState() == 1){
-                iHolder.checkCb.setChecked(true);
-            }else {
-                iHolder.checkCb.setChecked(false);
-            }
+            iHolder.checkIv.setSelected(subgroupList.get(position).isChecked());
 
             iHolder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (itemClickListener != null){
-                        itemClickListener.itemClick(position);
-                    }
-                }
-            });
-            iHolder.checkCb.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if (itemClickListener != null){
@@ -72,12 +61,12 @@ public class MessageMoveGroupingRcvAdapter extends BaseRcvAdapter {
     }
 
     private static class ItemViewHolder extends RecyclerView.ViewHolder {
-        private CheckBox checkCb;
+        private ImageView checkIv;
         private TextView groupingNameTv;
 
         private ItemViewHolder(View itemView) {
             super(itemView);
-            checkCb = itemView.findViewById(R.id.cb_item_contact_move_grouping_check);
+            checkIv = itemView.findViewById(R.id.iv_item_contact_move_grouping_check);
             groupingNameTv = itemView.findViewById(R.id.tv_item_contact_move_grouping_name);
         }
     }

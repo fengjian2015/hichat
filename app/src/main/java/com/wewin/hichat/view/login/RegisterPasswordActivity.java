@@ -1,6 +1,7 @@
 package com.wewin.hichat.view.login;
 
 import android.content.Intent;
+import android.os.Handler;
 import android.text.Editable;
 import android.view.View;
 import android.widget.Button;
@@ -12,11 +13,12 @@ import com.wewin.hichat.androidlib.event.EventMsg;
 import com.wewin.hichat.androidlib.utils.ClassUtil;
 import com.wewin.hichat.androidlib.impl.HttpCallBack;
 import com.wewin.hichat.androidlib.utils.LogUtil;
+import com.wewin.hichat.androidlib.utils.SystemUtil;
 import com.wewin.hichat.androidlib.utils.ToastUtil;
 import com.wewin.hichat.androidlib.utils.PwdUtil;
 import com.wewin.hichat.component.base.BaseActivity;
 import com.wewin.hichat.component.constant.LoginCons;
-import com.wewin.hichat.model.db.entity.CountryCode;
+import com.wewin.hichat.model.db.entity.CountryInfo;
 import com.wewin.hichat.model.http.HttpLogin;
 
 /**
@@ -28,9 +30,20 @@ public class RegisterPasswordActivity extends BaseActivity {
     private EditText firstPwdEt, secondPwdEt;
     private Button nextStepBtn;
     private String phoneNum;
-    private String code;
+    private String areaCode;
     private int openType;
-    private CountryCode countryCode;
+    private CountryInfo countryInfo;
+    private Handler handler = new Handler();
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            if (firstPwdEt == null){
+                return;
+            }
+            firstPwdEt.requestFocus();
+            SystemUtil.showKeyboard(getHostActivity(), firstPwdEt);
+        }
+    };
 
 
     @Override
@@ -48,10 +61,10 @@ public class RegisterPasswordActivity extends BaseActivity {
     @Override
     protected void getIntentData() {
         phoneNum = getIntent().getStringExtra(LoginCons.EXTRA_LOGIN_PHONE_NUM);
-        code = getIntent().getStringExtra(LoginCons.EXTRA_LOGIN_AREA_CODE);
+        areaCode = getIntent().getStringExtra(LoginCons.EXTRA_LOGIN_AREA_CODE);
         openType = getIntent().getIntExtra(LoginCons.EXTRA_LOGIN_REGISTER_OPEN_TYPE, 0);
-        countryCode = (CountryCode) getIntent().getSerializableExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE);
-        LogUtil.i("countryCode", countryCode);
+        countryInfo = (CountryInfo) getIntent().getSerializableExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE);
+        LogUtil.i("countryInfo", countryInfo);
     }
 
     @Override
@@ -61,6 +74,7 @@ public class RegisterPasswordActivity extends BaseActivity {
         } else {
             setCenterTitle(R.string.password_find_back);
         }
+        handler.postDelayed(runnable, 300);
     }
 
     @Override
@@ -71,9 +85,9 @@ public class RegisterPasswordActivity extends BaseActivity {
                 if (openType == LoginCons.TYPE_REGISTER) {
                     Intent intent = new Intent(getApplicationContext(), RegisterPersonalInfoActivity.class);
                     intent.putExtra(LoginCons.EXTRA_LOGIN_PHONE_NUM, phoneNum);
-                    intent.putExtra(LoginCons.EXTRA_LOGIN_AREA_CODE, code);
+                    intent.putExtra(LoginCons.EXTRA_LOGIN_AREA_CODE, areaCode);
                     intent.putExtra(LoginCons.EXTRA_LOGIN_PASSWORD, firstPwdEt.getText().toString().trim());
-                    intent.putExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE, countryCode);
+                    intent.putExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE, countryInfo);
                     startActivity(intent);
                 } else {
                     retrievePassword(firstPwdEt.getText().toString().trim());
@@ -118,9 +132,9 @@ public class RegisterPasswordActivity extends BaseActivity {
                         ToastUtil.showShort(getApplicationContext(), R.string.modify_success);
                         Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
                         intent.putExtra(LoginCons.EXTRA_LOGIN_PHONE_NUM, phoneNum);
-                        intent.putExtra(LoginCons.EXTRA_LOGIN_AREA_CODE, code);
+                        intent.putExtra(LoginCons.EXTRA_LOGIN_AREA_CODE, areaCode);
                         intent.putExtra(LoginCons.EXTRA_LOGIN_PASSWORD, newPwd);
-                        intent.putExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE, countryCode);
+                        intent.putExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE, countryInfo);
                         startActivity(intent);
                     }
                 });
@@ -132,4 +146,14 @@ public class RegisterPasswordActivity extends BaseActivity {
             this.finish();
         }
     }
+
+    @Override
+    protected void onDestroy() {
+        if (handler != null){
+            handler.removeCallbacks(runnable);
+            handler = null;
+        }
+        super.onDestroy();
+    }
+
 }

@@ -222,8 +222,9 @@ public class ImageLoader {
     private synchronized void addTask(Runnable runnable) {
         try {
             // 请求信号量，防止mPoolThreadHander为null
-            if (mPoolThreadHander == null)
+            if (mPoolThreadHander == null) {
                 mSemaphore.acquire();
+            }
         } catch (InterruptedException e) {
         }
         mTasks.add(runnable);
@@ -284,6 +285,9 @@ public class ImageLoader {
                 case ExifInterface.ORIENTATION_ROTATE_270:
                     degree = 270;
                     break;
+
+                default:
+                    break;
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -305,24 +309,30 @@ public class ImageLoader {
 
         int width = params.width == LayoutParams.WRAP_CONTENT ? 0 : imageView
                 .getWidth(); // Get actual image width
-        if (width <= 0)
+        if (width <= 0) {
             width = params.width; // Get layout width parameter
-        if (width <= 0)
+        }
+        if (width <= 0) {
             width = getImageViewFieldValue(imageView, "mMaxWidth"); // Check
+        }
         // maxWidth
         // parameter
-        if (width <= 0)
+        if (width <= 0) {
             width = displayMetrics.widthPixels;
+        }
         int height = params.height == LayoutParams.WRAP_CONTENT ? 0 : imageView
                 .getHeight(); // Get actual image height
-        if (height <= 0)
+        if (height <= 0) {
             height = params.height; // Get layout height parameter
-        if (height <= 0)
+        }
+        if (height <= 0) {
             height = getImageViewFieldValue(imageView, "mMaxHeight"); // Check
+        }
         // maxHeight
         // parameter
-        if (height <= 0)
+        if (height <= 0) {
             height = displayMetrics.heightPixels;
+        }
         imageSize.width = width;
         imageSize.height = height;
         return imageSize;
@@ -344,8 +354,9 @@ public class ImageLoader {
      */
     private void addBitmapToLruCache(String key, Bitmap bitmap) {
         if (getBitmapFromLruCache(key) == null) {
-            if (bitmap != null)
+            if (bitmap != null) {
                 mLruCache.put(key, bitmap);
+            }
         }
     }
 

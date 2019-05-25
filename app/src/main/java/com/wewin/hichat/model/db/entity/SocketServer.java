@@ -60,7 +60,15 @@ public class SocketServer {
         private FriendInfo executorInfo;
         private List<FriendInfo> recipientInfo;
         private GroupPostInfo groupPostInfo;
+        private Notify notifyInfo;
 
+        public Notify getNotifyInfo() {
+            return notifyInfo;
+        }
+
+        public void setNotifyInfo(Notify notifyInfo) {
+            this.notifyInfo = notifyInfo;
+        }
 
         public String getFromUid() {
             return fromUid;
@@ -227,6 +235,7 @@ public class SocketServer {
                     ", executorInfo=" + executorInfo +
                     ", recipientInfo=" + recipientInfo +
                     ", groupPostInfo=" + groupPostInfo +
+                    ", notifyInfo=" + notifyInfo +
                     '}';
         }
     }
@@ -346,25 +355,36 @@ public class SocketServer {
     }
 
     public static class MessageInfo{
-        private String friendId;
-        private String groupId;
+        private String conversationId;
+        private String conversationType;
+        private String expireMessage;
         private String msgId;
-        private String msgRecordMark;
+        private int msgRecordMark;
+        private int shieldMark;
+        private int topMark;
 
-        public String getFriendId() {
-            return friendId;
+        public String getConversationId() {
+            return conversationId;
         }
 
-        public void setFriendId(String friendId) {
-            this.friendId = friendId;
+        public void setConversationId(String conversationId) {
+            this.conversationId = conversationId;
         }
 
-        public String getGroupId() {
-            return groupId;
+        public String getConversationType() {
+            return conversationType;
         }
 
-        public void setGroupId(String groupId) {
-            this.groupId = groupId;
+        public void setConversationType(String conversationType) {
+            this.conversationType = conversationType;
+        }
+
+        public String getExpireMessage() {
+            return expireMessage;
+        }
+
+        public void setExpireMessage(String expireMessage) {
+            this.expireMessage = expireMessage;
         }
 
         public String getMsgId() {
@@ -375,12 +395,28 @@ public class SocketServer {
             this.msgId = msgId;
         }
 
-        public String getMsgRecordMark() {
+        public int getMsgRecordMark() {
             return msgRecordMark;
         }
 
-        public void setMsgRecordMark(String msgRecordMark) {
+        public void setMsgRecordMark(int msgRecordMark) {
             this.msgRecordMark = msgRecordMark;
+        }
+
+        public int getShieldMark() {
+            return shieldMark;
+        }
+
+        public void setShieldMark(int shieldMark) {
+            this.shieldMark = shieldMark;
+        }
+
+        public int getTopMark() {
+            return topMark;
+        }
+
+        public void setTopMark(int topMark) {
+            this.topMark = topMark;
         }
     }
 

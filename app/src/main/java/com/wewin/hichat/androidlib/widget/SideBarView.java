@@ -44,16 +44,18 @@ public class SideBarView extends View {
     /**
      * 重写这个方法
      */
+    @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         // 获取焦点改变背景颜色.
-        int height = getHeight();// 获取对应高度
-        int width = getWidth(); // 获取对应宽度
-        int singleHeight = height / b.length;// 获取每一个字母的高度
+        // 获取对应高度
+        int height = getHeight();
+        // 获取对应宽度
+        int width = getWidth();
+        // 获取每一个字母的高度
+        int singleHeight = height / b.length;
 
         for (int i = 0; i < b.length; i++) {
-//            paint.setColor(Color.rgb(33, 65, 98));
-//             paint.setColor(Color.WHITE);
             paint.setColor(0xff666666);
             paint.setTypeface(Typeface.DEFAULT);
             paint.setFakeBoldText(false);
@@ -74,15 +76,17 @@ public class SideBarView extends View {
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
         final int action = event.getAction();
-        final float y = event.getY();// 点击y坐标
+        // 点击y坐标
+        final float y = event.getY();
         final int oldChoose = choose;
         final OnTouchingLetterChangedListener listener = onTouchingLetterChangedListener;
-        final int c = (int) (y / getHeight() * b.length);// 点击y坐标所占总高度的比例*b数组的长度就等于点击b中的个数.
+        // 点击y坐标所占总高度的比例*b数组的长度就等于点击b中的个数.
+        final int c = (int) (y / getHeight() * b.length);
 
         switch (action) {
             case MotionEvent.ACTION_UP:
                 setBackgroundDrawable(new ColorDrawable(0x00000000));
-                choose = -1;//
+                choose = -1;
                 invalidate();
                 if (mTextDialog != null) {
                     mTextDialog.setVisibility(View.INVISIBLE);
@@ -90,7 +94,6 @@ public class SideBarView extends View {
                 break;
 
             default:
-//                setBackgroundResource(R.drawable.sidebar_background);
                 if (oldChoose != c) {
                     if (c >= 0 && c < b.length) {
                         if (listener != null) {
@@ -119,9 +122,7 @@ public class SideBarView extends View {
         this.onTouchingLetterChangedListener = onTouchingLetterChangedListener;
     }
 
-    /**
-     * 接口
-     */
+
     public interface OnTouchingLetterChangedListener {
         void onTouchingLetterChanged(String s);
     }

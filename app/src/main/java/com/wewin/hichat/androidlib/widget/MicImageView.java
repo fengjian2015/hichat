@@ -56,6 +56,9 @@ public class MicImageView extends AppCompatImageView {
                     }
                 }
                 break;
+
+            default:
+                break;
         }
 
         return true;

@@ -7,13 +7,6 @@ import java.io.Serializable;
  */
 public class GroupInfo extends BaseSearchEntity implements Serializable {
 
-    public static final int TYPE_MOVE_OUT = 1;//踢出群
-    public static final int TYPE_QUIT = 2;//退出
-    public static final int TYPE_OPEN_BAN_SPEAK = 3;//开启群禁言
-    public static final int TYPE_CLOSE_BAN_SPEAK = 4;//关闭群禁言
-    public static final int TYPE_JOIN = 5;//加入群
-    public static final int TYPE_DISBAND = 6;//解散群
-
     public static final int TYPE_GRADE_NOT = -1;//不在该群中
     public static final int TYPE_GRADE_NORMAL = 0;//普通会员
     public static final int TYPE_GRADE_MANAGER = 1;//管理员
@@ -35,6 +28,7 @@ public class GroupInfo extends BaseSearchEntity implements Serializable {
     private int addFriendMark;//是否允许群成员互加好友
     private int groupSpeak;//是否可以发言
     private int grade;//-1不在该群中 0 普通会员 1 管理员 2群主
+    private int addFlag;//是否允许群成员互加
 
     public GroupInfo() {
     }
@@ -45,6 +39,14 @@ public class GroupInfo extends BaseSearchEntity implements Serializable {
         this.groupName = groupName;
         this.groupNum = groupNum;
         this.id = id;
+    }
+
+    public int getAddFlag() {
+        return addFlag;
+    }
+
+    public void setAddFlag(int addFlag) {
+        this.addFlag = addFlag;
     }
 
     public int getAddFriendMark() {
@@ -191,8 +193,10 @@ public class GroupInfo extends BaseSearchEntity implements Serializable {
                 ", searchFlag=" + searchFlag +
                 ", groupValid=" + groupValid +
                 ", inviteFlag=" + inviteFlag +
+                ", addFriendMark=" + addFriendMark +
                 ", groupSpeak=" + groupSpeak +
                 ", grade=" + grade +
+                ", addFlag=" + addFlag +
                 '}';
     }
 }

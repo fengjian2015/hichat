@@ -11,7 +11,8 @@ import android.support.v4.app.FragmentTransaction;
  * 权限请求封装,通过接口回调方式处理权限请求结果
  */
 public class Rigger {
-    private String RIGGER_FRAGMENT_TAG = "Rigger";
+
+    private final String RIGGER_FRAGMENT_TAG = "Rigger";
     private RiggerPresenter mRiggerPresenter;
 
     public static Rigger on(Activity activity) {

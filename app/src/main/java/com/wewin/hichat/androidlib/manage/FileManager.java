@@ -48,9 +48,8 @@ public class FileManager {
             String filePath = cursor.getString(cursor
                     .getColumnIndex(MediaStore.Files.FileColumns.DATA));
             if (getFileType(filePath) == fileType) {
-                if (!FileUtil.isFileExists(filePath) || TextUtils.isEmpty(filePath)
-                        || filePath.equals(FileUtil.getSdDocPath(context))
-                        || filePath.equals(FileUtil.getSDDebugLogPath(context))) {
+                if (TextUtils.isEmpty(filePath) || !FileUtil.isFileExists(filePath)
+                        ) {
                     continue;
                 }
                 FileInfo fileInfo = new FileInfo();

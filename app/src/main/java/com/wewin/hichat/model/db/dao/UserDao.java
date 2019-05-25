@@ -30,7 +30,7 @@ public class UserDao {
 
     public static LoginUser user = new LoginUser();
 
-    public static void setUser(LoginUser user){
+    public static void setUser(LoginUser user) {
         SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
         db.delete(TABLE_NAME, null, null);
         ContentValues values = new ContentValues();
@@ -58,28 +58,34 @@ public class UserDao {
     }
 
     public static LoginUser getUser() {
-        SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
-        Cursor cursor = db.rawQuery("select * from " + TABLE_NAME, null);
         LoginUser loginUser = new LoginUser();
-        if (cursor != null) {
-            if (cursor.moveToNext()){
-                loginUser.setId(cursor.getString(cursor.getColumnIndex(ID)));
-                loginUser.setAccount(cursor.getString(cursor.getColumnIndex(ACCOUNT)));
-                loginUser.setAvatar(cursor.getString(cursor.getColumnIndex(AVATAR)));
-                loginUser.setEmail(cursor.getString(cursor.getColumnIndex(EMAIL)));
-                loginUser.setGender(cursor.getInt(cursor.getColumnIndex(GENDER)));
-                loginUser.setIsVip(cursor.getString(cursor.getColumnIndex(IS_VIP)));
-                loginUser.setUsername(cursor.getString(cursor.getColumnIndex(USERNAME)));
-                loginUser.setNo(cursor.getString(cursor.getColumnIndex(NO)));
-                loginUser.setCountryCode(cursor.getString(cursor.getColumnIndex(COUNTRY_CODE)));
-                loginUser.setPhone(cursor.getString(cursor.getColumnIndex(PHONE)));
-                loginUser.setSign(cursor.getString(cursor.getColumnIndex(SIGN)));
-                loginUser.setAudioCues(cursor.getInt(cursor.getColumnIndex(AUDIO_CUES)));
-                loginUser.setVibratesCues(cursor.getInt(cursor.getColumnIndex(VIBRATES_CUES)));
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
+            Cursor cursor = db.rawQuery("select * from " + TABLE_NAME, null);
+            if (cursor != null) {
+                if (cursor.moveToNext()) {
+                    loginUser.setId(cursor.getString(cursor.getColumnIndex(ID)));
+                    loginUser.setAccount(cursor.getString(cursor.getColumnIndex(ACCOUNT)));
+                    loginUser.setAvatar(cursor.getString(cursor.getColumnIndex(AVATAR)));
+                    loginUser.setEmail(cursor.getString(cursor.getColumnIndex(EMAIL)));
+                    loginUser.setGender(cursor.getInt(cursor.getColumnIndex(GENDER)));
+                    loginUser.setIsVip(cursor.getString(cursor.getColumnIndex(IS_VIP)));
+                    loginUser.setUsername(cursor.getString(cursor.getColumnIndex(USERNAME)));
+                    loginUser.setNo(cursor.getString(cursor.getColumnIndex(NO)));
+                    loginUser.setCountryCode(cursor.getString(cursor.getColumnIndex(COUNTRY_CODE)));
+                    loginUser.setPhone(cursor.getString(cursor.getColumnIndex(PHONE)));
+                    loginUser.setSign(cursor.getString(cursor.getColumnIndex(SIGN)));
+                    loginUser.setAudioCues(cursor.getInt(cursor.getColumnIndex(AUDIO_CUES)));
+                    loginUser.setVibratesCues(cursor.getInt(cursor.getColumnIndex(VIBRATES_CUES)));
+                }
+                cursor.close();
             }
-            cursor.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            DbManager.getInstance().closeDatabase();
         }
-        DbManager.getInstance().closeDatabase();
         return loginUser;
     }
 

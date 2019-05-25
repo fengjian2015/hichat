@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-
 import com.alibaba.fastjson.JSON;
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.event.EventMsg;
@@ -16,12 +15,11 @@ import com.wewin.hichat.component.adapter.ContactGroupAnnouncementListRcvAdapter
 import com.wewin.hichat.component.base.BaseActivity;
 import com.wewin.hichat.component.base.BaseRcvAdapter;
 import com.wewin.hichat.component.constant.ContactCons;
-import com.wewin.hichat.model.db.dao.UserDao;
+import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.model.db.entity.Announcement;
 import com.wewin.hichat.model.db.entity.FriendInfo;
 import com.wewin.hichat.model.db.entity.GroupInfo;
 import com.wewin.hichat.model.http.HttpContact;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,11 +53,14 @@ public class AnnouncementListActivity extends BaseActivity {
     @Override
     protected void initViewsData() {
         setCenterTitle(R.string.group_announcement);
-        setRightImg(R.drawable.announcement_plus_btn);
         setLeftText(R.string.group_info);
 
         initRecyclerView();
         getAnnouncementList(1);
+
+        if (GroupInfo.TYPE_GRADE_NORMAL < mGroupInfo.getGrade()){
+            setRightImg(R.drawable.announcement_plus_btn);
+        }
     }
 
     @Override
@@ -70,8 +71,7 @@ public class AnnouncementListActivity extends BaseActivity {
     }
 
     private void initRecyclerView() {
-        rcvAdapter = new ContactGroupAnnouncementListRcvAdapter(
-                this, announcementList);
+        rcvAdapter = new ContactGroupAnnouncementListRcvAdapter(this, announcementList, mGroupInfo);
         containerRcv.setLayoutManager(new LinearLayoutManager(this));
         containerRcv.setAdapter(rcvAdapter);
 
@@ -155,7 +155,7 @@ public class AnnouncementListActivity extends BaseActivity {
                     return;
                 }
                 if (groupInfo1.getId().equals(mGroupInfo.getId())
-                        && receiver.getId().equals(UserDao.user.getId())){
+                        && receiver.getId().equals(SpCons.getUser(getAppContext()).getId())){
                     ToastUtil.showShort(getAppContext(), R.string.you_are_moved_out_from_group);
                     getHostActivity().finish();
                 }
@@ -167,8 +167,11 @@ public class AnnouncementListActivity extends BaseActivity {
                     getHostActivity().finish();
                 }
                 break;
-        }
 
+            default:
+
+                break;
+        }
     }
 
 }

@@ -3,6 +3,7 @@ package com.wewin.hichat.view.login;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.view.KeyEvent;
@@ -23,7 +24,8 @@ import com.wewin.hichat.androidlib.permission.PermissionCallback;
 import com.wewin.hichat.androidlib.permission.Rigger;
 import com.wewin.hichat.androidlib.utils.LocationUtil;
 import com.wewin.hichat.androidlib.utils.LogUtil;
-import com.wewin.hichat.androidlib.utils.StrUtil;
+import com.wewin.hichat.androidlib.utils.PhoneUtil;
+import com.wewin.hichat.androidlib.utils.SystemUtil;
 import com.wewin.hichat.component.base.BaseActivity;
 import com.wewin.hichat.androidlib.utils.ClassUtil;
 import com.wewin.hichat.component.constant.SpCons;
@@ -32,7 +34,7 @@ import com.wewin.hichat.androidlib.utils.ToastUtil;
 import com.wewin.hichat.component.constant.LoginCons;
 import com.wewin.hichat.component.dialog.PromptDialog;
 import com.wewin.hichat.model.db.dao.UserDao;
-import com.wewin.hichat.model.db.entity.CountryCode;
+import com.wewin.hichat.model.db.entity.CountryInfo;
 import com.wewin.hichat.model.db.entity.LoginUser;
 import com.wewin.hichat.model.db.entity.SortModel;
 import com.wewin.hichat.model.http.HttpLogin;
@@ -51,13 +53,24 @@ public class LoginActivity extends BaseActivity {
     private Button loginBtn;
     private TextView promptTv;
     private final int INTENT_REQ_COUNTRY_SEARCH = 100;
-    private CountryCode countryCode;
+    private CountryInfo countryInfo;
     private String phoneNum;
     private String password;
     private boolean isCookieInvalid;//cookie是否失效
     private boolean isCookieInvalidDialog;//是否弹出cookie失效弹框
     private boolean isDialogShowed = false;//cookie失效提示框是否显示过；
-    private String cookieInvalidInfo;//cookie失效提示
+    private String cookieInvalidPrompt;//cookie失效提示
+    private Handler handler = new Handler();
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            if (phoneNumEt == null) {
+                return;
+            }
+            phoneNumEt.requestFocus();
+            SystemUtil.showKeyboard(getHostActivity(), phoneNumEt);
+        }
+    };
 
     @Override
     protected int getLayoutId() {
@@ -68,10 +81,10 @@ public class LoginActivity extends BaseActivity {
     protected void getIntentData() {
         phoneNum = getIntent().getStringExtra(LoginCons.EXTRA_LOGIN_PHONE_NUM);
         password = getIntent().getStringExtra(LoginCons.EXTRA_LOGIN_PASSWORD);
-        countryCode = (CountryCode) getIntent().getSerializableExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE);
+        countryInfo = (CountryInfo) getIntent().getSerializableExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE);
         isCookieInvalid = getIntent().getBooleanExtra(LoginCons.EXTRA_LOGIN_COOKIE_INVALID, false);
         isCookieInvalidDialog = getIntent().getBooleanExtra(LoginCons.EXTRA_LOGIN_COOKIE_INVALID, false);
-        cookieInvalidInfo = getIntent().getStringExtra(LoginCons.EXTRA_LOGIN_COOKIE_INVALID_INFO);
+        cookieInvalidPrompt = getIntent().getStringExtra(LoginCons.EXTRA_LOGIN_COOKIE_INVALID_INFO);
     }
 
     @Override
@@ -88,27 +101,25 @@ public class LoginActivity extends BaseActivity {
     @Override
     protected void initViewsData() {
         setCenterTitle(R.string.login_by_phone_num);
-        if (countryCode == null) {
-            countryCode = new CountryCode(getString(R.string.philippines), "+63");
+        if (countryInfo == null) {
+            countryInfo = new CountryInfo(getString(R.string.philippines), "+63");
         }
-        countryTv.setText(countryCode.getCountry());
-        areaCodeTv.setText(countryCode.getCode());
+        countryTv.setText(countryInfo.getCountry());
+        areaCodeTv.setText(countryInfo.getCode());
 
         if (isCookieInvalid) {
             logout();
         }
 
-//        loginBtn.setFocusable(true);
-//        loginBtn.setFocusableInTouchMode(true);
-//        loginBtn.requestFocus();
-//        getLocation();
+        handler.postDelayed(runnable, 300);
+
     }
 
     @Override
     protected void onWindowFocus() {
         super.onWindowFocus();
         if (isCookieInvalidDialog && !isDialogShowed) {
-            showPromptDialog(cookieInvalidInfo);
+            showPromptDialog(cookieInvalidPrompt);
         }
     }
 
@@ -123,8 +134,22 @@ public class LoginActivity extends BaseActivity {
             public void afterTextChanged(Editable s) {
                 String phoneNum = phoneNumEt.getText().toString().trim();
                 String pwd = pwdEt.getText().toString().trim();
-                if (!TextUtils.isEmpty(phoneNum) && StrUtil.isPhoneNumRight(countryCode.getCode(), phoneNum)
+                if (!TextUtils.isEmpty(phoneNum)
+                        && PhoneUtil.isPhoneNumValid(countryInfo.getCode(), phoneNum)
                         && pwd.length() > 5) {
+                    loginBtn.setEnabled(true);
+                } else {
+                    loginBtn.setEnabled(false);
+                }
+            }
+        });
+
+        pwdEt.addTextChangedListener(new CustomTextWatcher() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                String phoneNum = phoneNumEt.getText().toString().trim();
+                String pwd = pwdEt.getText().toString().trim();
+                if (!TextUtils.isEmpty(phoneNum) && pwd.length() > 5) {
                     loginBtn.setEnabled(true);
                 } else {
                     loginBtn.setEnabled(false);
@@ -140,19 +165,6 @@ public class LoginActivity extends BaseActivity {
                     return true;
                 }
                 return false;
-            }
-        });
-
-        pwdEt.addTextChangedListener(new CustomTextWatcher() {
-            @Override
-            public void afterTextChanged(Editable s) {
-                String phoneNum = phoneNumEt.getText().toString().trim();
-                String pwd = pwdEt.getText().toString().trim();
-                if (!TextUtils.isEmpty(phoneNum) && pwd.length() > 5) {
-                    loginBtn.setEnabled(true);
-                } else {
-                    loginBtn.setEnabled(false);
-                }
             }
         });
 
@@ -179,6 +191,7 @@ public class LoginActivity extends BaseActivity {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.tv_login_country:
+                SystemUtil.hideKeyboard(getHostActivity());
                 Intent intent = new Intent(getAppContext(), CountrySearchActivity.class);
                 startActivityForResult(intent, INTENT_REQ_COUNTRY_SEARCH);
                 break;
@@ -186,7 +199,7 @@ public class LoginActivity extends BaseActivity {
             case R.id.tv_login_find_back_pwd:
                 Intent intent1 = new Intent(getAppContext(), RegisterPhoneNumActivity.class);
                 intent1.putExtra(LoginCons.EXTRA_LOGIN_REGISTER_OPEN_TYPE, LoginCons.TYPE_PASSWORD_FIND);
-                intent1.putExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE, countryCode);
+                intent1.putExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE, countryInfo);
                 String phoneNum = phoneNumEt.getText().toString().trim();
                 if (!TextUtils.isEmpty(phoneNum)) {
                     intent1.putExtra(LoginCons.EXTRA_LOGIN_PHONE_NUM, phoneNum);
@@ -196,6 +209,9 @@ public class LoginActivity extends BaseActivity {
 
             case R.id.btn_login:
                 clickLogin();
+                break;
+
+            default:
                 break;
         }
     }
@@ -218,17 +234,33 @@ public class LoginActivity extends BaseActivity {
         promptDialog.show();
     }
 
-    private void clickLogin() {
-        String phoneNum = phoneNumEt.getText().toString().trim();
-        String pwd = pwdEt.getText().toString().trim();
+    private boolean isLoginAvailable(String phoneNum, String pwd) {
         if (TextUtils.isEmpty(phoneNum)) {
             ToastUtil.showShort(getApplicationContext(), R.string.phone_num_input_please);
+            return false;
+        } else if (!PhoneUtil.isPhoneNumValid(countryInfo.getCode(), phoneNum)) {
+            ToastUtil.showShort(getApplicationContext(), countryInfo.getCountry()
+                    + getString(R.string.phone_num_format_error));
+            return false;
         } else if (TextUtils.isEmpty(pwd)) {
             ToastUtil.showShort(getApplicationContext(), R.string.pwd_input_please);
-        } else if (!StrUtil.isPhoneNumRight(countryCode.getCode(), phoneNum)) {
-            ToastUtil.showShort(getApplicationContext(), countryCode.getCountry()
-                    + getString(R.string.phone_num_format_error));
+            return false;
+        } else if (pwd.length() < 6) {
+            ToastUtil.showShort(getAppContext(), R.string.pwd_length_at_least_6);
+            return false;
         } else {
+            return true;
+        }
+    }
+
+    private void clickLogin() {
+        SystemUtil.hideKeyboard(getHostActivity());
+        String phoneNum = phoneNumEt.getText().toString().trim();
+        String pwd = pwdEt.getText().toString().trim();
+        if (isLoginAvailable(phoneNum, pwd)) {
+            if ("+63".equals(countryInfo.getCode()) && phoneNum.startsWith("0")) {
+                phoneNum = phoneNum.substring(1, phoneNum.length());
+            }
             login(phoneNum, pwd);
         }
     }
@@ -243,11 +275,13 @@ public class LoginActivity extends BaseActivity {
                         }
                         try {
                             LoginUser user = JSON.parseObject(data.toString(), LoginUser.class);
+                            LogUtil.i("login", user);
                             UserDao.setUser(user);
-                            startActivity(new Intent(getAppContext(), MainActivity.class));
                             EventTrans.post(EventMsg.LOGIN_FINISH);
+                            SpCons.setUser(getAppContext(), user);
                             SpCons.setLoginState(getAppContext(), true);
-                            LogUtil.i("login", data);
+                            startActivity(new Intent(getAppContext(), MainActivity.class));
+
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -262,64 +296,8 @@ public class LoginActivity extends BaseActivity {
                 SpCons.setCuid(getAppContext(), "");
                 SpCons.setDomain(getAppContext(), "");
                 SpCons.setLoginState(getAppContext(), false);
-//                ChatSocket.getInstance().stop();
             }
         });
-    }
-
-    private void getLocation() {
-        final StringBuffer sb = new StringBuffer();
-        Rigger.on(this).permissions(Permission.ACCESS_FINE_LOCATION)
-                .start(new PermissionCallback() {
-                    @Override
-                    public void onGranted() {
-                        if (LocationUtil.isGpsEnabled(getAppContext())) {
-                            LocationUtil.register(getAppContext(), 0, 0,
-                                    new LocationUtil.OnLocationChangeListener() {
-                                        @Override
-                                        public void getLastKnownLocation(Location location) {
-                                            double latitude = location.getLatitude();
-                                            double longitude = location.getLongitude();
-                                            LogUtil.i("latitude", latitude);
-                                            LogUtil.i("longitude", longitude);
-                                            sb.append("latitude:" + latitude).append(" longitude:" + longitude);
-                                            promptTv.setText(sb.toString());
-
-                                            String countryName = LocationUtil.getCountryName(getApplicationContext(),
-                                                    location.getLatitude(), location.getLongitude());
-                                            LogUtil.i("countryName", countryName);
-                                            ToastUtil.showShort(getApplicationContext(), "countryName" + countryName);
-                                            sb.append("latitude:" + latitude).append(" longitude:" + longitude)
-                                                    .append(" countryName: " + countryName);
-                                            promptTv.setText(sb.toString());
-                                        }
-
-                                        @Override
-                                        public void onLocationChanged(Location location) {
-
-                                        }
-
-                                        @Override
-                                        public void onStatusChanged(String provider, int status, Bundle extras) {
-
-                                        }
-                                    });
-
-                        } else {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    ToastUtil.showShort(getAppContext(), R.string.not_open_gps_location_prompt);
-                                }
-                            });
-                        }
-                    }
-
-                    @Override
-                    public void onDenied(HashMap<String, Boolean> permissions) {
-
-                    }
-                });
     }
 
     @Override
@@ -332,8 +310,8 @@ public class LoginActivity extends BaseActivity {
                 if (sortModel != null) {
                     countryTv.setText(sortModel.getName());
                     areaCodeTv.setText(sortModel.getCode());
-                    countryCode.setCountry(sortModel.getName());
-                    countryCode.setCode(sortModel.getCode());
+                    countryInfo.setCountry(sortModel.getName());
+                    countryInfo.setCode(sortModel.getCode());
                 }
             }
         }
@@ -345,4 +323,14 @@ public class LoginActivity extends BaseActivity {
             this.finish();
         }
     }
+
+    @Override
+    protected void onDestroy() {
+        if (handler != null) {
+            handler.removeCallbacks(runnable);
+            handler = null;
+        }
+        super.onDestroy();
+    }
+
 }

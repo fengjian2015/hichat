@@ -24,6 +24,7 @@ public class FriendInfo extends BaseSearchEntity implements Serializable {
     private String type;
     private String subgroupId;//分组
     private String subgroupName;
+    private int flag;//好友分组标识 0 普通分组 1默认好友 2默认黑名单
     private int subgroupType;////0普通分组；1好友；2黑名单；3通讯录
     private int topMark;//0 消息未置顶 1消息已置顶
     private int blackMark;//0取消拉黑；1拉黑
@@ -46,6 +47,14 @@ public class FriendInfo extends BaseSearchEntity implements Serializable {
         this.status = status;
         this.username = username;
         this.gender = gender;
+    }
+
+    public int getFlag() {
+        return flag;
+    }
+
+    public void setFlag(int flag) {
+        this.flag = flag;
     }
 
     public String getType() {
@@ -259,24 +268,26 @@ public class FriendInfo extends BaseSearchEntity implements Serializable {
                 ", phone='" + phone + '\'' +
                 ", sign='" + sign + '\'' +
                 ", gender=" + gender +
+                ", groupId='" + groupId + '\'' +
                 ", groupName='" + groupName + '\'' +
                 ", groupAvatar='" + groupAvatar + '\'' +
                 ", groupNum='" + groupNum + '\'' +
                 ", status='" + status + '\'' +
                 ", onlineStatus='" + onlineStatus + '\'' +
                 ", grade=" + grade +
+                ", type='" + type + '\'' +
                 ", subgroupId='" + subgroupId + '\'' +
                 ", subgroupName='" + subgroupName + '\'' +
                 ", subgroupType=" + subgroupType +
-                ", groupId='" + groupId + '\'' +
                 ", topMark=" + topMark +
                 ", blackMark=" + blackMark +
                 ", shieldMark=" + shieldMark +
-                ", checked=" + checked +
                 ", friendship=" + friendship +
                 ", invited=" + invited +
                 ", groupSpeak=" + groupSpeak +
+                ", sortName=" + sortName +
+                ", sortLetter=" + sortLetter +
+                ", checked=" + checked +
                 '}';
     }
-
 }

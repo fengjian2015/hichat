@@ -33,8 +33,9 @@ public abstract class BasePopupWindowForListView<T> extends PopupWindow {
         super(contentView, width, height, focusable);
         this.mContentView = contentView;
         context = contentView.getContext();
-        if (dataList != null)
+        if (dataList != null) {
             this.mDataList = dataList;
+        }
 
         if (params != null && params.length > 0) {
             beforeInitWeNeedSomeParams(params);

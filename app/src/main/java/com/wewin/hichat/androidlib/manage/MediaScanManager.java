@@ -27,14 +27,14 @@ public class MediaScanManager {
     }
 
     class ScannerClient implements MediaScannerConnection.MediaScannerConnectionClient {
-
+        @Override
         public void onMediaScannerConnected() {
             if (mFile == null) {
                 return;
             }
             scan(mFile, mMimeType);
         }
-
+        @Override
         public void onScanCompleted(String path, Uri uri) {
             mConn.disconnect();
         }

@@ -1,6 +1,11 @@
 <resources>
-    <string name="app_name">HiChat</string>
+    <string name="app_name">嗖嗖Talk</string>
 
+    <string name="pwd_length_at_least_6">密码长度应不少于6位</string>
+    <string name="voice_call_join_failure">加入语音通话频道失败</string>
+    <string name="yesterday">昨天</string>
+    <string name="today">今天</string>
+    <string name="add_to_friend">已添加对方为好友</string>
     <string name="group_invite_permission_closed">该群邀请权限已被关闭</string>
     <string name="version_not_support">版本不支持</string>
     <string name="has_download_into_album">已保存到相册</string>
@@ -8,7 +13,8 @@
     <string name="new_pwd_same_as_old">新密码与旧密码一致</string>
     <string name="other_side_deleted_you">对方已将你删除</string>
     <string name="not_allow_invite_prompt">群组邀请功能已关闭</string>
-    <string name="temporary_chat">[临时会话]</string>
+    <string name="conversation_temporary_chat">[临时会话]</string>
+    <string name="temporary_chat">[临时会话]%1$s</string>
     <string name="manger_beyond_limit_prompt">管理员最多可设置5位</string>
     <string name="cookie_invalid_prompt">您的账号在另外一台设备上登录，该设备您被迫退出。</string>
     <string name="success_to_join_group">已成功加入群组</string>
@@ -96,6 +102,7 @@
     <string name="other_side_canceled">对方已取消</string>
     <string name="canceled">已取消</string>
     <string name="you_not_accept">您未接听</string>
+    <string name="other_side_busy">用户正忙</string>
     <string name="other_side_no_response">对方无应答</string>
     <string name="invite_voice_call">对方邀请语音通话...</string>
     <string name="waiting_for_accept">正在等待对方接收邀请...</string>
@@ -146,9 +153,9 @@
     <string name="register">注册</string>
     <string name="region">地区</string>
     <string name="china">中国</string>
-    <string name="taiwan">中国台湾</string>
-    <string name="hongkong">中国香港</string>
-    <string name="macao">中国澳门</string>
+    <string name="taiwan">台湾</string>
+    <string name="hongkong">香港</string>
+    <string name="macao">澳门</string>
     <string name="philippines">菲律宾</string>
     <string name="malaysia">马来西亚</string>
     <string name="indonesia">印度尼西亚</string>
@@ -212,7 +219,7 @@
     <string name="message_notify">消息通知</string>
     <string name="add_me_setting">加我为好友设置</string>
     <string name="personal_theme">个性主题</string>
-    <string name="about_hichat">关于喜聊</string>
+    <string name="about_hichat">关于嗖嗖Talk</string>
     <string name="has_risk">存在风险</string>
     <string name="modify_password">修改密码</string>
     <string name="new_message_remind">新消息提醒</string>
@@ -279,8 +286,26 @@
     <string name="delete_success">删除成功</string>
     <string name="upload_success">上传成功</string>
     <string name="commit_success">提交成功</string>
-    <string name="agora_app_id">b5c008617e784d4185633b95b14e91db</string>
     <string name="all_members">[@全体成员]</string>
     <string name="at_me">[@我]</string>
     <string name="pull_black_prompt">拉入黑名单后，将不再接收对方的消息，是否拉黑对方？</string>
+    <string name="call_small_prompt">你的手机没有授权嗖嗖Talk获得悬浮窗权限，语音通话最小化不能正常使用</string>
+    <string name="check_version">检查更新</string>
+    <string name="talk_about_later">以后再说</string>
+    <string name="update_immediately">立即更新</string>
+    <string name="discover_new_version">发现新版本</string>
+    <string name="download_now">正在下载中</string>
+    <string name="click_again_download">点击重新下载</string>
+    <string name="install_prompt">你的手机没有授权嗖嗖Talk获得允许安装未知来源应用权限，更新版本不能正常使用</string>
+    <string name="click_install">点击安装</string>
+    <string name="copy">复制</string>
+    <string name="forward">转发</string>
+    <string name="reply">回复</string>
+    <string name="copy_success">复制成功</string>
+    <string name="select_friend">选择好友</string>
+    <string name="select_group">选择群聊</string>
+    <string name="recent_contacts">最近联系人</string>
+    <string name="determine">确定</string>
+    <string name="forward_max_prompt">转发最多选择%1$s个会话</string>
+    <string name="allow_member_add_friend">允许群成员互加</string>
 </resources>

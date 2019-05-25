@@ -236,11 +236,6 @@ public class CustomTabLayout extends HorizontalScrollView {
                 getMeasuredHeight() - getPaddingBottom());
     }
 
-    private int dp2px(float dpValue) {
-        float scale = mContext.getResources().getDisplayMetrics().density;
-        return (int) (dpValue * scale + 0.5f);
-    }
-
     private void setChildLayout() {
         mTvContainerLl.removeAllViews();
         for (int i = 0; i < mTitleList.size(); i++) {
@@ -308,6 +303,11 @@ public class CustomTabLayout extends HorizontalScrollView {
         } else {
             return mCheckedTextCol;
         }
+    }
+
+    private int dp2px(float dpValue) {
+        float scale = mContext.getResources().getDisplayMetrics().density;
+        return (int) (dpValue * scale + 0.5f);
     }
 
 }

@@ -16,7 +16,6 @@
         android:textStyle="bold"
         />
 
-
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -73,8 +72,8 @@
                     android:id="@+id/tv_more_personal_sign"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    tools:text="sign"
-                    android:textSize="@dimen/font_size_14"
+                    tools:text="Sign"
+                    android:textSize="@dimen/font_size_13"
                     android:textColor="@color/gray_92"
                     android:layout_marginLeft="95dp"
                     android:layout_marginTop="49dp"
@@ -171,42 +170,6 @@
                 android:layout_marginLeft="22dp"
                 />
 
-            <FrameLayout
-                android:id="@+id/fl_more_personal_state_container"
-                android:layout_width="match_parent"
-                android:layout_height="54dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/state"
-                    android:textSize="11dp"
-                    android:textColor="@color/gray_be"
-                    android:layout_marginLeft="22dp"
-                    android:layout_marginTop="9dp"
-                    />
-
-                <TextView
-                    android:id="@+id/tv_more_personal_state"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/online"
-                    android:textSize="@dimen/font_size_14"
-                    android:textColor="@color/blue_main"
-                    android:layout_marginLeft="22dp"
-                    android:layout_marginTop="27dp"
-                    />
-
-                <ImageView
-                    android:layout_width="8dp"
-                    android:layout_height="15dp"
-                    android:src="@drawable/arrow_right_black"
-                    android:layout_marginRight="12dp"
-                    android:layout_gravity="end|center_vertical"
-                    />
-
-            </FrameLayout>
-
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="10dp"
@@ -228,14 +191,13 @@
                     android:layout_gravity="center_vertical"
                     />
 
-                <CheckBox
-                    android:id="@+id/cb_more_personal_audio_remind"
+                <ImageView
+                    android:id="@+id/iv_more_personal_audio_remind"
                     android:layout_width="33dp"
                     android:layout_height="17dp"
-                    android:button="@null"
                     android:layout_gravity="end|center_vertical"
                     android:layout_marginRight="22dp"
-                    android:background="@drawable/check_corner_img_slide"
+                    android:background="@drawable/select_corner_img_slide"
                     />
 
             </FrameLayout>
@@ -262,14 +224,13 @@
                     android:layout_gravity="center_vertical"
                     />
 
-                <CheckBox
-                    android:id="@+id/cb_more_personal_vibrate_remind"
+                <ImageView
+                    android:id="@+id/iv_more_personal_vibrate_remind"
                     android:layout_width="33dp"
                     android:layout_height="17dp"
-                    android:button="@null"
                     android:layout_gravity="end|center_vertical"
                     android:layout_marginRight="22dp"
-                    android:background="@drawable/check_corner_img_slide"
+                    android:background="@drawable/select_corner_img_slide"
                     />
 
             </FrameLayout>
@@ -383,7 +344,53 @@
                 android:layout_height="10dp"
                 android:background="@color/gray_f1"
                 />
+            <FrameLayout
+                android:id="@+id/fl_more_personal_check"
+                android:layout_width="match_parent"
+                android:layout_height="44dp">
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/check_version"
+                    android:textSize="@dimen/font_size_14"
+                    android:textColor="@color/black_00"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="22dp"
+                    />
+                <TextView
+                    android:id="@+id/tv_more_personal_new"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:background="@drawable/bg_corner_red"
+                    android:layout_marginLeft="90dp"
+                    android:text="NEW"
+                    android:textSize="@dimen/font_size_10"
+                    android:textColor="@color/white"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
+                    android:paddingTop="3dp"
+                    android:paddingBottom="3dp"
+                    android:visibility="gone"/>
+                <TextView
+                    android:id="@+id/tv_more_personal_version"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="12dp"
+                    android:textSize="@dimen/font_size_14"
+                    android:textColor="@color/black_00"
+                    android:layout_gravity="end|center_vertical"
+                    />
+
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/divider_height"
+                android:background="@color/gray_f1"
+                android:layout_marginLeft="22dp"
+                />
             <FrameLayout
                 android:id="@+id/fl_more_personal_about"
                 android:layout_width="match_parent"

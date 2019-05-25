@@ -6,6 +6,8 @@ import android.support.v4.view.ViewPager;
 
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.impl.CustomVpPageChangeListener;
+import com.wewin.hichat.androidlib.utils.FileUtil;
+import com.wewin.hichat.androidlib.utils.LogUtil;
 import com.wewin.hichat.component.manager.ChatRoomManager;
 import com.wewin.hichat.component.base.BaseActivity;
 import com.wewin.hichat.androidlib.widget.CustomTabLayout;
@@ -91,9 +93,15 @@ public class ChatFileActivity extends BaseActivity {
 
             case 2:
                 for (FileInfo fileInfo : docFragment.getSelectFileList()) {
+                    LogUtil.i("fileInfo", fileInfo);
+                    LogUtil.i("fileInfo.isExist", FileUtil.isFileExists(fileInfo.getOriginPath()));
                     fileInfo.setFileType(FileInfo.TYPE_DOC);
                     ChatRoomManager.uploadFile(getAppContext(), mChatRoom, fileInfo);
                 }
+                break;
+
+            default:
+
                 break;
         }
         getHostActivity().finish();

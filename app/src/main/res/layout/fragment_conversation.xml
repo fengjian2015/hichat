@@ -132,6 +132,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scrollbars="vertical"
+            android:overScrollMode="never"
             android:layout_above="@+id/rl_conversation_bot_edit_container">
 
         </android.support.v7.widget.RecyclerView>

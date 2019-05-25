@@ -18,6 +18,8 @@ import com.wewin.hichat.androidlib.utils.LogUtil;
 import com.wewin.hichat.androidlib.utils.LubanCallBack;
 import com.wewin.hichat.androidlib.utils.ToastUtil;
 import com.wewin.hichat.component.base.BaseActivity;
+import com.wewin.hichat.component.constant.SpCons;
+import com.wewin.hichat.component.dialog.LoadingDialog;
 import com.wewin.hichat.component.dialog.PhotoDialog;
 import com.wewin.hichat.model.db.dao.UserDao;
 import com.wewin.hichat.model.db.entity.LoginUser;
@@ -40,6 +42,7 @@ public class PersonalInfoModifyActivity extends BaseActivity {
     private EditText signEt, nicknameEt;
     private TextView nicknameCountTv, signCountTv;
     private List<String> selectImgList = new ArrayList<>();
+    private LoadingDialog loadingDialog;
 
     @Override
     protected int getLayoutId() {
@@ -61,7 +64,7 @@ public class PersonalInfoModifyActivity extends BaseActivity {
         setLeftText(R.string.back);
         setRightTv(R.string.finish);
 
-        ImgUtil.load(this, UserDao.user.getAvatar(), avatarIv);
+        ImgUtil.load(this, SpCons.getUser(getAppContext()).getAvatar(), avatarIv);
     }
 
     @Override
@@ -87,8 +90,8 @@ public class PersonalInfoModifyActivity extends BaseActivity {
             }
         });
 
-        signEt.setText(UserDao.user.getSign());
-        nicknameEt.setText(UserDao.user.getUsername());
+        signEt.setText(SpCons.getUser(getAppContext()).getSign());
+        nicknameEt.setText(SpCons.getUser(getAppContext()).getUsername());
 
     }
 
@@ -99,19 +102,16 @@ public class PersonalInfoModifyActivity extends BaseActivity {
         if (TextUtils.isEmpty(nicknameStr)) {
             ToastUtil.showShort(getApplicationContext(), R.string.nickname_cannot_null);
 
-        } else if (signStr.equals(UserDao.user.getSign())
-                && nicknameStr.equals(UserDao.user.getUsername())) {
+        } else if (signStr.equals(SpCons.getUser(getAppContext()).getSign())
+                && nicknameStr.equals(SpCons.getUser(getAppContext()).getUsername())) {
             this.finish();
 
         } else {
-            LogUtil.i("nicknameStr", nicknameStr);
-            LogUtil.i("signStr", signStr);
             modifyAccountInfo(nicknameStr, signStr);
         }
 
         if (selectImgList != null && !selectImgList.isEmpty()) {
-            LogUtil.i("selectImgList.get(0)", selectImgList.get(0));
-            compressImg(selectImgList.get(0));
+            compressImg(selectImgList.get(selectImgList.size() - 1));
         }
     }
 
@@ -134,17 +134,29 @@ public class PersonalInfoModifyActivity extends BaseActivity {
         photoDialog.show();
     }
 
+    private void showLoadingDialog(){
+        if (loadingDialog == null){
+            LoadingDialog.LoadingBuilder builder = new LoadingDialog.LoadingBuilder(this);
+            loadingDialog = builder.create();
+        }
+        loadingDialog.show();
+    }
+
     private void modifyAccountInfo(final String username, final String sign) {
-        HttpMore.modifyAccountInfo(UserDao.user.getAudioCues(), UserDao.user.getGender(),
-                UserDao.user.getId(), sign, username, UserDao.user.getVibratesCues(),
+        HttpMore.modifyAccountInfo(SpCons.getUser(getAppContext()).getAudioCues(),
+                SpCons.getUser(getAppContext()).getGender(),
+                SpCons.getUser(getAppContext()).getId(), sign, username,
+                SpCons.getUser(getAppContext()).getVibratesCues(),
                 new HttpCallBack(getApplicationContext(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
                         ToastUtil.showShort(getApplicationContext(), R.string.modify_success);
-                        UserDao.user.setSign(sign);
-                        UserDao.user.setUsername(username);
-                        UserDao.setUser(UserDao.user);
-                        LogUtil.i("saveAccountInfo", UserDao.user);
+                        LoginUser user = SpCons.getUser(getAppContext());
+                        user.setSign(sign);
+                        user.setUsername(username);
+                        SpCons.setUser(getAppContext(), user);
+                        UserDao.setUser(user);
+                        LogUtil.i("saveAccountInfo", SpCons.getUser(getAppContext()));
                         EventTrans.post(EventMsg.MORE_PERSONAL_INFO_REFRESH);
                         getHostActivity().finish();
                     }
@@ -163,7 +175,7 @@ public class PersonalInfoModifyActivity extends BaseActivity {
     }
 
     private void uploadPersonalAvatar(File file) {
-        HttpMore.uploadPersonalAvatar(file, UserDao.user.getId(), "", "jpg",
+        HttpMore.uploadPersonalAvatar(file, SpCons.getUser(getAppContext()).getId(), "", "jpg",
                 new HttpCallBack(getApplicationContext(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
@@ -174,8 +186,10 @@ public class PersonalInfoModifyActivity extends BaseActivity {
                             LoginUser loginUser = JSON.parseObject(data.toString(), LoginUser.class);
                             LogUtil.i("uploadPersonalAvatar", loginUser);
                             ToastUtil.showShort(getApplicationContext(), R.string.upload_success);
-                            UserDao.user.setAvatar(loginUser.getAvatar().replace("\\", "/"));
-                            UserDao.setUser(UserDao.user);
+                            LoginUser user = SpCons.getUser(getAppContext());
+                            user.setAvatar(loginUser.getAvatar().replace("\\", "/"));
+                            SpCons.setUser(getAppContext(), user);
+                            UserDao.setUser(user);
                             EventTrans.post(EventMsg.MORE_PERSONAL_AVATAR_REFRESH);
                             getHostActivity().finish();
 
@@ -211,6 +225,9 @@ public class PersonalInfoModifyActivity extends BaseActivity {
                         ImgUtil.load(PersonalInfoModifyActivity.this, ImgUtil.cropOutputPath, avatarIv);
                     }
                     break;
+
+                default:
+                    break;
             }
         }
     }
@@ -218,7 +235,7 @@ public class PersonalInfoModifyActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        FileUtil.deleteDir(FileUtil.getInnerFilePath(getApplicationContext()));
+        FileUtil.deleteDir(FileUtil.getSDCachePath(getApplicationContext()));
     }
 
 }

@@ -108,7 +108,9 @@ public class CustomCountDownTimer {
 
                     // special case: user's onTick took more than interval to
                     // complete, skip to next interval
-                    while (delay < 0) delay += reference.get().mCountdownInterval;
+                    while (delay < 0) {
+                        delay += reference.get().mCountdownInterval;
+                    }
 
                     if (!reference.get().mCancelled) {
                         sendMessageDelayed(obtainMessage(MSG), delay);

@@ -21,19 +21,23 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * @author Darren
  * Created by Darren on 2019/1/22
  */
 public class EmoticonUtil {
 
     private static Map<String, Emoticon> emoticonMap = new HashMap<>();
-    private static List<Emoticon> emoticonList=new ArrayList<>();
+    private static List<Emoticon> emoticonList = new ArrayList<>();
+    private static Pattern emoPattern = Pattern.compile("face\\[[^\\]]+\\]", Pattern.CASE_INSENSITIVE);
 
-    public static void init(Context context){
+    public static void init(Context context) {
         parseEmoticonXml(context);
     }
 
-    //解析表情包xml文件
-    public static List<Emoticon> parseEmoticonXml(Context context) {
+    /**
+     * 解析表情包xml文件
+     */
+    private static void parseEmoticonXml(Context context) {
         try {
             InputStream inputStream = context.getAssets().open("emoticon.xml");
             //创建xmlPull解析器
@@ -64,27 +68,28 @@ public class EmoticonUtil {
                 //继续往下读取标签类型
                 type = parser.next();
             }
-            return emoticonList;
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return emoticonList;
     }
 
-    //SpannableString图文混排
-    public static SpannableString getExpressionString(Context context, String text) {
-        String patternStr = "face\\[[^\\]]+\\]";
-        Pattern emoPattern = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
-        return processExpression(context, text, emoPattern, 0);
+    /**
+     * 内容是否包含表情
+     */
+    public static boolean isContainEmotion(String content){
+        Matcher matcher = emoPattern.matcher(content);
+        return matcher.find();
     }
 
-    private static SpannableString processExpression(Context context, String text, Pattern pattern, int start) {
-        SpannableString spannableString = new SpannableString(text);
-        Matcher matcher = pattern.matcher(spannableString);
+    /**
+     * 匹配表情
+     */
+    public static SpannableString getEmoSpanStr(Context context, SpannableString spanStr) {
+        Matcher matcher = emoPattern.matcher(spanStr);
         while (matcher.find()) {
             String key = matcher.group();
-            if (matcher.start() < start) {
+            if (matcher.start() < 0) {
                 continue;
             }
             String value = emoticonMap.get(key).getId();
@@ -102,11 +107,11 @@ public class EmoticonUtil {
                 // 计算该图片名字的长度，也就是要替换的字符串的长度
                 int end = matcher.start() + key.length();
                 // 将该图片替换字符串中规定的位置中
-                spannableString.setSpan(imageSpan, matcher.start(), end,
+                spanStr.setSpan(imageSpan, matcher.start(), end,
                         Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
             }
         }
-        return spannableString;
+        return spanStr;
     }
 
     public static List<Emoticon> getEmoticonList() {

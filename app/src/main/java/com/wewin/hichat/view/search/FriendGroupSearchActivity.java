@@ -10,6 +10,7 @@ import android.widget.ListView;
 
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.impl.CustomTextWatcher;
+import com.wewin.hichat.androidlib.utils.SystemUtil;
 import com.wewin.hichat.component.manager.ChatRoomManager;
 import com.wewin.hichat.component.adapter.SearchFriendLvAdapter;
 import com.wewin.hichat.component.base.BaseActivity;
@@ -41,7 +42,11 @@ public class FriendGroupSearchActivity extends BaseActivity {
     private Runnable runnable = new Runnable() {
         @Override
         public void run() {
-//            SystemUtil.showKeyboard(FriendGroupSearchActivity.this, inputEt);
+            if (inputEt == null){
+                return;
+            }
+            inputEt.requestFocus();
+            SystemUtil.showKeyboard(getHostActivity(), inputEt);
         }
     };
 
@@ -63,7 +68,7 @@ public class FriendGroupSearchActivity extends BaseActivity {
         setLeftText(R.string.back);
         initListView();
         getDataList();
-        handler.postDelayed(runnable, 500);
+        handler.postDelayed(runnable, 300);
     }
 
     @Override
@@ -103,11 +108,10 @@ public class FriendGroupSearchActivity extends BaseActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 FriendInfo clickFriend = friendInfoList.get(position);
-                if (ChatRoom.TYPE_SINGLE.equals(clickFriend.getType())) {
-                    ChatRoomManager.startSingleRoomActivity(getHostActivity(), clickFriend.getId());
-
-                } else if ("group".equals(clickFriend.getType())) {
+                if (ChatRoom.TYPE_GROUP.equals(clickFriend.getType())) {
                     ChatRoomManager.startGroupRoomActivity(getHostActivity(), clickFriend.getId());
+                } else {
+                    ChatRoomManager.startSingleRoomActivity(getHostActivity(), clickFriend.getId());
                 }
             }
         });
@@ -125,7 +129,7 @@ public class FriendGroupSearchActivity extends BaseActivity {
             friendInfo.setUsername(groupInfo.getGroupName());
             friendInfo.setAvatar(groupInfo.getGroupAvatar());
             friendInfo.setSign(groupInfo.getDescription());
-            friendInfo.setType("group");
+            friendInfo.setType(ChatRoom.TYPE_GROUP);
             cacheGroupList.add(friendInfo);
         }
         parseSortLetter(cacheGroupList);
@@ -171,12 +175,11 @@ public class FriendGroupSearchActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
-//        SystemUtil.hideKeyboard(this, inputEt);
         if (handler != null) {
             handler.removeCallbacks(runnable);
             handler = null;
         }
+        super.onDestroy();
     }
 
 }

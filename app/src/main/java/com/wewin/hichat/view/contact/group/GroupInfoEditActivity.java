@@ -23,6 +23,7 @@ import com.wewin.hichat.androidlib.utils.LubanCallBack;
 import com.wewin.hichat.androidlib.utils.ToastUtil;
 import com.wewin.hichat.component.base.BaseActivity;
 import com.wewin.hichat.component.constant.ContactCons;
+import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.component.dialog.PhotoDialog;
 import com.wewin.hichat.model.db.dao.GroupDao;
 import com.wewin.hichat.model.db.dao.UserDao;
@@ -87,7 +88,7 @@ public class GroupInfoEditActivity extends BaseActivity {
         nameEt.addTextChangedListener(new CustomTextWatcher() {
             @Override
             public void afterTextChanged(Editable s) {
-                nameCountTv.setText(s.toString().length() + "/10");
+                nameCountTv.setText(s.toString().length() + "/12");
             }
         });
         introduceEt.addTextChangedListener(new CustomTextWatcher() {
@@ -99,7 +100,8 @@ public class GroupInfoEditActivity extends BaseActivity {
         if (mGroupInfo != null) {
             nameEt.setText(mGroupInfo.getGroupName());
             introduceEt.setText(mGroupInfo.getDescription());
-            ImgUtil.load(getHostActivity(), mGroupInfo.getGroupAvatar(), avatarIv, R.drawable.img_group);
+            ImgUtil.load(getHostActivity(), mGroupInfo.getGroupAvatar(), avatarIv,
+                    R.drawable.img_avatar_group_default);
             LogUtil.i("groupInfo.getAvatar", mGroupInfo.getGroupAvatar());
         }
     }
@@ -214,6 +216,10 @@ public class GroupInfoEditActivity extends BaseActivity {
                         ImgUtil.load(GroupInfoEditActivity.this, ImgUtil.cropOutputPath, avatarIv);
                     }
                     break;
+
+                default:
+
+                    break;
             }
         }
     }
@@ -221,7 +227,7 @@ public class GroupInfoEditActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        FileUtil.deleteDir(FileUtil.getInnerFilePath(getApplicationContext()));
+        FileUtil.deleteDir(FileUtil.getSDCachePath(getApplicationContext()));
     }
 
     @Override
@@ -235,7 +241,7 @@ public class GroupInfoEditActivity extends BaseActivity {
                     return;
                 }
                 if (groupInfo1.getId().equals(mGroupInfo.getId())
-                        && receiver.getId().equals(UserDao.user.getId())){
+                        && receiver.getId().equals(SpCons.getUser(getAppContext()).getId())){
                     ToastUtil.showShort(getAppContext(), R.string.you_are_moved_out_from_group);
                     getHostActivity().finish();
                 }
@@ -246,6 +252,10 @@ public class GroupInfoEditActivity extends BaseActivity {
                 if (!TextUtils.isEmpty(groupId2) && groupId2.equals(mGroupInfo.getId())){
                     getHostActivity().finish();
                 }
+                break;
+
+            default:
+
                 break;
         }
     }

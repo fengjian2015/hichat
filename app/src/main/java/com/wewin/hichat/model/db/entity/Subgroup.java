@@ -22,7 +22,7 @@ public class Subgroup implements Serializable {
     private String id;
     private int isDefault;//0普通分组；1好友；2黑名单；3通讯录；4隐藏临时会话人员
     private int online;
-    private int checkState;
+    private boolean checked;
     private List<FriendInfo> list;
 
     public Subgroup() {
@@ -44,12 +44,12 @@ public class Subgroup implements Serializable {
         this.online = online;
     }
 
-    public int getCheckState() {
-        return checkState;
+    public boolean isChecked() {
+        return checked;
     }
 
-    public void setCheckState(int checkState) {
-        this.checkState = checkState;
+    public void setChecked(boolean checked) {
+        this.checked = checked;
     }
 
     public String getAccountId() {
@@ -133,9 +133,9 @@ public class Subgroup implements Serializable {
                 ", buildTime=" + buildTime +
                 ", groupName='" + groupName + '\'' +
                 ", id='" + id + '\'' +
-                ", isDefault='" + isDefault + '\'' +
+                ", isDefault=" + isDefault +
                 ", online=" + online +
-                ", checkState=" + checkState +
+                ", checked=" + checked +
                 ", list=" + list +
                 '}';
     }

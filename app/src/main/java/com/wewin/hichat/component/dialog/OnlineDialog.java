@@ -86,6 +86,9 @@ public class OnlineDialog extends Dialog {
                         onlineDialog.dismiss();
                     }
                     break;
+
+                default:
+                    break;
             }
             if (onlineDialog != null){
                 onlineDialog.dismiss();

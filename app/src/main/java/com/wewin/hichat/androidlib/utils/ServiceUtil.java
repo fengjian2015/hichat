@@ -5,17 +5,19 @@ import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
 import java.util.ArrayList;
 
-
+/**
+ * @author Darren
+ */
 public class ServiceUtil {
-
 
     /**
      * 判断服务是否开启
-     * @param ServiceName 服务完整名
+     * @param serviceName 服务完整名
      */
-    public static boolean isServiceRunning(Context context, String ServiceName) {
-        if (("").equals(ServiceName) || ServiceName == null)
+    public static boolean isServiceRunning(Context context, String serviceName) {
+        if (("").equals(serviceName) || serviceName == null) {
             return false;
+        }
         ActivityManager activityManager = (ActivityManager) context
                 .getSystemService(Context.ACTIVITY_SERVICE);
         if (activityManager == null){
@@ -24,7 +26,7 @@ public class ServiceUtil {
         ArrayList<RunningServiceInfo> runningService = (ArrayList<RunningServiceInfo>) activityManager
                 .getRunningServices(30);
         for (int i = 0; i < runningService.size(); i++) {
-            if (runningService.get(i).service.getClassName().equals(ServiceName)) {
+            if (runningService.get(i).service.getClassName().equals(serviceName)) {
                 return true;
             }
         }

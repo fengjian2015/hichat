@@ -1,8 +1,10 @@
 package com.wewin.hichat;
 
 import android.content.Intent;
+import android.os.Build;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -12,33 +14,47 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.wewin.hichat.androidlib.event.EventMsg;
+import com.wewin.hichat.androidlib.permission.AuthorizationCheck;
 import com.wewin.hichat.androidlib.permission.Permission;
 import com.wewin.hichat.androidlib.permission.PermissionCallback;
 import com.wewin.hichat.androidlib.permission.Rigger;
 import com.wewin.hichat.androidlib.umeng.UMMessage;
+import com.wewin.hichat.androidlib.utils.ActivityUtil;
 import com.wewin.hichat.androidlib.utils.ClassUtil;
 import com.wewin.hichat.androidlib.utils.FileUtil;
 import com.wewin.hichat.androidlib.impl.HttpCallBack;
 import com.wewin.hichat.androidlib.utils.LogUtil;
 import com.wewin.hichat.androidlib.utils.ServiceUtil;
+import com.wewin.hichat.androidlib.utils.SystemUtil;
 import com.wewin.hichat.androidlib.utils.TimeUtil;
+import com.wewin.hichat.androidlib.utils.VersionUtil;
 import com.wewin.hichat.component.base.BaseActivity;
 import com.wewin.hichat.androidlib.widget.MainViewPager;
 import com.wewin.hichat.component.adapter.MainVpAdapter;
 import com.wewin.hichat.component.constant.LoginCons;
 import com.wewin.hichat.component.constant.SpCons;
+import com.wewin.hichat.component.dialog.CallSmallDialog;
+import com.wewin.hichat.component.dialog.PromptDialog;
+import com.wewin.hichat.component.dialog.VersionDialog;
+import com.wewin.hichat.component.manager.ChatRoomManager;
+import com.wewin.hichat.component.manager.VoiceCallManager;
 import com.wewin.hichat.component.service.ChatSocketService;
+import com.wewin.hichat.component.service.DownApkService;
 import com.wewin.hichat.model.db.dao.ChatRoomDao;
+import com.wewin.hichat.model.db.dao.FriendDao;
 import com.wewin.hichat.model.db.dao.MessageDao;
 import com.wewin.hichat.model.db.dao.MessageSendingDao;
 import com.wewin.hichat.model.db.dao.UserDao;
 import com.wewin.hichat.model.db.entity.LoginUser;
+import com.wewin.hichat.model.db.entity.VersionBean;
 import com.wewin.hichat.model.http.HttpMore;
 import com.wewin.hichat.view.contact.ContactFragment;
 import com.wewin.hichat.view.conversation.ConversationFragment;
 import com.wewin.hichat.view.more.MoreFragment;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +62,7 @@ import java.util.List;
 import static com.wewin.hichat.component.service.ChatSocketService.NAME_CHAT_SERVICE;
 
 /**
+ * @author Darren
  * Created by Darren on 2018/12/13.
  */
 public class MainActivity extends BaseActivity {
@@ -56,7 +73,8 @@ public class MainActivity extends BaseActivity {
     private LinearLayout conversationLl, contactLl, moreLl;
     private ImageView conversationIv, contactIv, moreIv;
     private TextView conversationTv, contactTv, moreTv, unreadNumTv, notifyPointTv;
-
+    private VersionDialog.VersionBuilder versionBuilder;
+    private VersionBean versionBean;
 
     @Override
     protected int getLayoutId() {
@@ -83,6 +101,7 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected void initViewsData() {
+        getWindow().setBackgroundDrawable(null);
         UserDao.user = UserDao.getUser();
         LogUtil.i("loginUser", UserDao.user);
 
@@ -91,27 +110,30 @@ public class MainActivity extends BaseActivity {
 
         getPersonalInfo();
         getServiceTime();
+        getUnreadNotifyCount();
 
         //当ChatRoomActivity未正常关闭走onDestroy时，当前正在聊天的roomId还会有值，需要清空
-        SpCons.setCurrentRoomId(getAppContext(), "");
-        SpCons.setCurrentRoomType(getAppContext(), "");
+        ChatRoomManager.clearRoomInfo();
 
         applyStoragePermission();
 
         setUnreadNumView();
         setNotifyPointView();
 
-        FileUtil.createDir(FileUtil.getSDDirPath(getAppContext()));
-//        SystemUtil.notifyMediaStoreRefresh(getAppContext());
+//        SystemUtil.notifyMediaStoreRefresh(getAppContext(), FileUtil.getSDDirPath(getAppContext()));
 
         //每次启动将未发送成功的消息置为失败，并清空发送中的消息
         MessageDao.updateSendStateFail();
         MessageSendingDao.clear();
 
-        if (SpCons.getLoginState(getAppContext())){
+        if (SpCons.getLoginState(getAppContext())) {
             UMMessage.getInstance().setAlias();
         }
+
+        checkVersion();
+
     }
+
 
     @Override
     protected void setListener() {
@@ -152,7 +174,26 @@ public class MainActivity extends BaseActivity {
                 moreIv.setImageResource(R.drawable.icon_more_blue);
                 moreTv.setTextColor(getResources().getColor(R.color.blue_main));
                 break;
+
+            default:
+                break;
         }
+    }
+
+    @Override
+    protected void onResume() {
+        if (DownApkService.isDownload) {
+            if (versionBean == null) {
+                String version = SpCons.getString(getHostActivity(), SpCons.VERSION_CONTENT);
+                if (!TextUtils.isEmpty(version)) {
+                    versionBean = JSON.parseObject(version, VersionBean.class);
+                }
+            }
+            if (versionBuilder != null && !versionBuilder.isShow()) {
+                versionDialog();
+            }
+        }
+        super.onResume();
     }
 
     private void initViewPager() {
@@ -193,6 +234,7 @@ public class MainActivity extends BaseActivity {
                 .start(new PermissionCallback() {
                     @Override
                     public void onGranted() {
+                        FileUtil.createDir(FileUtil.getSDDirPath(getAppContext()));
                         LogUtil.setWriteFileSwitch(true);
                         //删除前一天的log日志
                         LogUtil.clearTimeout();
@@ -207,7 +249,6 @@ public class MainActivity extends BaseActivity {
                         }
                     }
                 });
-
     }
 
     //启动ChatSocket服务
@@ -246,8 +287,35 @@ public class MainActivity extends BaseActivity {
         });
     }
 
+    /**
+     * 检查版本更新
+     */
+    public void checkVersion() {
+        HttpMore.checkVersion(VersionUtil.getVersionCode(getAppContext()),
+                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                    @Override
+                    public void success(Object data, int count) {
+                        if (data == null) {
+                            return;
+                        }
+                        try {
+                            versionBean = JSON.parseObject(data.toString(), VersionBean.class);
+                            if (versionBean != null) {
+                                SpCons.setString(getAppContext(), SpCons.VERSION_CONTENT, data.toString());
+                                if (VersionUtil.getVersionCode(getHostActivity()) < versionBean.getVersionCode()) {
+                                    versionDialog();
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+    }
+
+
     private void getPersonalInfo() {
-        HttpMore.getPersonalInfo(new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+        HttpMore.getPersonalInfo(getAppContext(), new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
             @Override
             public void success(Object data, int count) {
                 if (data == null) {
@@ -258,6 +326,7 @@ public class MainActivity extends BaseActivity {
                     if (loginUser != null) {
                         UserDao.setUser(loginUser);
                         UserDao.user = loginUser;
+                        SpCons.setUser(getAppContext(), loginUser);
                         LogUtil.i("getPersonalInfo", loginUser);
                     }
                 } catch (Exception e) {
@@ -265,6 +334,150 @@ public class MainActivity extends BaseActivity {
                 }
             }
         });
+    }
+
+    private void getUnreadNotifyCount() {
+        HttpMore.getNotifyUnreadCount(new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+            @Override
+            public void success(Object data, int count) {
+                if (data == null) {
+                    return;
+                }
+                try {
+                    JSONObject object = JSON.parseObject(data.toString());
+                    int unreadCount = object.getInteger("unreadCount");
+                    if (unreadCount > 0) {
+                        SpCons.setNotifyRedPointVisible(getHostActivity(), true);
+                    } else {
+                        SpCons.setNotifyRedPointVisible(getHostActivity(), false);
+                    }
+                    setNotifyPointView();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    /**
+     * 版本弹窗
+     */
+    private void versionDialog() {
+        if (!ActivityUtil.isActivityOnTop(MainActivity.this) || versionBean == null) {
+            return;
+        }
+        if (versionBuilder == null) {
+            versionBuilder = new VersionDialog.VersionBuilder(this);
+        }
+        if (versionBean.getStatus() == 0) {
+            versionBuilder.setCancelVisible(true);
+        } else {
+            versionBuilder.setCancelVisible(false);
+        }
+        if (versionBean.getStatus() != 0 && DownApkService.isDownload) {
+            versionBuilder.setDownState(DownApkService.ON_PREPARE);
+        } else {
+            versionBuilder.setDownState(-1);
+        }
+        versionBuilder.setPromptContent(versionBean.getIntroduction())
+                .setOnConfirmClickListener(new VersionDialog.VersionBuilder.OnConfirmClickListener() {
+                    @Override
+                    public void confirmClick() {
+                        if (versionBuilder.getDownloadState() == DownApkService.ON_COMPLETE) {
+                            File file = new File(FileUtil.getSDApkPath(MainActivity.this), "hichat" + versionBean.getVersion() + ".apk");
+                            VersionUtil.install(MainActivity.this, file);
+                            return;
+                        }
+                        checkApkPermissions();
+                        if (versionBean.getStatus() != 0) {
+
+                        } else {
+                            versionBuilder.dismiss();
+                        }
+                    }
+                })
+                .setOnCancelClickListener(new VersionDialog.VersionBuilder.OnCancelClickListener() {
+                    @Override
+                    public void cancelClick() {
+                        if (versionBean.getStatus() != 0) {
+                            if (!DownApkService.isDownload) {
+                                MainActivity.this.finish();
+                                System.exit(0);
+                            } else {
+                                try {
+                                    Intent home = new Intent(Intent.ACTION_MAIN);
+                                    home.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                    home.addCategory(Intent.CATEGORY_HOME);
+                                    startActivity(home);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    }
+                })
+                .setCancelableOnTouchOutside(false)
+                .create()
+                .show();
+    }
+
+    /**
+     * 检查权限
+     */
+    private void checkApkPermissions() {
+        if (Build.VERSION.SDK_INT >= 26) {
+            boolean b = getPackageManager().canRequestPackageInstalls();
+            if (b) {
+                downApk();
+            } else {
+                Rigger.on(MainActivity.this)
+                        .isShowDialog(true)
+                        .permissions(Permission.REQUEST_INSTALL_PACKAGES, Permission.WRITE_EXTERNAL_STORAGE)
+                        .start(new PermissionCallback() {
+                            @Override
+                            public void onGranted() {
+                                downApk();
+                            }
+
+                            @Override
+                            public void onDenied(HashMap<String, Boolean> permissions) {
+                                new PromptDialog.PromptBuilder(MainActivity.this)
+                                        .setPromptContent(getString(R.string.install_prompt))
+                                        .setOnConfirmClickListener(new PromptDialog.PromptBuilder.OnConfirmClickListener() {
+                                            @Override
+                                            public void confirmClick() {
+                                                AuthorizationCheck.openApplication(MainActivity.this);
+                                            }
+                                        })
+                                        .setOnCancelClickListener(new PromptDialog.PromptBuilder.OnCancelClickListener() {
+                                            @Override
+                                            public void cancelClick() {
+                                                CallSmallDialog.getInstance().setOpenWindow(true);
+                                                finish();
+                                            }
+                                        })
+                                        .setCancelVisible(true)
+                                        .create()
+                                        .show();
+                            }
+                        });
+            }
+        } else {
+            downApk();
+        }
+    }
+
+    /**
+     * 下载或者直接安装
+     */
+    private void downApk() {
+        //不存在就启动服务
+        Intent intent = new Intent(getAppContext(), DownApkService.class);
+        intent.putExtra("url", versionBean.getAppDownloadUrl());
+        intent.putExtra("versionName", versionBean.getVersion());
+        startService(intent);
+
     }
 
     @Override
@@ -283,11 +496,25 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void onEventTrans(EventMsg msg) {
-        if (msg.getKey() == EventMsg.MORE_LOGOUT_FINISH) {
-            this.finish();
+        switch (msg.getKey()) {
+            case EventMsg.MORE_LOGOUT_FINISH:
+                this.finish();
+                break;
 
-        } else if (msg.getKey() == EventMsg.CONTACT_NOTIFY_REFRESH) {
-            setNotifyPointView();
+            case EventMsg.CONTACT_NOTIFY_REFRESH:
+                setNotifyPointView();
+                break;
+
+            case EventMsg.CONVERSATION_UNREAD_NUM_REFRESH:
+                setUnreadNumView();
+                break;
+            case EventMsg.DOWN_APK:
+                if (versionBuilder != null) {
+                    versionBuilder.setDownState((int) msg.getData());
+                }
+                break;
+            default:
+                break;
         }
     }
 

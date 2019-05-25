@@ -9,17 +9,18 @@ import com.alibaba.fastjson.JSON;
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.event.EventTrans;
 import com.wewin.hichat.androidlib.event.EventMsg;
+import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.component.manager.ChatRoomManager;
 import com.wewin.hichat.androidlib.utils.ClassUtil;
 import com.wewin.hichat.androidlib.impl.HttpCallBack;
 import com.wewin.hichat.androidlib.utils.LogUtil;
 import com.wewin.hichat.component.adapter.ContactGroupLvAdapter;
 import com.wewin.hichat.component.base.BaseFragment;
-import com.wewin.hichat.component.threadPool.SingleThreadPool;
+import com.wewin.hichat.androidlib.threadpool.SingleThreadPool;
+import com.wewin.hichat.model.db.dao.ChatRoomDao;
 import com.wewin.hichat.model.db.dao.ContactUserDao;
 import com.wewin.hichat.model.db.dao.GroupDao;
 import com.wewin.hichat.model.db.dao.GroupMemberDao;
-import com.wewin.hichat.model.db.dao.UserDao;
 import com.wewin.hichat.model.db.entity.BaseSearchEntity;
 import com.wewin.hichat.model.db.entity.FriendInfo;
 import com.wewin.hichat.model.db.entity.GroupInfo;
@@ -60,7 +61,7 @@ public class ContactGroupFragment extends BaseFragment {
         if (!mGroupList.isEmpty() && lvAdapter != null) {
             rebuildData(mGroupList);
         }
-        getGroupList(true);
+        getGroupList();
     }
 
     private void initListView() {
@@ -75,17 +76,16 @@ public class ContactGroupFragment extends BaseFragment {
         });
     }
 
-    private void processGroupListData(boolean isInit, List<GroupInfo> groupDataList) {
+    private void processGroupListData(List<GroupInfo> groupDataList) {
         mGroupList.clear();
         mGroupList.addAll(groupDataList);
         rebuildData(mGroupList);
         GroupDao.addGroupList(mGroupList);
+        ChatRoomDao.updateTopShieldByGroupList(GroupDao.getGroupList());
         EventTrans.post(EventMsg.CONTACT_GROUP_LIST_GET_REFRESH);
-        if (isInit) {
-            //获取所有群成员，保存其名称及头像到ContactDao
-            for (GroupInfo groupInfo : mGroupList) {
-                getGroupMemberList(groupInfo.getId());
-            }
+        //获取所有群成员，保存其名称及头像到ContactDao
+        for (GroupInfo groupInfo : mGroupList) {
+            getGroupMemberList(groupInfo.getId());
         }
     }
 
@@ -110,7 +110,7 @@ public class ContactGroupFragment extends BaseFragment {
         }
     }
 
-    private void getGroupList(final boolean isInit) {
+    private void getGroupList() {
         HttpContact.getGroupList(new HttpCallBack(getActivity(), ClassUtil.classMethodName()) {
             @Override
             public void success(Object data, int count) {
@@ -120,7 +120,7 @@ public class ContactGroupFragment extends BaseFragment {
                 try {
                     List<GroupInfo> dataList = JSON.parseArray(data.toString(), GroupInfo.class);
                     LogUtil.i("getGroupList", dataList);
-                    processGroupListData(isInit, dataList);
+                    processGroupListData(dataList);
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -163,18 +163,33 @@ public class ContactGroupFragment extends BaseFragment {
                 || msg.getKey() == EventMsg.CONTACT_GROUP_DISBAND
                 || msg.getKey() == EventMsg.CONTACT_GROUP_INFO_REFRESH
                 || msg.getKey() == EventMsg.CONTACT_GROUP_AVATAR_REFRESH) {
-            getGroupList(false);
+            getGroupList();
 
-        } else if (msg.getKey() == EventMsg.CONTACT_GROUP_REMOVE_MEMBER
-                || msg.getKey() == EventMsg.CONTACT_GROUP_INVITE_MEMBER_REFRESH) {
+        } else if (msg.getKey() == EventMsg.CONTACT_GROUP_REMOVE_MEMBER) {
             FriendInfo receiver = (FriendInfo) msg.getThirdData();
-            if (receiver != null && UserDao.user.getId().equals(receiver.getId())) {
-                getGroupList(false);
+            if (receiver == null || TextUtils.isEmpty(receiver.getId())){
+                return;
             }
+            if (SpCons.getUser(getHostActivity()).getId().equals(receiver.getId())){
+                getGroupList();
+            }
+
+        } else if (msg.getKey() == EventMsg.CONTACT_GROUP_INVITE_MEMBER_REFRESH) {
+            List<FriendInfo> receiverList = (List<FriendInfo>) msg.getData();
+            if (receiverList == null || receiverList.isEmpty()){
+                return;
+            }
+            for (FriendInfo friend : receiverList) {
+                if (SpCons.getUser(getHostActivity()).getId().equals(friend.getId())) {
+                    getGroupList();
+                    break;
+                }
+            }
+
         } else if (msg.getKey() == EventMsg.CONTACT_GROUP_QUIT) {
             String receiverId = msg.getSecondData().toString();
-            if (!TextUtils.isEmpty(receiverId) && UserDao.user.getId().equals(receiverId)) {
-                getGroupList(false);
+            if (!TextUtils.isEmpty(receiverId) && SpCons.getUser(getHostActivity()).getId().equals(receiverId)) {
+                getGroupList();
             }
         }
     }

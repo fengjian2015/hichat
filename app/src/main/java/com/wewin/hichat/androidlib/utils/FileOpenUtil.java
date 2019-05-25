@@ -1,9 +1,8 @@
 package com.wewin.hichat.androidlib.utils;
 
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.widget.Toast;
+import android.text.TextUtils;
 
 import java.io.File;
 
@@ -13,7 +12,7 @@ import java.io.File;
 public class FileOpenUtil {
 
     //-- MIME 列表 --
-    private static final String[][] MIME_MapTable = {
+    private static final String[][] MIME_MAP_TABLE = {
             // --{后缀名， MIME类型}   --
             {".3gp", "video/3gpp"},
             {".3gpp", "video/3gpp"},
@@ -463,15 +462,14 @@ public class FileOpenUtil {
         if (dotIndex < 0) {
             return type;
         }
-
         String end = fName.substring(dotIndex, fName.length()).toLowerCase();
-        if (end == "") {
+        if (TextUtils.isEmpty(end)) {
             return type;
         }
 
-        for (int i = 0; i < MIME_MapTable.length; i++) {
-            if (end.equals(MIME_MapTable[i][0])) {
-                type = MIME_MapTable[i][1];
+        for (int i = 0; i < MIME_MAP_TABLE.length; i++) {
+            if (end.equals(MIME_MAP_TABLE[i][0])) {
+                type = MIME_MAP_TABLE[i][1];
             }
         }
         return type;

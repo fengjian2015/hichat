@@ -5,17 +5,18 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
+import android.text.SpannableString;
 import android.text.TextUtils;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
-import com.umeng.commonsdk.statistics.common.ReportPolicy;
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.manage.RingVibrateManager;
 import com.wewin.hichat.androidlib.event.EventTrans;
 import com.wewin.hichat.androidlib.event.EventMsg;
+import com.wewin.hichat.androidlib.utils.ActivityUtil;
 import com.wewin.hichat.androidlib.utils.CommonUtil;
 import com.wewin.hichat.androidlib.utils.EmoticonUtil;
+import com.wewin.hichat.androidlib.utils.HttpUtil;
 import com.wewin.hichat.androidlib.utils.MyLifecycleHandler;
 import com.wewin.hichat.androidlib.utils.NotificationUtil;
 import com.wewin.hichat.component.constant.ContactCons;
@@ -29,9 +30,9 @@ import com.wewin.hichat.model.db.dao.ChatRoomDao;
 import com.wewin.hichat.model.db.dao.ContactUserDao;
 import com.wewin.hichat.model.db.dao.FriendDao;
 import com.wewin.hichat.model.db.dao.GroupDao;
+import com.wewin.hichat.model.db.dao.GroupMemberDao;
 import com.wewin.hichat.model.db.dao.MessageDao;
 import com.wewin.hichat.model.db.dao.MessageSendingDao;
-import com.wewin.hichat.model.db.dao.UserDao;
 import com.wewin.hichat.model.db.entity.ChatMsg;
 import com.wewin.hichat.model.db.entity.ChatRoom;
 import com.wewin.hichat.model.db.entity.FileInfo;
@@ -42,10 +43,12 @@ import com.wewin.hichat.model.db.entity.LoginUser;
 import com.wewin.hichat.model.db.entity.SocketReceive;
 import com.wewin.hichat.model.db.entity.SocketServer;
 import com.wewin.hichat.model.db.entity.SocketServer.ServerData;
+import com.wewin.hichat.model.db.entity.Subgroup;
 import com.wewin.hichat.view.conversation.ChatRoomActivity;
 import com.wewin.hichat.view.login.LoginActivity;
-
 import java.util.List;
+
+import javax.net.ssl.SSLSocketFactory;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -56,21 +59,28 @@ import okio.ByteString;
 
 
 /**
+ * @author Darren
  * Created by Darren on 2018/12/21.
  */
 public class ChatSocket {
 
+    private static ChatSocket chatSocket;
     private WebSocket okHttpWebSocket;
-    private Handler handler = new Handler();
+    private Handler handler;
     private OkHttpClient okHttpClient;
     private Request request;
-    private static ChatSocket chatSocket;
     private final int INTERVAL_HEART = 5 * 1000;//心跳间隔
     private final int CODE_CLOSE_NORMALLY = 1001;
     private String heartBack = "";
     private long heartSendTimestamp = 0;
     private boolean connectState = false;//socket连接状态
     private NotificationUtil notificationUtil;
+    private final int TYPE_RECONNECT_NOT = 0;
+    private final int TYPE_RECONNECTING = 1;
+    private final int TYPE_RECONNECT_SUCCESS = 2;
+    private final int TYPE_RECONNECT_FAILURE = 3;
+    private int reconnectType = TYPE_RECONNECT_NOT;//0非重连；1重连中；2重连成功；3重连失败；
+    private Context mContext;
 
     private ChatSocket() {
     }
@@ -87,26 +97,28 @@ public class ChatSocket {
     }
 
     public void init(Context context) {
+        this.mContext = context;
         if (okHttpClient == null) {
-            okHttpClient = new OkHttpClient.Builder()
-                    .retryOnConnectionFailure(false)//不允许失败重试
-                    .build();
+            OkHttpClient.Builder builder = new OkHttpClient.Builder();
+            builder.retryOnConnectionFailure(false);
+            SSLSocketFactory socketFactory = HttpUtil.getSSLSocketFactory(HttpCons.HTTPS_CER);
+            if (socketFactory != null) {
+                builder.sslSocketFactory(socketFactory, new HttpUtil.TrustAllCerts());
+            }
+            okHttpClient = builder.build();
         }
         if (notificationUtil == null) {
             notificationUtil = new NotificationUtil();
             notificationUtil.setNotification(context);
         }
-        UserDao.user = UserDao.getUser();
-        if (UserDao.user == null) {
-            return;
+        if (handler == null) {
+            handler = new Handler();
         }
-        String userId = UserDao.user.getId();
-        String cuid = SpCons.getCuid(context);
+        String userId = SpCons.getUser(mContext).getId();
+        String cuid = SpCons.getCuid(mContext);
         String socketPath = HttpCons.SOCKET_IM + "?sessionId=" + userId + "&terminal=ANDROID&cuid=" + cuid;
         request = new Request.Builder().url(socketPath).build();
-//        LogUtil.i("需要的参数：" + userId + "   " + cuid + "    " + socketPath);
-        connect(context);
-
+        connect();
     }
 
     public void send(ChatMsg chatMsg) {
@@ -116,7 +128,7 @@ public class ChatSocket {
                 return;
             }
             if (TextUtils.isEmpty(chatMsg.getFileInfo().getDownloadPath())) {
-                ChatRoomManager.saveChatMsg(chatMsg);
+                ChatRoomManager.saveChatMsg(mContext, chatMsg, true);
             } else if (okHttpWebSocket != null) {
                 ChatMsg msg = ChatRoomManager.changeSendMsgRoomType(chatMsg, chatMsg.getRoomId());
                 msgJsonStr = JSON.toJSONString(msg);
@@ -124,7 +136,7 @@ public class ChatSocket {
                 LogUtil.i("send jsonStr", msgJsonStr);
             }
         } else {
-            ChatRoomManager.saveChatMsg(chatMsg);
+            ChatRoomManager.saveChatMsg(mContext, chatMsg, true);
             if (okHttpWebSocket != null) {
                 ChatMsg msg = ChatRoomManager.changeSendMsgRoomType(chatMsg, chatMsg.getRoomId());
                 msgJsonStr = JSON.toJSONString(msg);
@@ -134,14 +146,17 @@ public class ChatSocket {
         }
     }
 
-    public void reconnect(final Context context) {
+    public void reconnect() {
         if (okHttpWebSocket != null) {
             okHttpWebSocket.close(CODE_CLOSE_NORMALLY, "stop");
             okHttpWebSocket = null;
             okHttpClient = null;
         }
-        handler.removeCallbacksAndMessages(null);
-        init(context);
+        if (handler != null){
+            handler.removeCallbacksAndMessages(null);
+        }
+        init(mContext);
+        reconnectType = TYPE_RECONNECTING;
     }
 
     public boolean isConnectState() {
@@ -153,13 +168,17 @@ public class ChatSocket {
             okHttpWebSocket.close(CODE_CLOSE_NORMALLY, "stop");
             okHttpWebSocket = null;
         }
-        handler.removeCallbacksAndMessages(null);
+        if (handler != null){
+            handler.removeCallbacksAndMessages(null);
+            handler = null;
+        }
         connectState = false;
     }
 
-    //建立连接
-    private void connect(final Context context) {
-//        LogUtil.i("socket的context" + context + "   " + request.toString());
+    /**
+     * 建立连接
+     */
+    private void connect() {
         okHttpClient.newWebSocket(request, new WebSocketListener() {
             @Override
             public void onOpen(WebSocket webSocket, Response response) {
@@ -169,6 +188,11 @@ public class ChatSocket {
                 okHttpWebSocket = webSocket;
                 sendHeart();
                 resendMsgList();
+                //socket重连成功后，同步服务器会话列表
+                if (reconnectType == TYPE_RECONNECTING){
+                    reconnectType = TYPE_RECONNECT_SUCCESS;
+                    ChatRoomManager.syncServerConversationList();
+                }
             }
 
             @Override
@@ -197,7 +221,7 @@ public class ChatSocket {
                                 if (socketReceive == null) {
                                     return;
                                 }
-                                processReceivedMsg(context, socketReceive);
+                                processReceivedMsg(socketReceive);
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -211,6 +235,7 @@ public class ChatSocket {
                 super.onClosing(webSocket, code, reason);
                 if (code != CODE_CLOSE_NORMALLY) {
                     connectState = false;
+                    reconnectType = TYPE_RECONNECT_FAILURE;
                 }
             }
 
@@ -220,6 +245,7 @@ public class ChatSocket {
                 LogUtil.i("webSocket onClosed", "code: " + code + ", reason: " + reason);
                 if (code != CODE_CLOSE_NORMALLY) {
                     connectState = false;
+                    reconnectType = TYPE_RECONNECT_FAILURE;
                 }
             }
 
@@ -228,11 +254,14 @@ public class ChatSocket {
                 super.onFailure(webSocket, t, response);
                 LogUtil.i("webSocket onFailure", "t: " + t);
                 connectState = false;
+                reconnectType = TYPE_RECONNECT_FAILURE;
             }
         });
     }
 
-    //心跳
+    /**
+     * 心跳
+     */
     private void sendHeart() {
         connectState = true;
         String jsonStr = JSON.toJSONString(new Heart("ping"));
@@ -256,7 +285,9 @@ public class ChatSocket {
         }, INTERVAL_HEART);
     }
 
-    //socket连上后将MessageSendingDao中的消息重新发送
+    /**
+     * socket连上后将MessageSendingDao中的消息重新发送
+     */
     private void resendMsgList() {
         if (MessageSendingDao.getCount() <= 0 || okHttpWebSocket == null) {
             return;
@@ -269,20 +300,22 @@ public class ChatSocket {
         MessageSendingDao.clear();
     }
 
-    //收到socket消息进行处理
-    private void processReceivedMsg(Context context, SocketReceive socketReceive) {
+    /**
+     * 收到socket消息进行处理
+     */
+    private void processReceivedMsg(SocketReceive socketReceive) {
         if ("remote".equals(socketReceive.getType())) {
             ChatMsg receiveMsg = socketReceive.getRemote();
             if (receiveMsg == null) {
                 return;
             }
-            ChatRoomManager.parseReceiveMsg(context, receiveMsg);
+            ChatRoomManager.parseReceiveMsg(mContext, receiveMsg);
             if (!MyLifecycleHandler.isApplicationVisible()) {
                 //后台情况
-                setNotificationUtil(context, receiveMsg);
+                setNotificationUtil(receiveMsg);
             }
             //响铃和振动
-//            startRingVibrate(context, receiveMsg);
+            startRingVibrate(receiveMsg);
 
         } else if ("server".equals(socketReceive.getType())) {
             SocketServer socketServer = socketReceive.getServer();
@@ -310,7 +343,7 @@ public class ChatSocket {
 
                 //同步消息相关操作
                 case "syncMessageCommand":
-                    syncMessageCommand(context, serverData);
+                    syncMessageCommand(serverData);
                     break;
 
                 //同步群组信息
@@ -322,11 +355,16 @@ public class ChatSocket {
                 case "syncGroupCommand":
                     syncGroupCommand(serverData);
                     break;
+
+                default:
+                    break;
             }
         }
     }
 
-    //同步用户信息
+    /**
+     * 同步用户信息
+     */
     private void syncAccountInfo(@NonNull ServerData serverData) {
         String friendId = serverData.getFromUid();
         LoginUser userInfo = serverData.getUserInfo();
@@ -363,13 +401,14 @@ public class ChatSocket {
                 EventTrans.post(EventMsg.CONTACT_FRIEND_NAME_REFRESH, friendId);
                 break;
 
-            case "updPassword":
-
+            default:
                 break;
         }
     }
 
-    //同步好友相关操作
+    /**
+     * 同步好友相关操作
+     */
     private void syncFriendCommand(@NonNull ServerData serverData) {
         String friendId = serverData.getFromUid();
         if (TextUtils.isEmpty(friendId)) {
@@ -402,16 +441,8 @@ public class ChatSocket {
                 EventTrans.post(EventMsg.CONTACT_FRIEND_SUBGROUP_REFRESH);
                 break;
 
-            case "shieldFriend":
-
-                break;
-
             case "blackFriend":
-
-                break;
-
-            case "topFriendMsg":
-
+                EventTrans.post(EventMsg.CONTACT_FRIEND_BLACK_REFRESH, friendId);
                 break;
 
             case "pushTyping":
@@ -419,50 +450,99 @@ public class ChatSocket {
                 break;
 
             case "addSubgroup":
-
+                EventTrans.post(EventMsg.CONTACT_FRIEND_LIST_REFRESH);
                 break;
 
             case "moveSubgroup":
-
+                EventTrans.post(EventMsg.CONTACT_FRIEND_LIST_REFRESH);
                 break;
 
             case "renameSubgroup":
-
+                EventTrans.post(EventMsg.CONTACT_FRIEND_LIST_REFRESH);
                 break;
 
             case "agreeFriend":
-
+                FriendInfo friend = serverData.getFriendInfo();
+                SocketServer.FriendData friendData2 = serverData.getFriendData();
+                if (friend != null && friendData2 != null) {
+                    friend.setFriendship(1);
+                    Subgroup subgroup = new Subgroup();
+                    friend.setId(friendData2.getFriendId());
+                    subgroup.setId(friendData2.getSubgroupId());
+                    subgroup.setGroupName(friendData2.getSubgroupName());
+                    FriendDao.addFriend(friend, subgroup);
+                    ContactUserDao.addContactUser(friend);
+                    EventTrans.post(EventMsg.CONTACT_FRIEND_AGREE_REFRESH, friendId);
+                }
                 break;
 
-            case "refuseFriend":
-
+            default:
                 break;
         }
     }
 
-    //同步消息相关操作
-    private void syncMessageCommand(Context context, @NonNull ServerData serverData) {
+    /**
+     * 同步消息相关操作
+     */
+    private void syncMessageCommand(@NonNull ServerData serverData) {
+        SocketServer.MessageInfo messageInfo = serverData.getMessageInfo();
         switch (serverData.getCmd()) {
-            case "removeFriendSession":
-                SocketServer.MessageInfo messageInfo = serverData.getMessageInfo();
-                if (messageInfo == null || !TextUtils.isEmpty(messageInfo.getFriendId())) {
+            case "removeConversation":
+                if (messageInfo == null) {
                     return;
                 }
-                String friendId = messageInfo.getFriendId();
-                MessageDao.updateShowMark(friendId, ChatRoom.TYPE_SINGLE);
-                ChatRoomDao.deleteRoom(friendId, ChatRoom.TYPE_SINGLE);
-                EventTrans.post(EventMsg.CONVERSATION_DELETE_ROOM, friendId, ChatRoom.TYPE_SINGLE);
+                if (ChatRoom.TYPE_SINGLE.equals(messageInfo.getConversationType())) {
+                    MessageDao.updateShowMark(messageInfo.getConversationId(), ChatRoom.TYPE_SINGLE);
+                    ChatRoomDao.deleteRoom(messageInfo.getConversationId(), ChatRoom.TYPE_SINGLE);
+                    EventTrans.post(EventMsg.CONVERSATION_DELETE_ROOM, messageInfo.getConversationId(),
+                            ChatRoom.TYPE_SINGLE);
+
+                } else if (ChatRoom.TYPE_GROUP.equals(messageInfo.getConversationType())) {
+                    MessageDao.updateShowMark(messageInfo.getConversationId(), ChatRoom.TYPE_GROUP);
+                    ChatRoomDao.deleteRoom(messageInfo.getConversationId(), ChatRoom.TYPE_GROUP);
+                    EventTrans.post(EventMsg.CONVERSATION_DELETE_ROOM, messageInfo.getConversationId(),
+                            ChatRoom.TYPE_GROUP);
+                }
                 break;
 
-            case "removeGroupSession":
-                SocketServer.MessageInfo messageInfo1 = serverData.getMessageInfo();
-                if (messageInfo1 == null || TextUtils.isEmpty(messageInfo1.getGroupId())) {
+            case "shieldConversation":
+                if (messageInfo == null) {
                     return;
                 }
-                String groupId = messageInfo1.getGroupId();
-                MessageDao.updateShowMark(groupId, ChatRoom.TYPE_GROUP);
-                ChatRoomDao.deleteRoom(groupId, ChatRoom.TYPE_GROUP);
-                EventTrans.post(EventMsg.CONVERSATION_DELETE_ROOM, groupId, ChatRoom.TYPE_GROUP);
+                if (ChatRoom.TYPE_SINGLE.equals(messageInfo.getConversationType())) {
+                    FriendDao.updateShieldMark(messageInfo.getConversationId(), messageInfo.getShieldMark());
+                    ChatRoomDao.updateShieldMark(messageInfo.getConversationId(), ChatRoom.TYPE_SINGLE,
+                            messageInfo.getShieldMark());
+                    EventTrans.post(EventMsg.CONTACT_FRIEND_SHIELD_REFRESH,
+                            messageInfo.getConversationId(), messageInfo.getShieldMark());
+
+                } else if (ChatRoom.TYPE_GROUP.equals(messageInfo.getConversationType())) {
+                    GroupDao.updateShieldMark(messageInfo.getConversationId(), messageInfo.getShieldMark());
+                    ChatRoomDao.updateShieldMark(messageInfo.getConversationId(), ChatRoom.TYPE_GROUP,
+                            messageInfo.getShieldMark());
+                    EventTrans.post(EventMsg.CONTACT_GROUP_SHIELD_REFRESH,
+                            messageInfo.getConversationId(), messageInfo.getShieldMark());
+                }
+                break;
+
+            case "topConversation":
+                if (messageInfo == null) {
+                    return;
+                }
+                if (ChatRoom.TYPE_SINGLE.equals(messageInfo.getConversationType())) {
+                    FriendDao.updateTopMark(messageInfo.getConversationId(), messageInfo.getTopMark());
+                    ChatRoomDao.updateTopMark(messageInfo.getConversationId(),
+                            messageInfo.getConversationType(), messageInfo.getTopMark());
+                    EventTrans.post(EventMsg.CONTACT_FRIEND_MAKE_TOP_REFRESH,
+                            messageInfo.getConversationId(), messageInfo.getTopMark());
+
+                } else if (ChatRoom.TYPE_GROUP.equals(messageInfo.getConversationType())) {
+                    GroupDao.updateTopMark(messageInfo.getConversationId(), messageInfo.getTopMark());
+                    ChatRoomDao.updateTopMark(messageInfo.getConversationId(),
+                            messageInfo.getConversationType(), messageInfo.getTopMark());
+                    EventTrans.post(EventMsg.CONTACT_GROUP_MAKE_TOP_REFRESH,
+                            messageInfo.getConversationId(), messageInfo.getTopMark());
+                }
                 break;
 
             case "clearSessionList":
@@ -472,26 +552,42 @@ public class ChatSocket {
                 break;
 
             case "chatMsgRead":
-
+                if (messageInfo == null) {
+                    return;
+                }
+                EventTrans.post(EventMsg.CONVERSATION_UNREAD_NUM_REFRESH, messageInfo.getConversationId(),
+                        messageInfo.getConversationType());
                 break;
 
             case "runMsgBox":
-                SpCons.setNotifyRedPointVisible(context, true);
-                EventTrans.post(EventMsg.CONTACT_NOTIFY_REFRESH);
+                SpCons.setNotifyRedPointVisible(mContext, true);
+                EventTrans.post(EventMsg.CONTACT_NOTIFY_REFRESH, serverData.getNotifyInfo());
                 break;
 
             case "closeMsgBox":
-                SpCons.setNotifyRedPointVisible(context, false);
+                SpCons.setNotifyRedPointVisible(mContext, false);
                 EventTrans.post(EventMsg.CONTACT_NOTIFY_REFRESH);
+                break;
+
+            case "expireLogin":
+                if (messageInfo == null) {
+                    return;
+                }
+                serverCookieInvalid(messageInfo.getExpireMessage());
+                break;
+
+            default:
                 break;
         }
     }
 
-    //同步群组信息
+    /**
+     * 同步群组信息
+     */
     private void syncGroupInfo(@NonNull ServerData serverData) {
         String groupId = serverData.getFromGroupId();
         SocketServer.GroupData groupData = serverData.getGroupInfo();
-        if (TextUtils.isEmpty(groupId) || groupData == null) {
+        if (TextUtils.isEmpty(groupId)) {
             return;
         }
         GroupInfo groupInfo = new GroupInfo();
@@ -503,7 +599,7 @@ public class ChatSocket {
 
             //1
             case "updAvatar":
-                if (TextUtils.isEmpty(groupData.getAvatar())) {
+                if (groupData == null || TextUtils.isEmpty(groupData.getAvatar())) {
                     return;
                 }
                 groupInfo.setGroupAvatar(groupData.getAvatar());
@@ -513,7 +609,7 @@ public class ChatSocket {
 
             //1
             case "updDesc":
-                if (TextUtils.isEmpty(groupData.getDescription())) {
+                if (groupData == null || TextUtils.isEmpty(groupData.getDescription())) {
                     return;
                 }
                 groupInfo.setDescription(groupData.getDescription());
@@ -523,7 +619,7 @@ public class ChatSocket {
 
             //1
             case "updGroupName":
-                if (TextUtils.isEmpty(groupData.getGroupName())) {
+                if (groupData == null || TextUtils.isEmpty(groupData.getGroupName())) {
                     return;
                 }
                 groupInfo.setGroupName(groupData.getGroupName());
@@ -533,17 +629,26 @@ public class ChatSocket {
 
             //1
             case "updGroupPermission":
+                if (groupData == null) {
+                    return;
+                }
                 groupInfo.setAddFriendMark(groupData.getAddFriendMark());
                 groupInfo.setInviteFlag(groupData.getInviteMark());
                 groupInfo.setSearchFlag(groupData.getSearchMark());
                 groupInfo.setGroupSpeak(groupData.getSpeechMark());
                 groupInfo.setGroupValid(groupData.getVerifyMark());
+                GroupDao.updatePermission(groupInfo);
                 EventTrans.post(EventMsg.CONTACT_GROUP_PERMISSION_REFRESH, groupInfo);
+                break;
+
+            default:
                 break;
         }
     }
 
-    //同步群组相关操作
+    /**
+     * 同步群组相关操作
+     */
     private void syncGroupCommand(@NonNull ServerData serverData) {
         String groupId = serverData.getFromGroupId();
         if (TextUtils.isEmpty(groupId)) {
@@ -562,17 +667,20 @@ public class ChatSocket {
                 if (executor == null || receiverList == null || receiverList.isEmpty()) {
                     return;
                 }
+                ContactUserDao.addContactUserList(receiverList);
+                GroupMemberDao.addGroupMemberList(groupId, receiverList);
                 EventTrans.post(EventMsg.CONTACT_GROUP_AGREE_JOIN, groupInfo, executor,
                         receiverList.get(0));
                 break;
 
             //1
             case "inviteFriendJoin":
-                if (executor == null || receiverList == null || receiverList.isEmpty()) {
+                if (receiverList == null || receiverList.isEmpty()) {
                     return;
                 }
-                EventTrans.post(EventMsg.CONTACT_GROUP_INVITE_MEMBER_REFRESH, groupInfo, executor,
-                        receiverList.get(0));
+                ContactUserDao.addContactUserList(receiverList);
+                GroupMemberDao.addGroupMemberList(groupId, receiverList);
+                EventTrans.post(EventMsg.CONTACT_GROUP_INVITE_MEMBER_REFRESH, receiverList);
                 break;
 
             case "addGroupPost":
@@ -614,7 +722,7 @@ public class ChatSocket {
                 if (executor == null || receiverList == null || receiverList.isEmpty()) {
                     return;
                 }
-                if (UserDao.user.getId().equals(receiverList.get(0).getId())) {
+                if (SpCons.getUser(mContext).getId().equals(receiverList.get(0).getId())) {
                     GroupDao.deleteGroup(groupId);
                     ChatRoomDao.deleteRoom(groupId, ChatRoom.TYPE_GROUP);
                     MessageDao.updateShowMark(groupId, ChatRoom.TYPE_GROUP);
@@ -628,65 +736,88 @@ public class ChatSocket {
                 if (executor == null) {
                     return;
                 }
-                if (UserDao.user.getId().equals(executor.getId())) {
+                if (SpCons.getUser(mContext).getId().equals(executor.getId())) {
                     GroupDao.deleteGroup(groupId);
                     ChatRoomDao.deleteRoom(groupId, ChatRoom.TYPE_GROUP);
                     MessageDao.updateShowMark(groupId, ChatRoom.TYPE_GROUP);
                 }
                 EventTrans.post(EventMsg.CONTACT_GROUP_QUIT, groupId, executor.getId());
                 break;
+
+            case "dismissGroup":
+                GroupDao.deleteGroup(groupId);
+                ChatRoomDao.deleteRoom(groupId, ChatRoom.TYPE_GROUP);
+                MessageDao.updateShowMark(groupId, ChatRoom.TYPE_GROUP);
+                EventTrans.post(EventMsg.CONTACT_GROUP_DISBAND, groupId);
+                break;
+
+            default:
+                break;
         }
     }
 
-    //接收到消息是否响铃/震动
-    private void startRingVibrate(Context context, ChatMsg chatMsg) {
-        //未被屏蔽的好友/群才会响铃震动提醒
+    /**
+     * 接收到消息是否响铃/震动
+     */
+    private void startRingVibrate(@NonNull ChatMsg chatMsg) {
+        if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_VOICE_CALL) {
+            return;
+        }
+        //未被屏蔽的好友/群/临时会话才会响铃震动
         if (ChatRoom.TYPE_SINGLE.equals(chatMsg.getRoomType())) {
-            for (FriendInfo friend : FriendDao.getFriendList()) {
-                if (friend.getId().equals(chatMsg.getRoomId())) {
-                    if (UserDao.user != null && UserDao.user.getAudioCues() == 1
-                            && friend.getShieldMark() == 0) {
-                        RingVibrateManager.getInstance().playRingTone(context);
+            FriendInfo friendInfo = FriendDao.getFriendInfo(chatMsg.getRoomId());
+            if (friendInfo == null) {
+                FriendInfo contactUser = ContactUserDao.getContactUser(chatMsg.getRoomId());
+                if (contactUser != null && contactUser.getShieldMark() == 0) {
+                    if (SpCons.getUser(mContext).getAudioCues() == 1) {
+                        RingVibrateManager.getInstance().playSmsRing(mContext);
                     }
-                    if (UserDao.user != null && UserDao.user.getVibratesCues() == 1
-                            && friend.getShieldMark() == 0) {
-                        RingVibrateManager.getInstance().vibrate(context);
+                    if (SpCons.getUser(mContext).getVibratesCues() == 1) {
+                        RingVibrateManager.getInstance().vibrate(mContext);
                     }
-                    break;
+                }
+
+            } else if (friendInfo.getShieldMark() == 0) {
+                if (SpCons.getUser(mContext).getAudioCues() == 1) {
+                    RingVibrateManager.getInstance().playSmsRing(mContext);
+                }
+                if (SpCons.getUser(mContext).getVibratesCues() == 1) {
+                    RingVibrateManager.getInstance().vibrate(mContext);
                 }
             }
 
-        } else if ("group".equals(chatMsg.getRoomType())) {
-            for (GroupInfo group : GroupDao.getGroupList()) {
-                if (group.getId().equals(chatMsg.getRoomId())) {
-                    if (UserDao.user != null && UserDao.user.getAudioCues() == 1
-                            && group.getShieldMark() == 0) {
-                        RingVibrateManager.getInstance().playRingTone(context);
-                    }
-                    if (UserDao.user != null && UserDao.user.getVibratesCues() == 1
-                            && group.getShieldMark() == 0) {
-                        RingVibrateManager.getInstance().vibrate(context);
-                    }
-                    break;
+        } else if (ChatRoom.TYPE_GROUP.equals(chatMsg.getRoomType())) {
+            GroupInfo groupInfo = GroupDao.getGroup(chatMsg.getRoomId());
+            if (groupInfo != null && groupInfo.getShieldMark() == 0) {
+                if (SpCons.getUser(mContext).getAudioCues() == 1) {
+                    RingVibrateManager.getInstance().playSmsRing(mContext);
+                }
+                if (SpCons.getUser(mContext).getVibratesCues() == 1) {
+                    RingVibrateManager.getInstance().vibrate(mContext);
                 }
             }
         }
     }
 
-    //cookie失效推送
-    private void serverCookieInvalid(Context context, SocketServer server) {
-        Intent intent = new Intent(context, LoginActivity.class);
+    /**
+     * cookie失效推送
+     */
+    private void serverCookieInvalid(String expireMessage) {
+        Intent intent = new Intent(mContext, LoginActivity.class);
         intent.putExtra(LoginCons.EXTRA_LOGIN_COOKIE_INVALID, true);
         intent.putExtra(LoginCons.EXTRA_LOGIN_COOKIE_INVALID_DIALOG, true);
-//        intent.putExtra(LoginCons.EXTRA_LOGIN_COOKIE_INVALID_INFO, server.getContent());
+        intent.putExtra(LoginCons.EXTRA_LOGIN_COOKIE_INVALID_INFO, expireMessage);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
-        CommonUtil.clearDataByLogout(context);
+        mContext.startActivity(intent);
+        CommonUtil.clearDataByLogout(mContext);
     }
 
-    private void setNotificationUtil(Context context, ChatMsg lastMsg) {
-        if (notificationUtil == null) return;
+    private void setNotificationUtil(ChatMsg lastMsg) {
         ChatRoom chatRoom = ChatRoomManager.getChatRoom(lastMsg);
+        if (notificationUtil == null || chatRoom == null) {
+            return;
+        }
+        ChatRoomDao.addRoom(chatRoom);
         String title;
         String roomName = "";
         String roomNote = "";
@@ -712,23 +843,23 @@ public class ChatSocket {
             FileInfo resource = lastMsg.getFileInfo();
             switch (resource.getFileType()) {
                 case FileInfo.TYPE_IMG:
-                    notificationUtil.setContent(title, "[" + context.getString(R.string.image) + "]");
+                    notificationUtil.setContent(title, "[" + mContext.getString(R.string.image) + "]");
                     break;
 
                 case FileInfo.TYPE_VIDEO:
-                    notificationUtil.setContent(title, "[" + context.getString(R.string.video) + "]");
+                    notificationUtil.setContent(title, "[" + mContext.getString(R.string.video) + "]");
                     break;
 
                 case FileInfo.TYPE_DOC:
-                    notificationUtil.setContent(title, "[" + context.getString(R.string.file) + "]");
+                    notificationUtil.setContent(title, "[" + mContext.getString(R.string.file) + "]");
                     break;
 
                 case FileInfo.TYPE_MUSIC:
-                    notificationUtil.setContent(title, "[" + context.getString(R.string.music) + "]");
+                    notificationUtil.setContent(title, "[" + mContext.getString(R.string.music) + "]");
                     break;
 
                 case FileInfo.TYPE_TAPE_RECORD:
-                    notificationUtil.setContent(title, "[" + context.getString(R.string.audio) + "]");
+                    notificationUtil.setContent(title, "[" + mContext.getString(R.string.audio) + "]");
                     break;
 
                 default:
@@ -742,22 +873,21 @@ public class ChatSocket {
             }
 
         } else if (lastMsg.getContentType() == ChatMsg.TYPE_CONTENT_VOICE_CALL) {
-            notificationUtil.setContent(title, "[" + context.getString(R.string.voice_calls) + "]");
+            notificationUtil.setContent(title, "[" + mContext.getString(R.string.voice_calls) + "]");
         } else if (lastMsg.getContentType() == ChatMsg.TYPE_CONTENT_AT) {
-            notificationUtil.setContent(title, EmoticonUtil.getExpressionString(context,
-                    lastMsg.getContent()).toString());
+            notificationUtil.setContent(title, EmoticonUtil.getEmoSpanStr(mContext,
+                    new SpannableString(lastMsg.getContent())));
         } else if (!TextUtils.isEmpty(lastMsg.getContent())) {
-            notificationUtil.setContent(title, EmoticonUtil.getExpressionString(context,
-                    lastMsg.getContent()));
+            notificationUtil.setContent(title, EmoticonUtil.getEmoSpanStr(mContext,
+                    new SpannableString(lastMsg.getContent())));
         } else {
             notificationUtil.setContent(title, lastMsg.getContent());
         }
-        Intent intent = new Intent(context, ChatRoomActivity.class);
+        Intent intent = new Intent(mContext, ChatRoomActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.putExtra(ContactCons.EXTRA_CONTACT_CHAT_ROOM, chatRoom);
         intent.putExtra(ContactCons.EXTRA_MESSAGE_CHAT_START_TIMESTAMP, 0);
-        notificationUtil.setIntent(intent);
-        notificationUtil.notifyNot();
+        notificationUtil.setIntent(intent, ActivityUtil.isAppRunning(mContext)).notifyNot();
     }
 
 }

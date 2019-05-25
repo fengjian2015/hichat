@@ -3,12 +3,9 @@ package com.wewin.hichat.androidlib.manage;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
-import android.os.Environment;
-
 import com.czt.mp3recorder.MP3Recorder;
 import com.wewin.hichat.androidlib.utils.FileUtil;
 import com.wewin.hichat.androidlib.utils.TimeUtil;
-
 import java.io.File;
 import java.io.IOException;
 
@@ -20,8 +17,6 @@ public class TapeRecordManager {
 
     private static TapeRecordManager instance;
     private String currentVoicePath;
-    private MediaRecorder mediaRecorder;
-    private boolean isPrepare;
     private MediaPlayer mediaPlayer;
     private MP3Recorder mRecorder;
 
@@ -42,25 +37,14 @@ public class TapeRecordManager {
 
     public void startRecord(Context context) {
         try {
-            isPrepare = false;
             String savePath = FileUtil.getSDTapeRecordPath(context);
             FileUtil.createDir(savePath);
             FileUtil.createDir(savePath + ".nomedia");
-            String filename = TimeUtil.getCurrentTime("yyyyMMdd-HHmmss") + "-tapeRecord.mp3";
+            String filename = TimeUtil.getCurrentTime("yyMMddHHmmss") + "tape.mp3";
             File file = new File(savePath, filename);
             currentVoicePath = file.getAbsolutePath();
             mRecorder = new MP3Recorder(file);
             mRecorder.start();
-//            mediaRecorder = new MediaRecorder();
-//            mediaRecorder.setOutputFile(currentVoicePath);// 设置输出文件
-//            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);// 设置MediaRecorder的音频源为麦克风
-//            mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.AMR_NB);// 设置音频格式
-//            mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);// 设置音频编码
-//            mediaRecorder.setMaxDuration(60 * 1000);// 时长上限
-//            mediaRecorder.prepare();// 准备录音
-//            mediaRecorder.start();// 开始
-
-            isPrepare = true;
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -71,29 +55,24 @@ public class TapeRecordManager {
      * 停止录音
      */
     public void stopRecord(OnVoiceListener voiceListener) {
-        if (mRecorder == null) return;
-//        if (mediaRecorder == null){
-//            return;
-//        }
+        if (mRecorder == null) {
+            return;
+        }
         //5.0以上在调用stop的时候会报错，捕获异常清理
         try {
             mRecorder.stop();
-//            release();
             if (voiceListener != null) {
                 voiceListener.stop(currentVoicePath);
             }
             currentVoicePath = null;
 
-        } catch (RuntimeException e) {
-//            mediaRecorder.reset();
-//            mediaRecorder.release();
-//            mediaRecorder = null;
-
-            /*File file = new File(currentVoicePath);
+        } catch (Exception e) {
+            e.printStackTrace();
+            File file = new File(currentVoicePath);
             if (file.exists()){
                 file.delete();
                 currentVoicePath = null;
-            }*/
+            }
         }
     }
 
@@ -136,7 +115,7 @@ public class TapeRecordManager {
      * 停止播放或播放失败处理
      */
     public void playEndOrFail() {
-        if (null != mediaPlayer) {
+        if (mediaPlayer != null) {
             mediaPlayer.setOnCompletionListener(null);
             mediaPlayer.setOnErrorListener(null);
             mediaPlayer.stop();
@@ -147,39 +126,15 @@ public class TapeRecordManager {
     }
 
     /**
-     * 释放资源
-     */
-    private void release() {
-        if (mediaRecorder != null) {
-            mediaRecorder.stop();
-            mediaRecorder.reset();
-            mediaRecorder.release();
-            mediaRecorder = null;
-        }
-    }
-
-    /**
      * 取消录音
      */
     public void cancelRecord() {
-        release();
         mRecorder.stop();
         if (currentVoicePath != null) {
             File file = new File(currentVoicePath);
             file.delete();
             currentVoicePath = null;
         }
-    }
-
-    public int getVoiceLevel(int maxLevel) {
-        if (isPrepare) {
-            try {
-                return maxLevel * mediaRecorder.getMaxAmplitude() / 32768 + 1;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return 1;
     }
 
 }

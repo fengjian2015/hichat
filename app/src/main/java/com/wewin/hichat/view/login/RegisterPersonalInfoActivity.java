@@ -1,6 +1,7 @@
 package com.wewin.hichat.view.login;
 
 import android.content.Intent;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.view.View;
@@ -9,6 +10,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.TextView;
+
 import com.alibaba.fastjson.JSON;
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.impl.CustomTextWatcher;
@@ -20,16 +22,19 @@ import com.wewin.hichat.androidlib.impl.HttpCallBack;
 import com.wewin.hichat.androidlib.utils.ImgUtil;
 import com.wewin.hichat.androidlib.utils.LogUtil;
 import com.wewin.hichat.androidlib.utils.LubanCallBack;
+import com.wewin.hichat.androidlib.utils.SystemUtil;
 import com.wewin.hichat.androidlib.utils.ToastUtil;
 import com.wewin.hichat.component.base.BaseActivity;
 import com.wewin.hichat.component.constant.LoginCons;
+import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.component.dialog.PhotoDialog;
 import com.wewin.hichat.model.db.dao.UserDao;
-import com.wewin.hichat.model.db.entity.CountryCode;
+import com.wewin.hichat.model.db.entity.CountryInfo;
 import com.wewin.hichat.model.db.entity.LoginUser;
 import com.wewin.hichat.model.http.HttpLogin;
 import com.wewin.hichat.model.http.HttpMore;
 import com.wewin.hichat.view.album.AlbumChoiceActivity;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +56,18 @@ public class RegisterPersonalInfoActivity extends BaseActivity {
     private String phoneNum;
     private String code;
     private String password;
-    private CountryCode countryCode;
+    private CountryInfo countryInfo;
+    private Handler handler = new Handler();
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            if (nicknameEt == null) {
+                return;
+            }
+            nicknameEt.requestFocus();
+            SystemUtil.showKeyboard(getHostActivity(), nicknameEt);
+        }
+    };
 
 
     @Override
@@ -78,13 +94,14 @@ public class RegisterPersonalInfoActivity extends BaseActivity {
         phoneNum = getIntent().getStringExtra(LoginCons.EXTRA_LOGIN_PHONE_NUM);
         code = getIntent().getStringExtra(LoginCons.EXTRA_LOGIN_AREA_CODE);
         password = getIntent().getStringExtra(LoginCons.EXTRA_LOGIN_PASSWORD);
-        countryCode = (CountryCode) getIntent().getSerializableExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE);
-        LogUtil.i("countryCode", countryCode);
+        countryInfo = (CountryInfo) getIntent().getSerializableExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE);
+        LogUtil.i("countryInfo", countryInfo);
     }
 
     @Override
     protected void initViewsData() {
         setCenterTitle(R.string.register);
+        handler.postDelayed(runnable, 300);
     }
 
     @Override
@@ -139,6 +156,9 @@ public class RegisterPersonalInfoActivity extends BaseActivity {
             case R.id.btn_login_register_personal_info_finish:
                 register(nicknameEt.getText().toString().trim(), signEt.getText().toString().trim());
                 break;
+
+            default:
+                break;
         }
     }
 
@@ -162,27 +182,28 @@ public class RegisterPersonalInfoActivity extends BaseActivity {
     }
 
     public void register(String nickname, String sign) {
-        HttpLogin.register(code, sexType, nickname, password, phoneNum, sign, new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
-            @Override
-            public void success(Object data, int count) {
-                if (data == null) {
-                    return;
-                }
-                try {
-                    LoginUser user = JSON.parseObject(data.toString(), LoginUser.class);
-                    if (selectImgList.size() > 0) {
-                        compressImg(selectImgList.get(0), user.getId());
+        HttpLogin.register(code, sexType, nickname, password, phoneNum, sign,
+                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                    @Override
+                    public void success(Object data, int count) {
+                        if (data == null) {
+                            return;
+                        }
+                        try {
+                            LoginUser user = JSON.parseObject(data.toString(), LoginUser.class);
+                            if (selectImgList.size() > 0) {
+                                compressImg(selectImgList.get(selectImgList.size() - 1), user.getId());
+                            }
+                            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                            intent.putExtra(LoginCons.EXTRA_LOGIN_PHONE_NUM, phoneNum);
+                            intent.putExtra(LoginCons.EXTRA_LOGIN_PASSWORD, password);
+                            intent.putExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE, countryInfo);
+                            startActivity(intent);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
-                    Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-                    intent.putExtra(LoginCons.EXTRA_LOGIN_PHONE_NUM, phoneNum);
-                    intent.putExtra(LoginCons.EXTRA_LOGIN_PASSWORD, password);
-                    intent.putExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE, countryCode);
-                    startActivity(intent);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+                });
     }
 
     private void compressImg(String filePath, final String userId) {
@@ -206,11 +227,9 @@ public class RegisterPersonalInfoActivity extends BaseActivity {
                         try {
                             ToastUtil.showShort(getAppContext(), R.string.upload_success);
                             LoginUser loginUser = JSON.parseObject(data.toString(), LoginUser.class);
-                            if (UserDao.user != null) {
-                                UserDao.user.setAvatar(loginUser.getAvatar().replace("\\", "/"));
-                                UserDao.setUser(UserDao.user);
-                                EventTrans.post(EventMsg.MORE_PERSONAL_AVATAR_REFRESH);
-                            }
+                            SpCons.getUser(getAppContext()).setAvatar(loginUser.getAvatar().replace("\\", "/"));
+                            UserDao.setUser(SpCons.getUser(getAppContext()));
+                            EventTrans.post(EventMsg.MORE_PERSONAL_AVATAR_REFRESH);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -245,6 +264,9 @@ public class RegisterPersonalInfoActivity extends BaseActivity {
                         cameraIconIv.setVisibility(View.INVISIBLE);
                     }
                     break;
+
+                default:
+                    break;
             }
         }
     }
@@ -258,8 +280,12 @@ public class RegisterPersonalInfoActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
+        if (handler != null) {
+            handler.removeCallbacks(runnable);
+            handler = null;
+        }
         super.onDestroy();
-        FileUtil.deleteDir(FileUtil.getInnerFilePath(getAppContext()));
+        FileUtil.deleteDir(FileUtil.getSDCachePath(getAppContext()));
     }
 
 }

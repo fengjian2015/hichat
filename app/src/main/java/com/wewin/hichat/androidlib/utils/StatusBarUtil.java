@@ -72,16 +72,16 @@ public class StatusBarUtil {
      * @param activity
      * @return 1:MIUUI 2:Flyme 3:android6.0
      */
-    public static int StatusBarLightMode(Activity activity) {
+    public static int statusBarLightMode(Activity activity) {
         int result = 0;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
                 result = 3;
-            } else if (MIUISetStatusBarLightMode(activity.getWindow(), true)) {
+            } else if (setMIUIStatusBarLightMode(activity.getWindow(), true)) {
                 result = 1;
-            } else if (FlymeSetStatusBarLightMode(activity.getWindow(), true)) {
+            } else if (flymeSetStatusBarLightMode(activity.getWindow(), true)) {
                 result = 2;
             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
@@ -99,11 +99,11 @@ public class StatusBarUtil {
      * @param activity
      * @param type     1:MIUUI 2:Flyme 3:android6.0
      */
-    public static void StatusBarLightMode(Activity activity, int type) {
+    public static void statusBarLightMode(Activity activity, int type) {
         if (type == 1) {
-            MIUISetStatusBarLightMode(activity.getWindow(), true);
+            setMIUIStatusBarLightMode(activity.getWindow(), true);
         } else if (type == 2) {
-            FlymeSetStatusBarLightMode(activity.getWindow(), true);
+            flymeSetStatusBarLightMode(activity.getWindow(), true);
         } else if (type == 3) {
             activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         }
@@ -113,11 +113,11 @@ public class StatusBarUtil {
     /**
      * 清除MIUI或flyme或6.0以上版本状态栏黑色字体
      */
-    public static void StatusBarDarkMode(Activity activity, int type) {
+    public static void statusBarDarkMode(Activity activity, int type) {
         if (type == 1) {
-            MIUISetStatusBarLightMode(activity.getWindow(), false);
+            setMIUIStatusBarLightMode(activity.getWindow(), false);
         } else if (type == 2) {
-            FlymeSetStatusBarLightMode(activity.getWindow(), false);
+            flymeSetStatusBarLightMode(activity.getWindow(), false);
         } else if (type == 3) {
             activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
         }
@@ -133,7 +133,7 @@ public class StatusBarUtil {
      * @param dark   是否把状态栏字体及图标颜色设置为深色
      * @return boolean 成功执行返回true
      */
-    public static boolean FlymeSetStatusBarLightMode(Window window, boolean dark) {
+    public static boolean flymeSetStatusBarLightMode(Window window, boolean dark) {
         boolean result = false;
         if (window != null) {
             try {
@@ -155,7 +155,7 @@ public class StatusBarUtil {
                 window.setAttributes(lp);
                 result = true;
             } catch (Exception e) {
-
+                e.printStackTrace();
             }
         }
         return result;
@@ -168,7 +168,7 @@ public class StatusBarUtil {
      * @param dark   是否把状态栏字体及图标颜色设置为深色
      * @return boolean 成功执行返回true
      */
-    public static boolean MIUISetStatusBarLightMode(Window window, boolean dark) {
+    public static boolean setMIUIStatusBarLightMode(Window window, boolean dark) {
         boolean result = false;
         if (window != null) {
             Class clazz = window.getClass();
@@ -179,13 +179,15 @@ public class StatusBarUtil {
                 darkModeFlag = field.getInt(layoutParams);
                 Method extraFlagField = clazz.getMethod("setExtraFlags", int.class, int.class);
                 if (dark) {
-                    extraFlagField.invoke(window, darkModeFlag, darkModeFlag);//状态栏透明且黑色字体
+                    //状态栏透明且黑色字体
+                    extraFlagField.invoke(window, darkModeFlag, darkModeFlag);
                 } else {
-                    extraFlagField.invoke(window, 0, darkModeFlag);//清除黑色字体
+                    //清除黑色字体
+                    extraFlagField.invoke(window, 0, darkModeFlag);
                 }
                 result = true;
             } catch (Exception e) {
-
+                e.printStackTrace();
             }
         }
         return result;
@@ -194,9 +196,6 @@ public class StatusBarUtil {
     /**
      * 设置状态栏的距离
      * 解决标题栏在顶部的距离问题，设置该控件的高度为手机标题栏的高度
-     *
-     * @param mContext
-     * @param tv
      */
     public static void setTextHeight5(Context mContext, TextView tv) {
 
@@ -218,9 +217,6 @@ public class StatusBarUtil {
 
     /**
      * 获取手机状态栏的高度
-     *
-     * @param mContext
-     * @return
      */
     public static int getStatusBarHeight(Context mContext) {
         int result = 0;
@@ -241,6 +237,9 @@ public class StatusBarUtil {
         WindowManager wm = (WindowManager) context
                 .getSystemService(Context.WINDOW_SERVICE);
         DisplayMetrics outMetrics = new DisplayMetrics();
+        if (wm == null){
+            return 0;
+        }
         wm.getDefaultDisplay().getMetrics(outMetrics);
         return outMetrics.widthPixels;
     }

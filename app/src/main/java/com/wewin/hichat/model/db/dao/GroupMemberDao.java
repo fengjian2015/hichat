@@ -30,12 +30,18 @@ public class GroupMemberDao {
 
 
     public static void addGroupMember(String groupId, FriendInfo friendInfo) {
+        if (friendInfo == null){
+            return;
+        }
         List<FriendInfo> memberList = new ArrayList<>();
         memberList.add(friendInfo);
         addGroupMemberList(groupId, memberList);
     }
 
-    public static void addGroupMemberList(String groupId, List<FriendInfo> memberList){
+    public static void addGroupMemberList(String groupId, List<FriendInfo> memberList) {
+        if (memberList == null || memberList.isEmpty()){
+            return;
+        }
         SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
         db.beginTransaction();
         try {
@@ -63,72 +69,89 @@ public class GroupMemberDao {
     }
 
     public static List<FriendInfo> getGroupMemberList(String groupId) {
-        SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
-        String sql = "select * from " + TABLE_NAME + " where " + GROUP_ID + " =? and " +
-                USER_ID + " =?";
-        Cursor cursor = db.rawQuery(sql, new String[]{groupId, UserDao.user.getId()});
         List<FriendInfo> memberList = new ArrayList<>();
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                memberList.add(parseCursorData(cursor));
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
+            String sql = "select * from " + TABLE_NAME + " where " + GROUP_ID + " =? and " +
+                    USER_ID + " =?";
+            Cursor cursor = db.rawQuery(sql, new String[]{groupId, UserDao.user.getId()});
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    memberList.add(parseCursorData(cursor));
+                }
+                cursor.close();
             }
-            cursor.close();
+            DbManager.getInstance().closeDatabase();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        DbManager.getInstance().closeDatabase();
         return memberList;
     }
 
     /**
      * 获取群成员，除去自己的信息
+     *
      * @param groupId
      * @return
      */
     public static List<FriendInfo> getGroupMemberListNoMy(String groupId) {
-        SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
-        String sql = "select * from " + TABLE_NAME + " where " + GROUP_ID + " =? and " +
-                USER_ID + " =? and not "+FRIEND_ID+" =?";
-        Cursor cursor = db.rawQuery(sql, new String[]{groupId, UserDao.user.getId(),UserDao.user.getId()});
         List<FriendInfo> memberList = new ArrayList<>();
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                memberList.add(parseCursorData(cursor));
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
+            String sql = "select * from " + TABLE_NAME + " where " + GROUP_ID + " =? and " +
+                    USER_ID + " =? and not " + FRIEND_ID + " =?";
+            Cursor cursor = db.rawQuery(sql, new String[]{groupId, UserDao.user.getId(), UserDao.user.getId()});
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    memberList.add(parseCursorData(cursor));
+                }
+                cursor.close();
             }
-            cursor.close();
+            DbManager.getInstance().closeDatabase();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        DbManager.getInstance().closeDatabase();
         return memberList;
     }
 
     public static FriendInfo getGroupMember(String friendId) {
-        SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
-        String sql = "select * from " + TABLE_NAME + " where " + FRIEND_ID + " =? and " +
-                USER_ID + " =?";
-        Cursor cursor = db.rawQuery(sql, new String[]{friendId, UserDao.user.getId()});
         FriendInfo member = null;
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                member = parseCursorData(cursor);
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
+            String sql = "select * from " + TABLE_NAME + " where " + FRIEND_ID + " =? and " +
+                    USER_ID + " =?";
+            Cursor cursor = db.rawQuery(sql, new String[]{friendId, UserDao.user.getId()});
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    member = parseCursorData(cursor);
+                }
+                cursor.close();
             }
-            cursor.close();
+            db.close();
+            DbManager.getInstance().closeDatabase();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        db.close();
-        DbManager.getInstance().closeDatabase();
         return member;
     }
 
     public static FriendInfo getGroupMember(String friendId, String groupId) {
-        SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
-        String sql = "select * from " + TABLE_NAME + " where " + FRIEND_ID + " =? and " +
-                GROUP_ID + " =? and " + USER_ID + " =?";
-        Cursor cursor = db.rawQuery(sql, new String[]{friendId, groupId, UserDao.user.getId()});
         FriendInfo member = null;
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                member = parseCursorData(cursor);
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
+            String sql = "select * from " + TABLE_NAME + " where " + FRIEND_ID + " =? and " +
+                    GROUP_ID + " =? and " + USER_ID + " =?";
+            Cursor cursor = db.rawQuery(sql, new String[]{friendId, groupId, UserDao.user.getId()});
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    member = parseCursorData(cursor);
+                }
+                cursor.close();
             }
-            cursor.close();
+            DbManager.getInstance().closeDatabase();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        DbManager.getInstance().closeDatabase();
         return member;
     }
 

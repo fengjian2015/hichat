@@ -13,6 +13,15 @@
         </attr>
     </declare-styleable>
 
+    <declare-styleable name="CornerGifView">
+        <attr name="leftBottomCorner" format="dimension"/>
+        <attr name="leftTopCorner" format="dimension"/>
+        <attr name="rightBottomCorner" format="dimension"/>
+        <attr name="rightTopCorner" format="dimension"/>
+        <attr name="cornerSize" format="dimension"/>
+        <attr name="frameColor" format="color"/>
+    </declare-styleable>
+
     <declare-styleable name="CustomTabLayout">
         <attr name="ctlTextSize" format="integer"/>
         <attr name="ctlTextColor" format="color"/>

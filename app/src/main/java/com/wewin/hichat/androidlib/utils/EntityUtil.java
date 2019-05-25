@@ -23,6 +23,7 @@ public class EntityUtil {
             if (chatRoom.getLastChatMsg() != null){
                 chatRoom.getLastChatMsg().setRoomId(chatRoom.getRoomId());
                 chatRoom.getLastChatMsg().setRoomType(chatRoom.getRoomType());
+                chatRoom.setLastMsgTime(chatRoom.getLastChatMsg().getCreateTimestamp());
             }
             chatRoom.setAddMark(conversation.getAddMark());
             chatRoom.setAtMark(conversation.getAitMark());

@@ -22,12 +22,15 @@ public class LogUtil {
 
     //日志写入文件开关
     private static boolean writeFileSwitch = false;
-    private static char LOG_TYPE = 'v';// 输出日志类型，v:输出所有信息
-    private static final int MAX_SAVE_DAYS = 1;// 文件保存天数
-    private static final String DIR_NAME_MAIN = "HiChat/";// sdcard中的文件夹名
+    // 输出日志类型，v:输出所有信息
+    private static char LOG_TYPE = 'v';
+    // 文件保存天数
+    private static final int MAX_SAVE_DAYS = 1;
+    // sdcard中的文件夹名
+    private static final String DIR_NAME_MAIN = "HiChat/";
     private static final String LOG_FILE_NAME = "debugLog.txt";
-    private static final SimpleDateFormat timeFormat = new SimpleDateFormat("yyyyMMdd_HH:mm:ss");
-    private static final SimpleDateFormat dirFormat = new SimpleDateFormat("yyyyMMdd");
+    private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("yyyyMMdd_HH:mm:ss");
+    private static final SimpleDateFormat DIR_FORMAT = new SimpleDateFormat("yyyyMMdd");
     private static final String TAG_LOG = "HiChat";
 
     public static void v(Object obj) {
@@ -81,7 +84,7 @@ public class LogUtil {
         // 取得日志存放目录
         String path = getSDDebugLogPath();
         if (!TextUtils.isEmpty(path)) {
-            String needDelFile = dirFormat.format(getDateBefore());
+            String needDelFile = DIR_FORMAT.format(getDateBefore());
             File file = new File(path, needDelFile + LOG_FILE_NAME);
             if (file.exists()) {
                 file.delete();
@@ -93,7 +96,7 @@ public class LogUtil {
      * 根据tag, msg和等级，输出日志
      */
     private static void log(String logStr, char level) {
-        if (MainApplication.isDebug) {
+        if (MainApplication.IS_DEBUG) {
             if ('e' == level && ('e' == LOG_TYPE || 'v' == LOG_TYPE)) {
                 Log.e(TAG_LOG, logStr);
             } else if ('w' == level && ('w' == LOG_TYPE || 'v' == LOG_TYPE)) {
@@ -105,8 +108,9 @@ public class LogUtil {
             } else {
                 Log.v(TAG_LOG, logStr);
             }
-            if (writeFileSwitch)
+            if (writeFileSwitch) {
                 writeLogToFile(String.valueOf(level), logStr);
+            }
         }
     }
 
@@ -115,8 +119,8 @@ public class LogUtil {
      */
     private static void writeLogToFile(String logType, String logStr) {
         Date nowTime = new Date();
-        String filenameTime = dirFormat.format(nowTime);
-        String logContent = "---" + timeFormat.format(nowTime) + "_" + TAG_LOG + "_" + logType + "_" + logStr + "\n";
+        String filenameTime = DIR_FORMAT.format(nowTime);
+        String logContent = "---" + TIME_FORMAT.format(nowTime) + "_" + TAG_LOG + "_" + logType + "_" + logStr + "\n";
         String path = getSDDebugLogPath();
 
         if (!TextUtils.isEmpty(path)) {

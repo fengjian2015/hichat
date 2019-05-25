@@ -20,13 +20,13 @@ import com.wewin.hichat.androidlib.datamanager.SpCache;
 import com.wewin.hichat.component.dialog.PromptDialog;
 import com.wewin.hichat.component.dialog.PromptInputDialog;
 import com.wewin.hichat.component.dialog.SelectDialog;
-import com.wewin.hichat.androidlib.rxJava.OnRxJavaProcessListener;
-import com.wewin.hichat.androidlib.rxJava.RxJavaObserver;
-import com.wewin.hichat.androidlib.rxJava.RxJavaScheduler;
+import com.wewin.hichat.androidlib.rxjava.OnRxJavaProcessListener;
+import com.wewin.hichat.androidlib.rxjava.RxJavaObserver;
+import com.wewin.hichat.androidlib.rxjava.RxJavaScheduler;
 import com.wewin.hichat.component.manager.ChatRoomManager;
+import com.wewin.hichat.model.db.dao.ChatRoomDao;
 import com.wewin.hichat.model.db.dao.ContactUserDao;
 import com.wewin.hichat.model.db.dao.FriendDao;
-import com.wewin.hichat.model.db.dao.UserDao;
 import com.wewin.hichat.model.db.entity.Subgroup;
 import com.wewin.hichat.model.http.HttpContact;
 
@@ -92,8 +92,9 @@ public class ContactFriendFragment extends BaseFragment {
             public void longClick(int groupPosition) {
                 if (subgroupFriendList.get(groupPosition).getIsDefault() != Subgroup.TYPE_FRIEND
                         && subgroupFriendList.get(groupPosition).getIsDefault() != Subgroup.TYPE_PHONE_CONTACT
-                        && subgroupFriendList.get(groupPosition).getIsDefault() != Subgroup.TYPE_BLACK)
+                        && subgroupFriendList.get(groupPosition).getIsDefault() != Subgroup.TYPE_BLACK) {
                     showSelectDialog(groupPosition);
+                }
             }
         });
         elvAdapter.setOnGroupItemClickListener(new ContactFriendElvAdapter.OnGroupItemClickListener() {
@@ -204,12 +205,12 @@ public class ContactFriendFragment extends BaseFragment {
                                 FriendDao.addFriendList(subgroup.getList(), subgroup);
                                 ContactUserDao.addContactUserList(subgroup.getList());
                             }
+                            ChatRoomDao.updateTopShieldByFriendList(FriendDao.getFriendList());
                         }
                     }, new RxJavaObserver<Object>() {
                         @Override
                         public void onComplete() {
                             EventTrans.post(EventMsg.CONTACT_FRIEND_LIST_GET_REFRESH);
-                            EventTrans.post(EventMsg.CONTACT_ADD_FRIEND_PROCESS_REFRESH);
                             EventTrans.post(EventMsg.CONTACT_LIST_GET_REFRESH);
                         }
                     });
@@ -222,7 +223,7 @@ public class ContactFriendFragment extends BaseFragment {
     }
 
     private void createSubgroup(String subgroupName) {
-        HttpContact.createSubgroup(subgroupName, UserDao.user.getId(),
+        HttpContact.createSubgroup(subgroupName, SpCons.getUser(getHostActivity()).getId(),
                 new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
@@ -258,12 +259,15 @@ public class ContactFriendFragment extends BaseFragment {
                 || msg.getKey() == EventMsg.CONTACT_FRIEND_SUBGROUP_REFRESH
                 || msg.getKey() == EventMsg.CONTACT_FRIEND_DELETE_REFRESH
                 || msg.getKey() == EventMsg.CONTACT_FRIEND_BLACK_REFRESH
-                || msg.getKey() == EventMsg.CONTACT_NOTIFY_REFRESH
                 || msg.getKey() == EventMsg.CONTACT_FRIEND_AVATAR_REFRESH
                 || msg.getKey() == EventMsg.CONTACT_FRIEND_NAME_REFRESH
                 || msg.getKey() == EventMsg.CONTACT_FRIEND_INFO_REFRESH
+                || msg.getKey() == EventMsg.CONTACT_FRIEND_LIST_REFRESH
+                || msg.getKey() == EventMsg.CONTACT_FRIEND_AGREE_REFRESH
+                || msg.getKey() == EventMsg.CONTACT_NOTIFY_REFRESH
                 || msg.getKey() == EventMsg.CONTACT_DELETE_BY_OTHER
-                || msg.getKey() == EventMsg.CONTACT_PHONE_CONTACT_REFRESH) {
+                || msg.getKey() == EventMsg.CONTACT_PHONE_CONTACT_REFRESH
+                ) {
             getSubgroupFriendList();
         }
     }

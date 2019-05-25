@@ -8,12 +8,11 @@
     android:gravity="center_vertical"
     >
 
-    <CheckBox
-        android:id="@+id/cb_item_contact_move_grouping_check"
+    <ImageView
+        android:id="@+id/iv_item_contact_move_grouping_check"
         android:layout_width="17dp"
         android:layout_height="17dp"
-        android:button="@null"
-        android:background="@drawable/check_corner_img_hook"
+        android:src="@drawable/select_corner_img_hook"
         android:layout_marginLeft="20dp"
         android:layout_centerVertical="true"
         />

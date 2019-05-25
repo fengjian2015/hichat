@@ -23,7 +23,7 @@ public class EventMsg {
     public static final int CONTACT_GROUP_DISBAND = 16;
     public static final int CONTACT_GROUP_AVATAR_REFRESH = 17;
     public static final int CONTACT_FRIEND_SUBGROUP_REFRESH = 18;
-    public static final int MESSAGE_CHAT_VOICE_CALL_REFRESH = 19;
+    public static final int MESSAGE_VOICE_CALL_REFRESH = 19;
     public static final int CONTACT_FRIEND_DELETE_REFRESH = 20;
     public static final int CONTACT_PHONE_CONTACT_REFRESH = 21;
     public static final int CONVERSATION_CLEAR_REFRESH = 22;
@@ -40,7 +40,6 @@ public class EventMsg {
     public static final int CONVERSATION_UNREAD_NUM_REFRESH = 37;
     public static final int CONTACT_FRIEND_AVATAR_REFRESH = 38;
     public static final int CONTACT_GROUP_INFO_REFRESH = 39;
-    public static final int CONTACT_ADD_FRIEND_PROCESS_REFRESH = 40;
     public static final int CONTACT_GROUP_REMOVE_MEMBER = 42;
     public static final int CONTACT_GROUP_QUIT = 43;
     public static final int CONTACT_DELETE_BY_OTHER = 44;
@@ -52,6 +51,12 @@ public class EventMsg {
     public static final int CONTACT_GROUP_PERMISSION_REFRESH = 52;
     public static final int CONVERSATION_CHAT_REFRESH = 55;
     public static final int CONTACT_GROUP_SET_MANAGER = 56;
+    public static final int CONTACT_FRIEND_LIST_REFRESH = 57;
+    public static final int CONTACT_FRIEND_AGREE_REFRESH = 58;//同意加为好友
+    public static final int CONVERSATION_SYNC_SERVER_LIST = 59;//同步服务器会话列表
+    public static final int DOWN_APK = 60;
+    public static final int CONVERSATION_VOICE_CALL_FINISH = 61;
+    public static final int CONVERSATION_DELETE_MSG=62;
 
 
 

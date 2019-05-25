@@ -53,6 +53,7 @@ public class SearchPhoneContactLvAdapter extends BaseAdapter implements SectionI
     /**
      * 根据分类的首字母的Char ascii值获取其第一次出现该首字母的位置
      */
+    @Override
     public int getPositionForSection(int section) {
         for (int i = 0; i < sortModelList.size(); i++) {
             String sortStr = sortModelList.get(i).getSortLetters();
@@ -67,6 +68,7 @@ public class SearchPhoneContactLvAdapter extends BaseAdapter implements SectionI
     /**
      * 根据ListView的当前位置获取分类的首字母的Char ascii值
      */
+    @Override
     public int getSectionForPosition(int position) {
         return sortModelList.get(position).getSortLetters().charAt(0);
     }
@@ -146,6 +148,9 @@ public class SearchPhoneContactLvAdapter extends BaseAdapter implements SectionI
             case "4":
                 iHolder.avatarIv.setImageResource(R.drawable.round_red_avatar_40);
                 break;
+
+            default:
+                break;
         }
 
         switch (sortModelList.get(position).getState()) {
@@ -162,6 +167,9 @@ public class SearchPhoneContactLvAdapter extends BaseAdapter implements SectionI
             case PhoneContact.ADDED:
                 iHolder.stateTv.setText(context.getString(R.string.added));
                 iHolder.stateTv.setEnabled(false);
+                break;
+
+            default:
                 break;
         }
 

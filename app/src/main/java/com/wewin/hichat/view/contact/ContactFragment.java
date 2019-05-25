@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RadioButton;
+
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.utils.LogUtil;
 import com.wewin.hichat.component.base.BaseFragment;
@@ -19,8 +20,10 @@ import com.wewin.hichat.model.db.entity.FriendInfo;
 import com.wewin.hichat.view.contact.friend.ContactFriendFragment;
 import com.wewin.hichat.view.contact.group.ContactGroupFragment;
 import com.wewin.hichat.view.search.FriendGroupSearchActivity;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import static android.app.Activity.RESULT_OK;
 
 /**
@@ -30,8 +33,6 @@ import static android.app.Activity.RESULT_OK;
 public class ContactFragment extends BaseFragment {
 
     private ViewPager containerVp;
-    private ContactFriendFragment friendFragment;
-    private ContactGroupFragment groupFragment;
     private final int REQUEST_SEARCH = 1;
     private RadioButton friendRb, groupRb;
     private ImageView addIv;
@@ -82,13 +83,17 @@ public class ContactFragment extends BaseFragment {
             case R.id.fl_contact_search_container:
                 startActivity(new Intent(getActivity(), FriendGroupSearchActivity.class));
                 break;
+
+            default:
+
+                break;
         }
     }
 
     private void initViewPager() {
         List<Fragment> fragmentList = new ArrayList<>();
-        friendFragment = new ContactFriendFragment();
-        groupFragment = new ContactGroupFragment();
+        ContactFriendFragment friendFragment = new ContactFriendFragment();
+        ContactGroupFragment groupFragment = new ContactGroupFragment();
         fragmentList.add(friendFragment);
         fragmentList.add(groupFragment);
         FragmentActivity activity = getActivity();
@@ -100,7 +105,6 @@ public class ContactFragment extends BaseFragment {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        LogUtil.i("ContactFragment onActivityResult");
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && requestCode == REQUEST_SEARCH) {
             FriendInfo selectFriend = (FriendInfo) data
@@ -110,6 +114,5 @@ public class ContactFragment extends BaseFragment {
             }
         }
     }
-
 
 }

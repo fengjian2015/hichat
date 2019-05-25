@@ -7,89 +7,42 @@ import java.util.List;
  */
 public class ChatRecordSearch {
 
-    private String chatId;
-    private String chatName;
-    private String chatAvatar;
-    private String msgType;
-    private String friendNote;
-    private String groupName;
-    private String groupAvatar;
-    private String groupNum;
+    private String roomId;
+    private String roomType;
+    private boolean childLvExpand;//子listView是否展开
     private List<ContentItem> contentItemList;
 
     public ChatRecordSearch() {
     }
 
-    public ChatRecordSearch(String chatId, String chatName, String chatAvatar, String msgType, List<ContentItem> contentItemList) {
-        this.chatId = chatId;
-        this.chatName = chatName;
-        this.chatAvatar = chatAvatar;
-        this.msgType = msgType;
+    public ChatRecordSearch(String roomId, String roomType, List<ContentItem> contentItemList) {
+        this.roomId = roomId;
+        this.roomType = roomType;
         this.contentItemList = contentItemList;
     }
 
-    public String getFriendNote() {
-        return friendNote;
+    public boolean isChildLvExpand() {
+        return childLvExpand;
     }
 
-    public void setFriendNote(String friendNote) {
-        this.friendNote = friendNote;
+    public void setChildLvExpand(boolean childLvExpand) {
+        this.childLvExpand = childLvExpand;
     }
 
-    public String getGroupName() {
-        return groupName;
+    public String getRoomId() {
+        return roomId;
     }
 
-    public void setGroupName(String groupName) {
-        this.groupName = groupName;
+    public void setRoomId(String roomId) {
+        this.roomId = roomId;
     }
 
-    public String getGroupAvatar() {
-        return groupAvatar;
+    public String getRoomType() {
+        return roomType;
     }
 
-    public void setGroupAvatar(String groupAvatar) {
-        this.groupAvatar = groupAvatar;
-    }
-
-    public String getGroupNum() {
-        return groupNum;
-    }
-
-    public void setGroupNum(String groupNum) {
-        this.groupNum = groupNum;
-    }
-
-    public String getMsgType() {
-        return msgType;
-    }
-
-    public void setMsgType(String msgType) {
-        this.msgType = msgType;
-    }
-
-    public String getChatId() {
-        return chatId;
-    }
-
-    public void setChatId(String chatId) {
-        this.chatId = chatId;
-    }
-
-    public String getChatName() {
-        return chatName;
-    }
-
-    public void setChatName(String chatName) {
-        this.chatName = chatName;
-    }
-
-    public String getChatAvatar() {
-        return chatAvatar;
-    }
-
-    public void setChatAvatar(String chatAvatar) {
-        this.chatAvatar = chatAvatar;
+    public void setRoomType(String roomType) {
+        this.roomType = roomType;
     }
 
     public List<ContentItem> getContentItemList() {
@@ -103,14 +56,9 @@ public class ChatRecordSearch {
     @Override
     public String toString() {
         return "ChatRecordSearch{" +
-                "chatId='" + chatId + '\'' +
-                ", chatName='" + chatName + '\'' +
-                ", chatAvatar='" + chatAvatar + '\'' +
-                ", msgType='" + msgType + '\'' +
-                ", friendNote='" + friendNote + '\'' +
-                ", groupName='" + groupName + '\'' +
-                ", groupAvatar='" + groupAvatar + '\'' +
-                ", groupNum='" + groupNum + '\'' +
+                "roomId='" + roomId + '\'' +
+                ", roomType='" + roomType + '\'' +
+                ", childLvExpand=" + childLvExpand +
                 ", contentItemList=" + contentItemList +
                 '}';
     }

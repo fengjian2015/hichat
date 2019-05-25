@@ -14,6 +14,7 @@ import com.wewin.hichat.androidlib.utils.LogUtil;
 import com.wewin.hichat.androidlib.utils.TimeUtil;
 import com.wewin.hichat.component.base.BaseRcvAdapter;
 import com.wewin.hichat.model.db.entity.Announcement;
+import com.wewin.hichat.model.db.entity.GroupInfo;
 import com.wewin.hichat.model.db.entity.LoginUser;
 
 import java.util.List;
@@ -26,10 +27,13 @@ public class ContactGroupAnnouncementListRcvAdapter extends BaseRcvAdapter {
     private Context context;
     private List<Announcement> announcementList;
     private OnMoreClickListener moreClickListener;
+    private GroupInfo groupInfo;
 
-    public ContactGroupAnnouncementListRcvAdapter(Context context, List<Announcement> announcementList) {
+    public ContactGroupAnnouncementListRcvAdapter(Context context, List<Announcement> announcementList,
+                                                  GroupInfo groupInfo) {
         this.context = context;
         this.announcementList = announcementList;
+        this.groupInfo = groupInfo;
     }
 
     public interface OnMoreClickListener {
@@ -70,6 +74,12 @@ public class ContactGroupAnnouncementListRcvAdapter extends BaseRcvAdapter {
             }
             iHolder.titleTv.setText(announcementList.get(position).getTitle());
             iHolder.contentTv.setText(announcementList.get(position).getContent());
+
+            if (groupInfo.getGrade() > GroupInfo.TYPE_GRADE_NORMAL) {
+                iHolder.moreIv.setVisibility(View.VISIBLE);
+            } else {
+                iHolder.moreIv.setVisibility(View.INVISIBLE);
+            }
 
             iHolder.moreIv.setOnClickListener(new View.OnClickListener() {
                 @Override

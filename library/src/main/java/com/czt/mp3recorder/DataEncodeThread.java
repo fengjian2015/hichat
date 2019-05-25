@@ -35,7 +35,9 @@ public class DataEncodeThread extends HandlerThread implements AudioRecord.OnRec
 		public void handleMessage(Message msg) {
 			if (msg.what == PROCESS_STOP) {
 				//处理缓冲区中的数据
-				while (encodeThread.processData() > 0);
+				while (encodeThread.processData() > 0) {
+                    ;
+                }
 				// Cancel any event left in the queue
 				removeCallbacksAndMessages(null);
 				encodeThread.flushAndRelease();

@@ -21,8 +21,8 @@ public class SpCache implements DataCache {
     public SpCache(Context context) {
         this.context = context;
     }
-    
-    public SpCache(Context context, String fileName){
+
+    public SpCache(Context context, String fileName) {
         this.context = context;
         this.fileName = fileName;
     }
@@ -45,7 +45,7 @@ public class SpCache implements DataCache {
     }
 
     @Override
-    public void setData(String key, Object obj){
+    public void setData(String key, Object obj) {
         setData(key, obj, -1);
     }
 
@@ -57,10 +57,10 @@ public class SpCache implements DataCache {
         SharedPreferences sp = context.getSharedPreferences(fileName, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
         byte[] byteArr = EnDecryptUtil.obj2byteArr(obj);
-        if (byteArr != null){
+        if (byteArr != null) {
             editor.putString(key, EnDecryptUtil.parseByte2HexStr(byteArr));
             editor.apply();
-        }else {
+        } else {
             LogUtil.i("EnDecryptUtil.obj2byteArr(obj) == null");
         }
     }

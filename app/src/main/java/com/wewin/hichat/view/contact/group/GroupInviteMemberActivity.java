@@ -21,7 +21,10 @@ import com.wewin.hichat.androidlib.utils.ToastUtil;
 import com.wewin.hichat.component.adapter.SearchFriendLvAdapter;
 import com.wewin.hichat.component.base.BaseActivity;
 import com.wewin.hichat.component.constant.ContactCons;
+import com.wewin.hichat.component.constant.SpCons;
+import com.wewin.hichat.model.db.dao.ContactUserDao;
 import com.wewin.hichat.model.db.dao.FriendDao;
+import com.wewin.hichat.model.db.dao.GroupMemberDao;
 import com.wewin.hichat.model.db.dao.UserDao;
 import com.wewin.hichat.model.db.entity.BaseSearchEntity;
 import com.wewin.hichat.model.db.entity.FriendInfo;
@@ -79,9 +82,7 @@ public class GroupInviteMemberActivity extends BaseActivity {
         memberList.addAll(FriendDao.getFriendList());
         if (memberList != null && !memberList.isEmpty()) {
             parseSortLetter(memberList);
-            if (lvAdapter != null) {
-                lvAdapter.updateListView(memberList);
-            }
+
         }
         if (!TextUtils.isEmpty(groupId)) {
             getGroupInfo(groupId);
@@ -182,6 +183,10 @@ public class GroupInviteMemberActivity extends BaseActivity {
                 friendInfo.setSortLetter("#");
             }
         }
+        Collections.sort(friendInfoList, new BaseSearchEntity.SortComparator());
+        if (lvAdapter != null) {
+            lvAdapter.updateListView(memberList);
+        }
     }
 
     //根据输入框中的值来过滤数据并更新ListView
@@ -255,6 +260,8 @@ public class GroupInviteMemberActivity extends BaseActivity {
                     @Override
                     public void success(Object data, int count) {
                         ToastUtil.showShort(getApplicationContext(), R.string.invite_success);
+                        GroupMemberDao.addGroupMemberList(groupId, selectList);
+                        ContactUserDao.addContactUserList(selectList);
                         GroupInviteMemberActivity.this.finish();
                         EventTrans.post(EventMsg.CONTACT_GROUP_INVITE_MEMBER_REFRESH);
                     }
@@ -272,7 +279,7 @@ public class GroupInviteMemberActivity extends BaseActivity {
                     return;
                 }
                 if (groupInfo1.getId().equals(mGroupInfo.getId())) {
-                    if (receiver1.getId().equals(UserDao.user.getId())) {
+                    if (receiver1.getId().equals(SpCons.getUser(getAppContext()).getId())) {
                         ToastUtil.showShort(getAppContext(), R.string.you_are_moved_out_from_group);
                         getHostActivity().finish();
                     } else {
@@ -292,8 +299,8 @@ public class GroupInviteMemberActivity extends BaseActivity {
                 String groupId2 = msg.getData().toString();
                 String friendId2 = msg.getSecondData().toString();
                 if (!TextUtils.isEmpty(groupId2) && groupId2.equals(mGroupInfo.getId())
-                        && !TextUtils.isEmpty(friendId2) && UserDao.user != null
-                        && !friendId2.equals(UserDao.user.getId())){
+                        && !TextUtils.isEmpty(friendId2)
+                        && !friendId2.equals(SpCons.getUser(getAppContext()).getId())){
                     getGroupMemberList(mGroupInfo.getId());
                 }
                 break;
@@ -310,6 +317,10 @@ public class GroupInviteMemberActivity extends BaseActivity {
                         getHostActivity().finish();
                     }
                 }
+                break;
+
+            default:
+
                 break;
         }
     }

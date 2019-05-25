@@ -2,6 +2,7 @@ package com.wewin.hichat.component.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.text.SpannableString;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.CheckBox;
@@ -9,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.wewin.hichat.R;
+import com.wewin.hichat.androidlib.utils.HyperLinkUtil;
 import com.wewin.hichat.androidlib.utils.TimeUtil;
 import com.wewin.hichat.androidlib.utils.EmoticonUtil;
 import com.wewin.hichat.androidlib.utils.ImgUtil;
@@ -68,25 +70,30 @@ public class ConversationListRcvAdapter extends BaseRcvAdapter {
                 return;
             }
             String roomType = chatRoom.getRoomType();
-            ChatMsg lastMsg = chatRoom.getLastChatMsg();
-            if (lastMsg == null) {
-                return;
-            }
             String roomName = "";
             String roomNote = "";
             String roomAvatar = "";
-            if (ChatRoom.TYPE_SINGLE.equals(roomType)) {
+
+            if (ChatRoom.TYPE_GROUP.equals(roomType)) {
+                GroupInfo groupInfo = GroupDao.getGroup(chatRoom.getRoomId());
+                if (groupInfo != null) {
+                    roomName = groupInfo.getGroupName();
+                    roomAvatar = groupInfo.getGroupAvatar();
+                }
+                iHolder.temporaryChatTag.setVisibility(View.GONE);
+
+            } else {
                 FriendInfo contactUser = ContactUserDao.getContactUser(chatRoom.getRoomId());
                 if (contactUser != null) {
                     roomName = contactUser.getUsername();
                     roomNote = contactUser.getFriendNote();
                     roomAvatar = contactUser.getAvatar();
                 }
-            } else if (ChatRoom.TYPE_GROUP.equals(roomType)) {
-                GroupInfo groupInfo = GroupDao.getGroup(chatRoom.getRoomId());
-                if (groupInfo != null) {
-                    roomName = groupInfo.getGroupName();
-                    roomAvatar = groupInfo.getGroupAvatar();
+                FriendInfo friendInfo = FriendDao.getFriendInfo(chatRoom.getRoomId());
+                if (friendInfo == null || friendInfo.getFriendship() == 0) {
+                    iHolder.temporaryChatTag.setVisibility(View.VISIBLE);
+                } else {
+                    iHolder.temporaryChatTag.setVisibility(View.GONE);
                 }
             }
 
@@ -97,33 +104,17 @@ public class ConversationListRcvAdapter extends BaseRcvAdapter {
                 iHolder.nameTv.setText(roomName);
             }
 
-            if (ChatRoom.TYPE_SINGLE.equals(roomList.get(position).getRoomType())) {
-                FriendInfo friendInfo = FriendDao.getFriendInfo(roomList.get(position).getRoomId());
-                if (friendInfo != null && friendInfo.getFriendship() == 0) {
-                    iHolder.temporaryChatTag.setVisibility(View.VISIBLE);
-                } else if (friendInfo == null) {
-                    iHolder.temporaryChatTag.setVisibility(View.VISIBLE);
-                } else {
-                    iHolder.temporaryChatTag.setVisibility(View.GONE);
-                }
+            if (TimeUtil.isSameDay(chatRoom.getLastMsgTime(), TimeUtil.getServerTimestamp())) {
+                iHolder.timeTv.setText(TimeUtil.timestampToStr(chatRoom.getLastMsgTime(), "HH:mm"));
             } else {
-                iHolder.temporaryChatTag.setVisibility(View.GONE);
-            }
-
-            if (TimeUtil.isSameDay(lastMsg.getCreateTimestamp(),
-                    TimeUtil.getServerTimestamp())) {
-                iHolder.timeTv.setText(TimeUtil.timestampToStr(
-                        lastMsg.getCreateTimestamp(), "HH:mm"));
-            } else {
-                iHolder.timeTv.setText(TimeUtil.getFormatDate(
-                        lastMsg.getCreateTimestamp()));
+                iHolder.timeTv.setText(TimeUtil.getFormatDate(chatRoom.getLastMsgTime()));
             }
 
             if (isEditMode) {
-                iHolder.checkCb.setVisibility(View.VISIBLE);
-                iHolder.checkCb.setChecked(roomList.get(position).isChecked());
+                iHolder.checkIv.setVisibility(View.VISIBLE);
+                iHolder.checkIv.setSelected(roomList.get(position).isChecked());
             } else {
-                iHolder.checkCb.setVisibility(View.GONE);
+                iHolder.checkIv.setVisibility(View.GONE);
             }
 
             if (roomList.get(position).getTopMark() == 1) {
@@ -133,78 +124,103 @@ public class ConversationListRcvAdapter extends BaseRcvAdapter {
             }
 
             int unreadNum = roomList.get(position).getUnreadNum();
-            if (unreadNum == 0) {
-                iHolder.unreadNumTv.setVisibility(View.GONE);
-            } else {
-                iHolder.unreadNumTv.setVisibility(View.VISIBLE);
-                iHolder.unreadNumTv.setText(unreadNum + "");
-            }
-
             if (roomList.get(position).getShieldMark() == 1) {
-                iHolder.unreadNumTv.setBackgroundResource(R.drawable.corner_gray_18);
                 iHolder.shieldAlphaIv.setVisibility(View.VISIBLE);
                 iHolder.shieldIconIv.setVisibility(View.VISIBLE);
+
+                if (unreadNum == 0) {
+                    iHolder.unreadNumTv.setVisibility(View.INVISIBLE);
+
+                } else if (unreadNum < 100) {
+                    iHolder.unreadNumTv.setVisibility(View.VISIBLE);
+                    iHolder.unreadNumTv.setText(unreadNum + "");
+                    iHolder.unreadNumTv.setBackgroundResource(R.drawable.corner_gray_18);
+
+                } else {
+                    iHolder.unreadNumTv.setVisibility(View.VISIBLE);
+                    iHolder.unreadNumTv.setText("");
+                    iHolder.unreadNumTv.setBackgroundResource(R.drawable.con_news_shield);
+                }
+
             } else {
-                iHolder.unreadNumTv.setBackgroundResource(R.drawable.corner_blue_18);
-                iHolder.shieldAlphaIv.setVisibility(View.INVISIBLE);
-                iHolder.shieldIconIv.setVisibility(View.INVISIBLE);
+                iHolder.shieldAlphaIv.setVisibility(View.GONE);
+                iHolder.shieldIconIv.setVisibility(View.GONE);
+
+                if (unreadNum == 0) {
+                    iHolder.unreadNumTv.setVisibility(View.INVISIBLE);
+
+                } else if (unreadNum < 100) {
+                    iHolder.unreadNumTv.setVisibility(View.VISIBLE);
+                    iHolder.unreadNumTv.setBackgroundResource(R.drawable.corner_blue_18);
+                    iHolder.unreadNumTv.setText(unreadNum + "");
+
+                } else {
+                    iHolder.unreadNumTv.setVisibility(View.VISIBLE);
+                    iHolder.unreadNumTv.setText("");
+                    iHolder.unreadNumTv.setBackgroundResource(R.drawable.con_news_normal);
+                }
             }
 
             if (chatRoom.getAtType() == ChatMsg.TYPE_AT_NORMAL) {
-                iHolder.serverTv.setVisibility(View.GONE);
+                iHolder.atTagTv.setVisibility(View.GONE);
 
             } else if (chatRoom.getAtType() == ChatMsg.TYPE_AT_SINGLE) {
-                iHolder.serverTv.setVisibility(View.VISIBLE);
-                iHolder.serverTv.setText(R.string.at_me);
+                iHolder.atTagTv.setVisibility(View.VISIBLE);
+                iHolder.atTagTv.setText(R.string.at_me);
 
             } else if (chatRoom.getAtType() == ChatMsg.TYPE_AT_ALL) {
-                iHolder.serverTv.setVisibility(View.VISIBLE);
-                iHolder.serverTv.setText(R.string.all_members);
+                iHolder.atTagTv.setVisibility(View.VISIBLE);
+                iHolder.atTagTv.setText(R.string.all_members);
             }
 
-            if (lastMsg.getFileInfo() != null) {
-                FileInfo resource = lastMsg.getFileInfo();
-                switch (resource.getFileType()) {
-                    case FileInfo.TYPE_IMG:
-                        iHolder.contentTv.setText("[" + context.getString(R.string.image) + "]");
-                        break;
+            ChatMsg lastMsg = chatRoom.getLastChatMsg();
+            if (lastMsg == null) {
+                iHolder.contentTv.setText("");
 
-                    case FileInfo.TYPE_VIDEO:
-                        iHolder.contentTv.setText("[" + context.getString(R.string.video) + "]");
-                        break;
-
-                    case FileInfo.TYPE_DOC:
-                        iHolder.contentTv.setText("[" + context.getString(R.string.file) + "]");
-                        break;
-
-                    case FileInfo.TYPE_MUSIC:
-                        iHolder.contentTv.setText("[" + context.getString(R.string.music) + "]");
-                        break;
-
-                    case FileInfo.TYPE_TAPE_RECORD:
-                        iHolder.contentTv.setText("[" + context.getString(R.string.audio) + "]");
-                        break;
-
-                    default:
-                        if (!TextUtils.isEmpty(lastMsg.getContentDesc())) {
-                            iHolder.contentTv.setText("[" + lastMsg.getContentDesc() + "]");
-
-                        } else {
-                            iHolder.contentTv.setText("[版本不支持]");
-                        }
-                        break;
-                }
-
-            } else if (lastMsg.getContentType() == ChatMsg.TYPE_CONTENT_VOICE_CALL) {
-                iHolder.contentTv.setText("[" + context.getString(R.string.voice_calls) + "]");
-            } else if (lastMsg.getContentType() == ChatMsg.TYPE_CONTENT_AT) {
-                iHolder.contentTv.setText(EmoticonUtil.getExpressionString(context,
-                        lastMsg.getContent()));
-            } else if (!TextUtils.isEmpty(lastMsg.getContent())) {
-                iHolder.contentTv.setText(EmoticonUtil.getExpressionString(context,
-                        lastMsg.getContent()));
             } else {
-                iHolder.contentTv.setText(lastMsg.getContent());
+                if (ChatMsg.TYPE_CONTENT_FILE == lastMsg.getContentType() && lastMsg.getFileInfo() != null) {
+                    FileInfo resource = lastMsg.getFileInfo();
+                    switch (resource.getFileType()) {
+                        case FileInfo.TYPE_IMG:
+                            iHolder.contentTv.setText("[" + context.getString(R.string.image) + "]");
+                            break;
+
+                        case FileInfo.TYPE_VIDEO:
+                            iHolder.contentTv.setText("[" + context.getString(R.string.video) + "]");
+                            break;
+
+                        case FileInfo.TYPE_DOC:
+                            iHolder.contentTv.setText("[" + context.getString(R.string.file) + "]");
+                            break;
+
+                        case FileInfo.TYPE_MUSIC:
+                            iHolder.contentTv.setText("[" + context.getString(R.string.music) + "]");
+                            break;
+
+                        case FileInfo.TYPE_TAPE_RECORD:
+                            iHolder.contentTv.setText("[" + context.getString(R.string.audio) + "]");
+                            break;
+
+                        default:
+                            if (!TextUtils.isEmpty(lastMsg.getContentDesc())) {
+                                iHolder.contentTv.setText("[" + lastMsg.getContentDesc() + "]");
+
+                            } else {
+                                iHolder.contentTv.setText("[版本不支持]");
+                            }
+                            break;
+                    }
+
+                } else if (lastMsg.getContentType() == ChatMsg.TYPE_CONTENT_VOICE_CALL) {
+                    iHolder.contentTv.setText("[" + context.getString(R.string.voice_calls) + "]");
+
+                } else {
+                    SpannableString spanStr = new SpannableString(lastMsg.getContent());
+                    if (lastMsg.getEmoMark() == 1) {
+                        spanStr = EmoticonUtil.getEmoSpanStr(context, spanStr);
+                    }
+                    iHolder.contentTv.setText(spanStr);
+                }
             }
 
             iHolder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -213,13 +229,13 @@ public class ConversationListRcvAdapter extends BaseRcvAdapter {
                     itemClickListener.itemClick(position);
                 }
             });
+
         }
     }
 
     private static class ItemViewHolder extends RecyclerView.ViewHolder {
-        private ImageView avatarCiv, topMarkIv, shieldAlphaIv, shieldIconIv;
-        private TextView nameTv, contentTv, timeTv, unreadNumTv, temporaryChatTag, serverTv;
-        private CheckBox checkCb;
+        private ImageView avatarCiv, topMarkIv, shieldAlphaIv, shieldIconIv, checkIv;
+        private TextView nameTv, contentTv, timeTv, unreadNumTv, temporaryChatTag, atTagTv;
 
         private ItemViewHolder(View itemView) {
             super(itemView);
@@ -228,12 +244,12 @@ public class ConversationListRcvAdapter extends BaseRcvAdapter {
             contentTv = itemView.findViewById(R.id.tv_item_conversation_message_content);
             timeTv = itemView.findViewById(R.id.tv_item_conversation_time);
             unreadNumTv = itemView.findViewById(R.id.tv_item_conversation_unread_msg_num);
-            checkCb = itemView.findViewById(R.id.cb_item_conversation_check);
+            checkIv = itemView.findViewById(R.id.iv_item_conversation_check);
             topMarkIv = itemView.findViewById(R.id.iv_item_conversation_top_mark);
             shieldAlphaIv = itemView.findViewById(R.id.iv_item_conversation_shield_alpha);
             shieldIconIv = itemView.findViewById(R.id.iv_item_conversation_shield_icon);
             temporaryChatTag = itemView.findViewById(R.id.tv_item_conversation_temporary_chat_tag);
-            serverTv = itemView.findViewById(R.id.tv_item_conversation_message_server);
+            atTagTv = itemView.findViewById(R.id.tv_item_conversation_message_server);
         }
     }
 

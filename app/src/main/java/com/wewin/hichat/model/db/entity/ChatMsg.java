@@ -1,9 +1,7 @@
 package com.wewin.hichat.model.db.entity;
 
 import android.text.TextUtils;
-
 import com.wewin.hichat.androidlib.utils.UUIDUtil;
-
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Map;
@@ -40,19 +38,24 @@ public class ChatMsg implements Serializable {
     private String senderId;//发送者id
     private String receiverId;//接收者id
     private String groupId;//群id
-    private int contentType;//0文本; 1语音通话; 2文件图片; 3录音; 4@; 5系统消息
+    private int contentType;//0文本; 1语音通话; 2文件图片; 3@; 4系统消息
     private String content;//消息内容
     private String contentDesc;//版本不支持时的提示内容
     private long createTimestamp;//消息生成时间戳
     private String replyMsgId;//被回复的消息id
     private String unSyncMsgFirstId;//未同步的最早一条消息id
-    private Map atFriendMap;//被@人<friendId, friendName>
+    private Map<String, String> atFriendMap;//被@人<friendId, friendName>
     private FileInfo fileInfo;//文件信息
     private VoiceCall voiceCall;//语音通话
     private FriendInfo senderInfo;//临时会话发送者信息
+    private FriendInfo receiverInfo;//临时会话接收者信息
     private int friendshipMark;//好友标识 0 非好友 1 好友
+    private int deleteMark;//记录是否本地删除 0未删除 1删除
 
     private int sendState;//发送状态 -1发送失败； 0发送中；1发送成功；
+    private int emoMark;//是否包含表情
+    private int phoneMark;//是否包含手机号
+    private int urlMark;//是否包含网址
     private int showMark;//是否显示
     private ServerAction serverAction;//系统消息操作
     private boolean checked;//编辑状态是否选中
@@ -125,7 +128,46 @@ public class ChatMsg implements Serializable {
         }else {
             return new Random().nextInt(1000) * 31 + UUIDUtil.get32UUID().hashCode();
         }
+    }
 
+    public int getDeleteMark() {
+        return deleteMark;
+    }
+
+    public void setDeleteMark(int deleteMark) {
+        this.deleteMark = deleteMark;
+    }
+
+    public FriendInfo getReceiverInfo() {
+        return receiverInfo;
+    }
+
+    public void setReceiverInfo(FriendInfo receiverInfo) {
+        this.receiverInfo = receiverInfo;
+    }
+
+    public int getEmoMark() {
+        return emoMark;
+    }
+
+    public void setEmoMark(int emoMark) {
+        this.emoMark = emoMark;
+    }
+
+    public int getPhoneMark() {
+        return phoneMark;
+    }
+
+    public void setPhoneMark(int phoneMark) {
+        this.phoneMark = phoneMark;
+    }
+
+    public int getUrlMark() {
+        return urlMark;
+    }
+
+    public void setUrlMark(int urlMark) {
+        this.urlMark = urlMark;
     }
 
     public String getUnSyncMsgFirstId() {
@@ -192,11 +234,11 @@ public class ChatMsg implements Serializable {
         this.contentDesc = contentDesc;
     }
 
-    public Map getAtFriendMap() {
+    public Map<String, String> getAtFriendMap() {
         return atFriendMap;
     }
 
-    public void setAtFriendMap(Map atFriendMap) {
+    public void setAtFriendMap(Map<String, String> atFriendMap) {
         this.atFriendMap = atFriendMap;
     }
 
@@ -312,7 +354,6 @@ public class ChatMsg implements Serializable {
         this.sendState = sendState;
     }
 
-
     @Override
     public String toString() {
         return "ChatMsg{" +
@@ -334,8 +375,13 @@ public class ChatMsg implements Serializable {
                 ", fileInfo=" + fileInfo +
                 ", voiceCall=" + voiceCall +
                 ", senderInfo=" + senderInfo +
+                ", receiverInfo=" + receiverInfo +
                 ", friendshipMark=" + friendshipMark +
+                ", deleteMark=" + deleteMark +
                 ", sendState=" + sendState +
+                ", emoMark=" + emoMark +
+                ", phoneMark=" + phoneMark +
+                ", urlMark=" + urlMark +
                 ", showMark=" + showMark +
                 ", serverAction=" + serverAction +
                 ", checked=" + checked +

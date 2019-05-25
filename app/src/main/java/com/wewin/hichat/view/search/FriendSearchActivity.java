@@ -1,6 +1,7 @@
 package com.wewin.hichat.view.search;
 
 import android.content.Intent;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.AdapterView;
@@ -10,6 +11,7 @@ import android.widget.ListView;
 
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.impl.CustomTextWatcher;
+import com.wewin.hichat.androidlib.utils.SystemUtil;
 import com.wewin.hichat.component.adapter.SearchFriendLvAdapter;
 import com.wewin.hichat.component.base.BaseActivity;
 import com.wewin.hichat.component.constant.ContactCons;
@@ -34,7 +36,7 @@ public class FriendSearchActivity extends BaseActivity {
     private EditText inputEt;
     private ImageView clearIv;
     private String title;
-    private List<FriendInfo> friendInfoList = new ArrayList<>();
+    private List<FriendInfo> mFriendList = new ArrayList<>();
 
 
     @Override
@@ -52,9 +54,10 @@ public class FriendSearchActivity extends BaseActivity {
     @Override
     protected void getIntentData() {
         title = getIntent().getStringExtra(ContactCons.EXTRA_CONTACT_FRIEND_SEARCH_TITLE);
-        friendInfoList.clear();
-        friendInfoList.addAll((List<FriendInfo>) getIntent()
-                .getSerializableExtra(ContactCons.EXTRA_CONTACT_FRIEND_LIST));
+        List<FriendInfo> totalList = (List<FriendInfo>) getIntent()
+                .getSerializableExtra(ContactCons.EXTRA_CONTACT_FRIEND_LIST);
+        mFriendList.clear();
+        mFriendList.addAll(totalList);
     }
 
     @Override
@@ -63,10 +66,10 @@ public class FriendSearchActivity extends BaseActivity {
         setLeftText(R.string.back);
         setRightTv(R.string.finish);
         initListView();
-        if (friendInfoList != null && !friendInfoList.isEmpty()) {
-            parseSortLetter(friendInfoList);
+        if (mFriendList != null && !mFriendList.isEmpty()) {
+            parseSortLetter(mFriendList);
             if (lvAdapter != null) {
-                lvAdapter.updateListView(friendInfoList);
+                lvAdapter.updateListView(mFriendList);
             }
         }
     }
@@ -110,13 +113,13 @@ public class FriendSearchActivity extends BaseActivity {
     }
 
     private void initListView() {
-        lvAdapter = new SearchFriendLvAdapter(this, friendInfoList);
+        lvAdapter = new SearchFriendLvAdapter(this, mFriendList);
         containerLv.setAdapter(lvAdapter);
 
         containerLv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                lvAdapter.getList().get(position).setChecked(!friendInfoList.get(position).isChecked());
+                lvAdapter.getList().get(position).setChecked(!lvAdapter.getList().get(position).isChecked());
                 lvAdapter.notifyDataSetChanged();
             }
         });
@@ -135,16 +138,21 @@ public class FriendSearchActivity extends BaseActivity {
                 friendInfo.setSortLetter("#");
             }
         }
+        // 根据a-z进行排序
+        Collections.sort(friendInfoList, new BaseSearchEntity.SortComparator());
+        if (lvAdapter != null) {
+            lvAdapter.updateListView(friendInfoList);
+        }
     }
 
     //根据输入框中的值来过滤数据并更新ListView
     private void filterData(String filterStr) {
         List<FriendInfo> filterDataList = new ArrayList<>();
         if (TextUtils.isEmpty(filterStr)) {
-            filterDataList = friendInfoList;
+            filterDataList = mFriendList;
         } else {
             filterDataList.clear();
-            for (FriendInfo friendInfo : friendInfoList) {
+            for (FriendInfo friendInfo : mFriendList) {
                 String name = friendInfo.getUsername();
                 if (name.contains(filterStr)
                         || characterParser.getSelling(name).startsWith(filterStr)) {

@@ -121,8 +121,8 @@
 
         <TextView
             android:id="@+id/tv_main_conversation_unread_num"
-            android:layout_width="15dp"
-            android:layout_height="15dp"
+            android:layout_width="17dp"
+            android:layout_height="17dp"
             android:background="@drawable/corner_red_10"
             tools:text="99"
             android:textColor="@color/white"
@@ -130,18 +130,18 @@
             android:gravity="center"
             android:layout_marginLeft="68dp"
             android:layout_marginTop="4dp"
-            android:visibility="invisible"
+            android:visibility="visible"
             />
 
         <TextView
             android:id="@+id/tv_main_notify_point"
-            android:layout_width="6dp"
-            android:layout_height="6dp"
+            android:layout_width="7dp"
+            android:layout_height="7dp"
             android:background="@drawable/corner_red_3"
             android:layout_gravity="end"
             android:layout_marginRight="45dp"
             android:layout_marginTop="10dp"
-            android:visibility="invisible"
+            android:visibility="visible"
             />
 
         <TextView

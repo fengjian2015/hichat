@@ -224,7 +224,7 @@ public class AlbumChoiceActivity extends BaseActivity implements ListImageDirPop
             @Override
             public boolean accept(File dir, String filename) {
                 return filename.endsWith(".jpg") || filename.endsWith(".png")
-                        || filename.endsWith(".jpeg");
+                        || filename.endsWith(".jpeg") || filename.endsWith(".gif");
             }
         }));
         setAdapterData();

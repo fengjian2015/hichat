@@ -15,6 +15,7 @@ public class ChatRoom implements Serializable {
     private String roomId;//房间id
     private String roomType;//房间类型 private/group
     private ChatMsg lastChatMsg;//最新一条消息
+    private long lastMsgTime;//最新一条消息时间戳
     private int unreadNum;//未读消息数量
     private int topMark;//是否置顶
     private int shieldMark;//是否屏蔽
@@ -41,11 +42,9 @@ public class ChatRoom implements Serializable {
                 return -1;
             } else if (o1.getTopMark() != 1 && o2.getTopMark() == 1) {
                 return 1;
-            } else if (o1.getLastChatMsg() != null && o2.getLastChatMsg() != null
-                    && o1.getLastChatMsg().getCreateTimestamp() - o2.getLastChatMsg().getCreateTimestamp() > 0) {
+            } else if (o1.getLastMsgTime() - o2.getLastMsgTime() > 0) {
                 return -1;
-            } else if (o1.getLastChatMsg() != null && o2.getLastChatMsg() != null
-                    && o1.getLastChatMsg().getCreateTimestamp() - o2.getLastChatMsg().getCreateTimestamp() < 0) {
+            } else if (o1.getLastMsgTime() - o2.getLastMsgTime() < 0) {
                 return 1;
             } else {
                 return 0;
@@ -59,6 +58,14 @@ public class ChatRoom implements Serializable {
     public ChatRoom(String roomId, String roomType) {
         this.roomId = roomId;
         this.roomType = roomType;
+    }
+
+    public long getLastMsgTime() {
+        return lastMsgTime;
+    }
+
+    public void setLastMsgTime(long lastMsgTime) {
+        this.lastMsgTime = lastMsgTime;
     }
 
     public String getUnSyncMsgFirstId() {
@@ -211,6 +218,7 @@ public class ChatRoom implements Serializable {
                 "roomId='" + roomId + '\'' +
                 ", roomType='" + roomType + '\'' +
                 ", lastChatMsg=" + lastChatMsg +
+                ", lastMsgTime=" + lastMsgTime +
                 ", unreadNum=" + unreadNum +
                 ", topMark=" + topMark +
                 ", shieldMark=" + shieldMark +
@@ -218,13 +226,14 @@ public class ChatRoom implements Serializable {
                 ", groupSpeakMark=" + groupSpeakMark +
                 ", inviteMark=" + inviteMark +
                 ", groupGrade=" + groupGrade +
-                ", checked=" + checked +
                 ", addMark=" + addMark +
                 ", atMark=" + atMark +
                 ", atType=" + atType +
                 ", deleteMark=" + deleteMark +
                 ", friendshipMark=" + friendshipMark +
                 ", updateMark=" + updateMark +
+                ", unSyncMsgFirstId='" + unSyncMsgFirstId + '\'' +
+                ", checked=" + checked +
                 '}';
     }
 }

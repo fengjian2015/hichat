@@ -58,6 +58,9 @@ public class MessageSendingDao {
     public static final String SENDER_AVATAR = "sender_avatar";
     public static final String TAPE_UNREAD_MARK = "tape_unread_mark";
     public static final String SEND_STATE = "send_state";
+    public static final String EMO_MARK = "emo_mark";
+    public static final String PHONE_MARK = "phone_mark";
+    public static final String URL_MARK = "url_mark";
     public static final String USER_ID = "user_id";
 
 
@@ -67,87 +70,62 @@ public class MessageSendingDao {
         DbManager.getInstance().closeDatabase();
     }
 
-    public static boolean addMessageList(List<ChatMsg> msgList) {
-        SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
-        db.beginTransaction();
+    public static List<ChatMsg> getMessageList() {
+        List<ChatMsg> msgList = new ArrayList<>();
         try {
-            String whereSql = MSG_ID + " =? and " + USER_ID + " =?";
-            for (ChatMsg chatMsg : msgList) {
-                if (!TextUtils.isEmpty(chatMsg.getLocalMsgId())
-                        && getMessageByLocalMsgId(chatMsg.getLocalMsgId()) != null) {
-                    db.update(TABLE_NAME, packContentValue(chatMsg), whereSql,
-                            new String[]{chatMsg.getLocalMsgId(), UserDao.user.getId()});
-                } else {
-                    db.insert(TABLE_NAME, null, packContentValue(chatMsg));
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
+            String sql = "select * from " + TABLE_NAME + " where " + USER_ID + " =?";
+            Cursor cursor = db.rawQuery(sql, new String[]{UserDao.user.getId()});
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    msgList.add(parseCursorData(cursor));
                 }
+                cursor.close();
             }
-            db.setTransactionSuccessful();
-            return true;
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
-        } finally {
-            db.endTransaction();
-            DbManager.getInstance().closeDatabase();
-        }
-    }
-
-    public static List<ChatMsg> getMessageList() {
-        SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
-        String sql = "select * from " + TABLE_NAME + " where " + USER_ID + " =?";
-        Cursor cursor = db.rawQuery(sql, new String[]{UserDao.user.getId()});
-        List<ChatMsg> msgList = new ArrayList<>();
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                msgList.add(parseCursorData(cursor));
-            }
-            cursor.close();
         }
         return msgList;
     }
 
-    private static ChatMsg getMessageByLocalMsgId(String localMsgId) {
-        SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
-        String sql = "select * from " + TABLE_NAME + " where " + LOCAL_MSG_ID + " = ? and " +
-                USER_ID + " = ?";
-        Cursor cursor = db.rawQuery(sql, new String[]{localMsgId, UserDao.user.getId()});
-        ChatMsg chatMsg = null;
-        if (cursor != null) {
-            if (cursor.getCount() > 0 && cursor.moveToNext()) {
-                chatMsg = parseCursorData(cursor);
-            }
-            cursor.close();
-        }
-        DbManager.getInstance().closeDatabase();
-        return chatMsg;
-    }
-
     public static int getCount() {
-        SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
-        String sql = "select * from " + TABLE_NAME + " where " + USER_ID + " =?";
-        Cursor cursor = db.rawQuery(sql, new String[]{UserDao.user.getId()});
         int count = 0;
-        if (cursor != null){
-            count = cursor.getCount();
-            cursor.close();
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
+            String sql = "select * from " + TABLE_NAME + " where " + USER_ID + " =?";
+            Cursor cursor = db.rawQuery(sql, new String[]{UserDao.user.getId()});
+            if (cursor != null) {
+                count = cursor.getCount();
+                cursor.close();
+            }
+            DbManager.getInstance().closeDatabase();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        DbManager.getInstance().closeDatabase();
         return count;
     }
 
     public static void deleteMessage(String localMsgId) {
-        SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
-        String sql = "delete from " + TABLE_NAME + " where " + LOCAL_MSG_ID + " = ? and " +
-                USER_ID + " =?";
-        db.execSQL(sql, new String[]{localMsgId, UserDao.user.getId()});
-        DbManager.getInstance().closeDatabase();
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
+            String sql = "delete from " + TABLE_NAME + " where " + LOCAL_MSG_ID + " = ? and " +
+                    USER_ID + " =?";
+            db.execSQL(sql, new String[]{localMsgId, UserDao.user.getId()});
+            DbManager.getInstance().closeDatabase();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void clear() {
-        SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
-        String sql = "delete from " + TABLE_NAME + " where " + USER_ID + " = ?";
-        db.execSQL(sql, new String[]{UserDao.user.getId()});
-        DbManager.getInstance().closeDatabase();
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
+            String sql = "delete from " + TABLE_NAME + " where " + USER_ID + " = ?";
+            db.execSQL(sql, new String[]{UserDao.user.getId()});
+            DbManager.getInstance().closeDatabase();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static ChatMsg parseCursorData(@NonNull Cursor cursor) {
@@ -188,13 +166,16 @@ public class MessageSendingDao {
             voiceCall.setDuration(cursor.getLong(cursor.getColumnIndex(DURATION)));
             chatMsg.setVoiceCall(voiceCall);
         }
-        if (chatMsg.getFriendshipMark()==0) {
+        if (chatMsg.getFriendshipMark() == 0) {
             FriendInfo sender = new FriendInfo();
             sender.setUsername(cursor.getString(cursor.getColumnIndex(SENDER_NAME)));
             sender.setAvatar(cursor.getString(cursor.getColumnIndex(SENDER_AVATAR)));
             chatMsg.setSenderInfo(sender);
         }
         chatMsg.setSendState(cursor.getInt(cursor.getColumnIndex(SEND_STATE)));
+        chatMsg.setEmoMark(cursor.getInt(cursor.getColumnIndex(EMO_MARK)));
+        chatMsg.setPhoneMark(cursor.getInt(cursor.getColumnIndex(PHONE_MARK)));
+        chatMsg.setUrlMark(cursor.getInt(cursor.getColumnIndex(URL_MARK)));
         return chatMsg;
     }
 
@@ -235,7 +216,7 @@ public class MessageSendingDao {
             values.put(VOICE_CONNECT_STATE, chatMsg.getVoiceCall().getConnectState());
             values.put(DURATION, chatMsg.getVoiceCall().getDuration());
         }
-        if (chatMsg.getFriendshipMark()==0
+        if (chatMsg.getFriendshipMark() == 0
                 && chatMsg.getSenderInfo() != null) {
             values.put(SENDER_NAME, chatMsg.getSenderInfo().getUsername());
             values.put(SENDER_AVATAR, chatMsg.getSenderInfo().getAvatar());
@@ -245,6 +226,9 @@ public class MessageSendingDao {
         } else {
             values.put(SEND_STATE, 0);
         }
+        values.put(EMO_MARK, chatMsg.getEmoMark());
+        values.put(PHONE_MARK, chatMsg.getPhoneMark());
+        values.put(URL_MARK, chatMsg.getUrlMark());
         values.put(USER_ID, UserDao.user.getId());
         return values;
     }

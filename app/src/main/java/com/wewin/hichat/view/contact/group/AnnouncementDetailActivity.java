@@ -18,6 +18,7 @@ import com.wewin.hichat.androidlib.utils.TimeUtil;
 import com.wewin.hichat.androidlib.utils.ToastUtil;
 import com.wewin.hichat.component.base.BaseActivity;
 import com.wewin.hichat.component.constant.ContactCons;
+import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.model.db.dao.UserDao;
 import com.wewin.hichat.model.db.entity.Announcement;
 import com.wewin.hichat.model.db.entity.FriendInfo;
@@ -61,7 +62,6 @@ public class AnnouncementDetailActivity extends BaseActivity {
     @Override
     protected void initViewsData() {
         setCenterTitle(R.string.group_announcement);
-        setRightImg(R.drawable.announcement_plus_btn);
         setLeftText(R.string.back);
 
         if (announcement != null) {
@@ -71,6 +71,12 @@ public class AnnouncementDetailActivity extends BaseActivity {
             contentTv.setText(announcement.getContent());
             timeTv.setText(announcement.getAccount().getUsername() + "发表于" +
                     TimeUtil.timestampToStr(announcement.getPostTime(), "yyyy年MM月dd日"));
+        }
+        if (mGroupInfo.getGrade() > GroupInfo.TYPE_GRADE_NORMAL) {
+            moreIv.setVisibility(View.VISIBLE);
+            setRightImg(R.drawable.announcement_plus_btn);
+        } else {
+            moreIv.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -140,16 +146,16 @@ public class AnnouncementDetailActivity extends BaseActivity {
 
     @Override
     public void onEventTrans(EventMsg msg) {
-        switch (msg.getKey()){
+        switch (msg.getKey()) {
             case EventMsg.CONTACT_GROUP_REMOVE_MEMBER:
                 GroupInfo groupInfo1 = (GroupInfo) msg.getData();
                 FriendInfo receiver = (FriendInfo) msg.getThirdData();
                 if (groupInfo1 == null || TextUtils.isEmpty(groupInfo1.getId())
-                        || receiver == null || TextUtils.isEmpty(receiver.getId())){
+                        || receiver == null || TextUtils.isEmpty(receiver.getId())) {
                     return;
                 }
                 if (groupInfo1.getId().equals(mGroupInfo.getId())
-                        && receiver.getId().equals(UserDao.user.getId())){
+                        && receiver.getId().equals(SpCons.getUser(getAppContext()).getId())) {
                     ToastUtil.showShort(getAppContext(), R.string.you_are_moved_out_from_group);
                     getHostActivity().finish();
                 }
@@ -157,9 +163,13 @@ public class AnnouncementDetailActivity extends BaseActivity {
 
             case EventMsg.CONTACT_GROUP_DISBAND:
                 String groupId1 = msg.getData().toString();
-                if (!TextUtils.isEmpty(groupId1) && groupId1.equals(mGroupInfo.getId())){
+                if (!TextUtils.isEmpty(groupId1) && groupId1.equals(mGroupInfo.getId())) {
                     getHostActivity().finish();
                 }
+                break;
+
+            default:
+
                 break;
 
         }

@@ -18,11 +18,12 @@ public class CommonUtil {
      * 退出登录清除数据
      */
     public static void clearDataByLogout(Context context){
+        SpCons.setLoginState(context, false);
         SpCons.setCuid(context, "");
         SpCons.setDomain(context, "");
         UMMessage.getInstance().deleteAlias();
         UserDao.user = new LoginUser();
-        SpCons.setLoginState(context, false);
+        SpCons.setUser(context, new LoginUser());
         ChatSocket.getInstance().stop();
     }
 

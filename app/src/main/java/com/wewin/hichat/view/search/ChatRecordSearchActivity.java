@@ -1,5 +1,6 @@
 package com.wewin.hichat.view.search;
 
+import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -7,18 +8,16 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
-
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.impl.CustomTextWatcher;
+import com.wewin.hichat.androidlib.utils.SystemUtil;
 import com.wewin.hichat.component.manager.ChatRoomManager;
-import com.wewin.hichat.androidlib.utils.LogUtil;
-import com.wewin.hichat.component.adapter.ConversationRecordSearchRcvAdapter;
+import com.wewin.hichat.component.adapter.ChatRecordSearchRcvAdapter;
 import com.wewin.hichat.component.base.BaseActivity;
 import com.wewin.hichat.model.db.dao.MessageDao;
 import com.wewin.hichat.model.db.entity.ChatMsg;
 import com.wewin.hichat.model.db.entity.ChatRecordSearch;
 import com.wewin.hichat.model.db.entity.ChatRoom;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,10 +28,20 @@ public class ChatRecordSearchActivity extends BaseActivity {
 
     private List<ChatRecordSearch> recordSearchList = new ArrayList<>();
     private RecyclerView containerRcv;
-    private ConversationRecordSearchRcvAdapter rcvAdapter;
+    private ChatRecordSearchRcvAdapter rcvAdapter;
     private EditText inputEt;
     private ImageView clearIv;
-    private ChatRecordSearch selectRecord;
+    private Handler handler = new Handler();
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            if (inputEt == null){
+                return;
+            }
+            inputEt.requestFocus();
+            SystemUtil.showKeyboard(getHostActivity(), inputEt);
+        }
+    };
 
     @Override
     protected int getLayoutId() {
@@ -51,6 +60,8 @@ public class ChatRecordSearchActivity extends BaseActivity {
     @Override
     protected void initViewsData() {
         initRecyclerView();
+        //输入框获取焦点，弹出键盘
+        handler.postDelayed(runnable, 300);
     }
 
     @Override
@@ -59,12 +70,11 @@ public class ChatRecordSearchActivity extends BaseActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 String inputStr = inputEt.getText().toString().trim();
-                rcvAdapter.setContentLvExpand(false);
                 rcvAdapter.setSearchStr(inputStr);
                 recordSearchList.clear();
                 if (!TextUtils.isEmpty(inputStr)) {
                     List<ChatMsg> searchResultChatMsgList = MessageDao.getMessageListBySearch(inputStr);
-                    if (searchResultChatMsgList != null) {
+                    if (!searchResultChatMsgList.isEmpty()) {
                         recordSearchList.addAll(transToRecordSearchList(searchResultChatMsgList));
                     }
                     clearIv.setVisibility(View.VISIBLE);
@@ -83,16 +93,13 @@ public class ChatRecordSearchActivity extends BaseActivity {
     }
 
     private void initRecyclerView() {
-        rcvAdapter = new ConversationRecordSearchRcvAdapter(this, recordSearchList);
+        rcvAdapter = new ChatRecordSearchRcvAdapter(this, recordSearchList);
         containerRcv.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
         containerRcv.setAdapter(rcvAdapter);
-        rcvAdapter.setOnRecordItemClickListener(new ConversationRecordSearchRcvAdapter.OnRecordItemClickListener() {
+        rcvAdapter.setOnRecordItemClickListener(new ChatRecordSearchRcvAdapter.OnRecordItemClickListener() {
             @Override
             public void checkMore(int rcvPosition) {
-                rcvAdapter.setContentLvExpand(true);
-                selectRecord = recordSearchList.get(rcvPosition);
-                recordSearchList.clear();
-                recordSearchList.add(selectRecord);
+                recordSearchList.get(rcvPosition).setChildLvExpand(true);
                 updateRcv();
             }
 
@@ -113,8 +120,6 @@ public class ChatRecordSearchActivity extends BaseActivity {
                     contentItemList.remove(0);
                     if (lvPosition < contentItemList.size()) {
                         long startTimestamp = contentItemList.get(lvPosition).getCreateTimestamp();
-                        LogUtil.i("lvPosition", lvPosition);
-                        LogUtil.i("startTimestamp", startTimestamp);
                         startChatActivity(rcvPosition, startTimestamp);
                     }
                 }
@@ -130,13 +135,13 @@ public class ChatRecordSearchActivity extends BaseActivity {
 
     private void startChatActivity(int rcvPosition, long startTimestamp) {
         ChatRecordSearch recordSearch = recordSearchList.get(rcvPosition);
-        if (ChatRoom.TYPE_SINGLE.equals(recordSearch.getMsgType())) {
+        if (ChatRoom.TYPE_SINGLE.equals(recordSearch.getRoomType())) {
             ChatRoomManager.startSingleRoomActivity(getHostActivity(),
-                    recordSearch.getChatId(), startTimestamp);
+                    recordSearch.getRoomId(), startTimestamp);
 
         } else {
             ChatRoomManager.startGroupRoomActivity(getHostActivity(),
-                    recordSearch.getChatId(), startTimestamp);
+                    recordSearch.getRoomId(), startTimestamp);
         }
     }
 
@@ -147,8 +152,8 @@ public class ChatRecordSearchActivity extends BaseActivity {
         for (ChatMsg chatMsg : chatMsgList) {
             if (!lastChatId.equals(chatMsg.getRoomId())) {
                 recordSearch = new ChatRecordSearch();
-                recordSearch.setChatId(chatMsg.getRoomId());
-                recordSearch.setMsgType(chatMsg.getRoomType());
+                recordSearch.setRoomId(chatMsg.getRoomId());
+                recordSearch.setRoomType(chatMsg.getRoomType());
                 List<ChatRecordSearch.ContentItem> contentItemList = new ArrayList<>();
                 contentItemList.add(new ChatRecordSearch.ContentItem(chatMsg.getContent(),
                         chatMsg.getCreateTimestamp()));
@@ -159,12 +164,21 @@ public class ChatRecordSearchActivity extends BaseActivity {
                         .add(new ChatRecordSearch.ContentItem(chatMsg.getContent(),
                                 chatMsg.getCreateTimestamp()));
             }
-            if (recordSearch != null && !lastChatId.equals(recordSearch.getChatId())) {
+            if (recordSearch != null && !lastChatId.equals(recordSearch.getRoomId())) {
                 dataList.add(recordSearch);
             }
             lastChatId = chatMsg.getRoomId();
         }
         return dataList;
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (handler != null){
+            handler.removeCallbacks(runnable);
+            handler = null;
+        }
+        super.onDestroy();
     }
 
 }

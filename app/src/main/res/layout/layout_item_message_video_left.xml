@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="12dp">
+
+    <TextView
+        android:id="@+id/tv_message_chat_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="time"
+        android:textSize="@dimen/font_size_11"
+        android:textColor="@color/gray_ac"
+        android:gravity="center"
+        android:paddingBottom="9dp"
+        android:visibility="gone"
+        />
+
+    <include layout="@layout/layout_item_message_extra_left"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="123dp"
+        android:layout_alignTop="@+id/rl_message_chat_video_container_left"
+        android:layout_alignBottom="@+id/rl_message_chat_video_container_left"
+        android:layout_toRightOf="@+id/rl_message_chat_video_container_left"
+        android:layout_below="@+id/tv_message_chat_date"
+        />
+
+    <!--头像-->
+    <ImageView
+        android:id="@+id/civ_message_chat_left_avatar"
+        android:layout_width="31dp"
+        android:layout_height="31dp"
+        android:layout_marginLeft="12dp"
+        android:src="@drawable/img_avatar_default"
+        android:layout_gravity="bottom"
+        android:layout_alignBottom="@+id/rl_message_chat_video_container_left"
+        />
+
+    <!--视频-->
+    <FrameLayout
+        android:id="@+id/rl_message_chat_video_container_left"
+        android:layout_width="110dp"
+        android:layout_height="165dp"
+        android:layout_marginLeft="57dp"
+        android:background="@color/gray_f2"
+        >
+
+        <com.wewin.hichat.androidlib.widget.CircleImageView
+            android:id="@+id/iv_message_chat_video_img_left"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            app:radius="3dp" />
+
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@drawable/video_play"
+            android:layout_gravity="center"/>
+
+    </FrameLayout>
+
+</RelativeLayout>

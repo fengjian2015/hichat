@@ -30,6 +30,9 @@ public class ToastUtil {
     }
 
     private static void showToast(final Context context, final String message, final int duration) {
+        if (context == null){
+            return;
+        }
         if (mainToast != null) {
             mainToast.cancel();
         }

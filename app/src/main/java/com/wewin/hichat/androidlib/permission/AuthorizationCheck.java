@@ -435,7 +435,9 @@ public class AuthorizationCheck {
         }
         PromptDialog.PromptBuilder builder = new PromptDialog.PromptBuilder(activity);
         if (isMustOpen) {
-            if (!ActivityUtil.isActivityOnTop(activity)) return;
+            if (!ActivityUtil.isActivityOnTop(activity)) {
+                return;
+            }
             builder.setPromptContent(promptContent)
                     .setCancelVisible(true)
                     .setOnConfirmClickListener(new PromptDialog.PromptBuilder.OnConfirmClickListener() {
@@ -455,7 +457,7 @@ public class AuthorizationCheck {
 
     }
 
-    private static void openApplication(Activity activity) {
+    public static void openApplication(Activity activity) {
         Intent i = new Intent("android.settings.APPLICATION_DETAILS_SETTINGS");
         String pkg = "com.android.settings";
         String cls = "com.android.settings.applications.InstalledAppDetails";
