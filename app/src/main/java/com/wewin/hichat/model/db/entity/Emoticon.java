@@ -1,6 +1,8 @@
 package com.wewin.hichat.model.db.entity;
 
 /**
+ * 表情
+ * @author Darren
  * Created by Darren on 2019/1/22
  */
 public class Emoticon {

@@ -234,7 +234,7 @@
         android:orientation="horizontal"
         android:layout_marginTop="44dp"
         android:visibility="visible"
-        android:background="@color/gray_f7_alpha_90">
+        android:background="@color/gray_f7">
 
         <TextView
             android:id="@+id/tv_conversation_chat_temporary_add_friend"

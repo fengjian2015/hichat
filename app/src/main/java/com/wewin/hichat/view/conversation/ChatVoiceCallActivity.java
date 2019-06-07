@@ -60,6 +60,7 @@ public class ChatVoiceCallActivity extends BaseActivity {
         ChatRoom chatRoom = (ChatRoom) getIntent().getSerializableExtra(ContactCons.EXTRA_CONTACT_CHAT_ROOM);
         if (chatRoom != null) {
             VoiceCallManager.get().setCallChatRoom(chatRoom);
+            VoiceCallManager.get().backstage=false;
         }
     }
 
@@ -131,7 +132,7 @@ public class ChatVoiceCallActivity extends BaseActivity {
         //邀请方铃声为听筒播放；接收方铃声为扬声器播放
         if (VoiceCallManager.get().getCallType() == VoiceCallManager.TYPE_CALL_INVITING) {
             SpeakerUtil.setCallPhoneOn(getAppContext());
-            RingVibrateManager.getInstance().playCallRing(getAppContext());
+            RingVibrateManager.getInstance().playCallPhone(getAppContext());
 
         } else if (VoiceCallManager.get().getCallType() == VoiceCallManager.TYPE_CALL_WAIT_ANSWER) {
             SpeakerUtil.setSpeakerphoneOn(getAppContext());

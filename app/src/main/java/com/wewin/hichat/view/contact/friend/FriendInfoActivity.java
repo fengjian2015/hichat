@@ -252,6 +252,7 @@ public class FriendInfoActivity extends BaseActivity {
             deleteFriendTv.setVisibility(View.GONE);
             moveGroupingFl.setVisibility(View.GONE);
             phoneNumTv.setVisibility(View.GONE);
+            blacklistTv.setVisibility(View.GONE);
         } else {
             addFriendTv.setVisibility(View.GONE);
             deleteFriendTv.setVisibility(View.VISIBLE);
@@ -292,6 +293,7 @@ public class FriendInfoActivity extends BaseActivity {
     }
 
     private void parseBackFriendInfo(FriendInfo backFriend){
+        mFriendInfo = backFriend;
         FriendDao.updateFriendInfo(backFriend);
         ContactUserDao.addContactUser(backFriend);
         setViewByData();
@@ -326,7 +328,7 @@ public class FriendInfoActivity extends BaseActivity {
                             FriendInfo backFriend = JSON.parseObject(data.toString(), FriendInfo.class);
                             LogUtil.i("getFriendInfo", backFriend);
                             parseBackFriendInfo(backFriend);
-                            mFriendInfo = backFriend;
+
 
                         } catch (Exception e) {
                             e.printStackTrace();

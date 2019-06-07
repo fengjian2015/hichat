@@ -38,12 +38,18 @@ import com.wewin.hichat.androidlib.datamanager.SpCache;
 import com.wewin.hichat.androidlib.impl.CustomTextWatcher;
 import com.wewin.hichat.androidlib.event.EventTrans;
 import com.wewin.hichat.androidlib.event.EventMsg;
+import com.wewin.hichat.androidlib.permission.AuthorizationCheck;
+import com.wewin.hichat.androidlib.rxjava.OnRxJavaProcessListener;
+import com.wewin.hichat.androidlib.rxjava.RxJavaObserver;
+import com.wewin.hichat.androidlib.rxjava.RxJavaScheduler;
+import com.wewin.hichat.androidlib.utils.ActivityUtil;
 import com.wewin.hichat.androidlib.utils.FileOpenUtil;
 import com.wewin.hichat.androidlib.utils.HyperLinkUtil;
 import com.wewin.hichat.androidlib.utils.NotificationUtil;
 import com.wewin.hichat.androidlib.utils.SystemUtil;
 import com.wewin.hichat.component.adapter.MessageChatRcvAdapter;
 import com.wewin.hichat.component.base.BaseMessageChatRcvAdapter;
+import com.wewin.hichat.component.dialog.AnnouncementDialog;
 import com.wewin.hichat.component.dialog.ChatPopupWindow;
 import com.wewin.hichat.component.dialog.PromptDialog;
 import com.wewin.hichat.component.dialog.SelectPersonListDialog;
@@ -79,6 +85,7 @@ import com.wewin.hichat.model.db.dao.FriendDao;
 import com.wewin.hichat.model.db.dao.GroupDao;
 import com.wewin.hichat.model.db.dao.GroupMemberDao;
 import com.wewin.hichat.model.db.dao.MessageDao;
+import com.wewin.hichat.model.db.entity.Announcement;
 import com.wewin.hichat.model.db.entity.ChatMsg;
 import com.wewin.hichat.model.db.entity.ChatRoom;
 import com.wewin.hichat.model.db.entity.Emoticon;
@@ -106,11 +113,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import io.reactivex.ObservableEmitter;
 
 
 /**
- * @author Darren
  * 聊天室
+ *
+ * @author Darren
  * Created by Darren on 2018/12/17.
  */
 public class ChatRoomActivity extends BaseActivity {
@@ -151,6 +163,7 @@ public class ChatRoomActivity extends BaseActivity {
     private boolean isNeedGetServerMsg = false;//是否需要请求服务器获取消息列表
     private long searchStartTimestamp;//聊天记录搜索的起始时间戳
     private Map<String, String> atMap = new HashMap<>();//@人的列表
+    private ArrayList<String> emList=new ArrayList<>();//表情保存
     private String pageEarliestMsgId = null;//每页最早的一条消息id
     /**
      * 长按消息弹窗，选择复制转发回复删除
@@ -160,7 +173,7 @@ public class ChatRoomActivity extends BaseActivity {
 
     //录音计时器
     private CustomCountDownTimer recordCountDown
-            = new CustomCountDownTimer(MAX_VOICE_RECORD_SECOND + 2000, 1000) {
+            = new CustomCountDownTimer(MAX_VOICE_RECORD_SECOND , 1000) {
         @Override
         public void onTick(long millisUntilFinished) {
             voiceTimingTv.setText(TimeUtil.formatTimeStr(tapeRecordSecond));
@@ -264,7 +277,7 @@ public class ChatRoomActivity extends BaseActivity {
         }
         getWindow().setBackgroundDrawable(null);
         NotificationUtil.clearNotification(this);
-        chatPopupWindow=new ChatPopupWindow(ChatRoomActivity.this);
+        chatPopupWindow = new ChatPopupWindow(ChatRoomActivity.this);
         ChatRoomManager.setCurrentRoomId(mChatRoom.getRoomId());
         ChatRoomManager.setCurrentRoomType(mChatRoom.getRoomType());
         mKeyboardHeight = SpCons.getKeyboardHeight(getAppContext());
@@ -273,7 +286,7 @@ public class ChatRoomActivity extends BaseActivity {
         initEmoticonGridView();
         setRoomTypeView();
         initMsgDataList();
-
+        getNewAnnouncement();
         //通知会话界面未读消息数量置为0
         EventTrans.post(EventMsg.CONVERSATION_UNREAD_NUM_REFRESH, mChatRoom.getRoomId(),
                 mChatRoom.getRoomType());
@@ -329,10 +342,41 @@ public class ChatRoomActivity extends BaseActivity {
                     if (temp.charAt(start) == ' ') {
                         //检查是不是@
                         checkIsAt(start);
+                    } else if (temp.charAt(start) == ']') {
+                        //检查是不是表情
+                        checkIsEmoticon(start);
                     }
                 }
             }
 
+            private void checkIsEmoticon( int index) {
+                if (index <= 0) {
+                    return;
+                }
+                String sub = contentInputEt.getText().toString().substring(0, index);
+                //如果子串是空，返回
+                if (sub.length() == 0) {
+                    return;
+                }
+                int atIndex = sub.lastIndexOf("face[");
+                if (atIndex < 0) {
+                    return;
+                }
+                if (index - atIndex <= 1) {
+                    return;
+                }
+                String name = sub.substring(atIndex , index)+"]";
+                for (String value : emList) {
+                    if (value.equals(name)) {
+                        delIndex = index;
+                        delLength = name.length()-1;
+                        return;
+                    }
+                }
+
+            }
+
+            //检查是不是@
             private void checkIsAt(int index) {
                 if (index <= 0) {
                     return;
@@ -404,6 +448,18 @@ public class ChatRoomActivity extends BaseActivity {
                             @Override
                             public void onDenied(HashMap<String, Boolean> permissions) {
                                 isTapeRecordPermit = false;
+                                if(!permissions.get(Permission.RECORD_AUDIO)){
+                                    new PromptDialog.PromptBuilder(ChatRoomActivity.this)
+                                            .setPromptContent(getString(R.string.call_prompt))
+                                            .setOnConfirmClickListener(new PromptDialog.PromptBuilder.OnConfirmClickListener() {
+                                                @Override
+                                                public void confirmClick() {
+                                                    AuthorizationCheck.openApplication(ChatRoomActivity.this);
+                                                }
+                                            })
+                                            .create()
+                                            .show();
+                                }
                             }
                         });
                 if (isTapeRecordPermit) {
@@ -506,6 +562,7 @@ public class ChatRoomActivity extends BaseActivity {
 
         } else {
             contentInputEt.setText("");
+            emList.clear();
             String atContent = JSONObject.toJSONString(atMap);
             if (atMap == null || atMap.size() <= 0) {
                 ChatSocket.getInstance().send(ChatRoomManager.packTextMsg(mChatRoom, messageStr));
@@ -532,6 +589,9 @@ public class ChatRoomActivity extends BaseActivity {
     }
 
     private void initMsgDataList() {
+        if (mChatRoom.getLastChatMsg()!=null) {
+            setMessageRead(mChatRoom.getLastChatMsg().getMsgId(), ChatMsg.TYPE_READ_NORMAL, true);
+        }
         //如果searchStartTimestamp > 0,则搜索历史消息记录
         if (searchStartTimestamp > 0) {
             List<ChatMsg> beforeList = MessageDao.getMessageBeforeList(mChatRoom.getRoomId(),
@@ -690,6 +750,20 @@ public class ChatRoomActivity extends BaseActivity {
                 .show();
     }
 
+
+    /**
+     * 展示公告信息
+     */
+    private void announcementDialog(Announcement announcement){
+        new AnnouncementDialog.PromptBuilder(this)
+                .setPromptTitle(announcement.getTitle())
+                .setPromptNameTime(announcement.getAccount().getUsername()+"发布于"+TimeUtil.timestampToStr(announcement.getPostTime(),"yyyy/MM/dd"))
+                .setPromptContent(announcement.getContent())
+                .setCancelableOnTouchOutside(false)
+                .create()
+                .show();
+    }
+
     private void setGroupSpeakView() {
         if (mChatRoom.getGroupGrade() == GroupInfo.TYPE_GRADE_NORMAL
                 && mChatRoom.getGroupSpeakMark() == 0) {
@@ -736,6 +810,12 @@ public class ChatRoomActivity extends BaseActivity {
         }
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        resetTapeRecordView();
+    }
+
     /**
      * 结束录音
      */
@@ -752,14 +832,30 @@ public class ChatRoomActivity extends BaseActivity {
                     if (recordSecond > MAX_VOICE_RECORD_SECOND / 1000) {
                         recordSecond = MAX_VOICE_RECORD_SECOND / 1000;
                     }
-                    File file = new File(savePath);
-                    FileInfo fileInfo = new FileInfo();
+                    final File file = new File(savePath);
+                    final FileInfo fileInfo = new FileInfo();
                     fileInfo.setFileName(file.getName());
                     fileInfo.setFileType(FileInfo.TYPE_TAPE_RECORD);
                     fileInfo.setFileLength(file.length());
                     fileInfo.setOriginPath(savePath);
                     fileInfo.setDuration(recordSecond);
-                    ChatRoomManager.uploadFile(getAppContext(), mChatRoom, fileInfo);
+                    //切到主线程
+                    RxJavaScheduler.execute(new OnRxJavaProcessListener() {
+                        @Override
+                        public void process(ObservableEmitter<Object> emitter) {
+                            while (!TapeRecordManager.getInstance().getFlushAndRelease()){
+                                LogUtil.e("jason--:占用中");
+                            }
+                            LogUtil.e("jason--:未被占用");
+                        }
+                    }, new RxJavaObserver<Object>() {
+                        @Override
+                        public void onComplete() {
+                            LogUtil.e("jason--:"+file.exists()+"   "+file.length());
+                            ChatRoomManager.uploadFile(getAppContext(), mChatRoom, fileInfo);
+                        }
+                    });
+
 
                 } else {
                     ToastUtil.showShort(getAppContext(), R.string.voice_record_too_short);
@@ -821,43 +917,43 @@ public class ChatRoomActivity extends BaseActivity {
         rcvAdapter.setOmMsgLongClickListener(new BaseMessageChatRcvAdapter.OmMsgLongClickListener() {
             @Override
             public void textLongClick(int position, View view) {
-                if (chatPopupWindow!=null) {
-                    chatPopupWindow.showPopupWindow(mChatMsgList.get(position),view,position);
+                if (chatPopupWindow != null) {
+                    chatPopupWindow.showPopupWindow(mChatMsgList.get(position), view, position);
                 }
             }
 
             @Override
             public void voiceCallLongClick(int position, View view) {
-                if (chatPopupWindow!=null) {
-                    chatPopupWindow.showPopupWindow(mChatMsgList.get(position),view,position);
+                if (chatPopupWindow != null) {
+                    chatPopupWindow.showPopupWindow(mChatMsgList.get(position), view, position);
                 }
             }
 
             @Override
             public void imgLongClick(int position, View view) {
-                if (chatPopupWindow!=null) {
-                    chatPopupWindow.showPopupWindow(mChatMsgList.get(position),view,position);
+                if (chatPopupWindow != null) {
+                    chatPopupWindow.showPopupWindow(mChatMsgList.get(position), view, position);
                 }
             }
 
             @Override
             public void videoLongClick(int position, View view) {
-                if (chatPopupWindow!=null) {
-                    chatPopupWindow.showPopupWindow(mChatMsgList.get(position),view,position);
+                if (chatPopupWindow != null) {
+                    chatPopupWindow.showPopupWindow(mChatMsgList.get(position), view, position);
                 }
             }
 
             @Override
             public void docLongClick(int position, View view) {
-                if (chatPopupWindow!=null) {
-                    chatPopupWindow.showPopupWindow(mChatMsgList.get(position),view,position);
+                if (chatPopupWindow != null) {
+                    chatPopupWindow.showPopupWindow(mChatMsgList.get(position), view, position);
                 }
             }
 
             @Override
             public void tapeRecordLongClick(int position, View view) {
-                if (chatPopupWindow!=null) {
-                    chatPopupWindow.showPopupWindow(mChatMsgList.get(position),view,position);
+                if (chatPopupWindow != null) {
+                    chatPopupWindow.showPopupWindow(mChatMsgList.get(position), view, position);
                 }
             }
         });
@@ -901,10 +997,23 @@ public class ChatRoomActivity extends BaseActivity {
                     return;
                 }
                 List<ImgUrl> imgUrlList = new ArrayList<>();
-                ImgUrl imgUrl = new ImgUrl(mChatMsgList.get(position).getFileInfo().getDownloadPath());
-                imgUrl.setFileName(mChatMsgList.get(position).getFileInfo().getFileName());
-                imgUrlList.add(imgUrl);
+                int imgClickPosition = 0;
+                for (ChatMsg chatMsg:mChatMsgList){
+                    if (chatMsg.getFileInfo()!=null
+                            &&!TextUtils.isEmpty(chatMsg.getFileInfo().getDownloadPath())
+                            &&chatMsg.getFileInfo().getFileType()==FileInfo.TYPE_IMG) {
+                        ImgUrl imgUrl = new ImgUrl(chatMsg.getFileInfo().getDownloadPath());
+                        imgUrl.setFileName(chatMsg.getFileInfo().getFileName());
+                        imgUrlList.add(imgUrl);
+                        if(chatMsg.getMsgId().equals(mChatMsgList.get(position).getMsgId())){
+                            imgClickPosition=imgUrlList.indexOf(imgUrl);
+                        }
+                    }
+                }
+
                 Intent intent = new Intent(getAppContext(), ImgShowActivity.class);
+                intent.putExtra(ImgUtil.IMG_DONWLOAD, true);
+                intent.putExtra(ImgUtil.IMG_CLICK_POSITION, imgClickPosition);
                 intent.putExtra(ImgUtil.IMG_LIST_KEY, (Serializable) imgUrlList);
                 startActivity(intent);
             }
@@ -950,6 +1059,10 @@ public class ChatRoomActivity extends BaseActivity {
                     intent.putExtra(ContactCons.EXTRA_CONTACT_CHAT_ROOM, mChatRoom);
                     startActivity(intent);
                 } else if (ChatRoom.TYPE_GROUP.equals(mChatMsgList.get(position).getRoomType())) {
+                    if (GroupDao.getAddMark(mChatRoom.getRoomId()) == 0 && FriendDao.findFriendshipMark(mChatMsgList.get(position).getSenderId()) != 1) {
+                        ToastUtil.showShort(ChatRoomActivity.this, getString(R.string.allow_add_prompt));
+                        return;
+                    }
                     Intent intent = new Intent(getAppContext(), FriendInfoActivity.class);
                     ChatRoom chatRoom = ChatRoomManager.getChatRoom(mChatMsgList.get(position).getSenderId(),
                             ChatRoom.TYPE_SINGLE);
@@ -985,6 +1098,7 @@ public class ChatRoomActivity extends BaseActivity {
                     spannableString.setSpan(imageSpan, 0, tag.length(),
                             Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
                     contentInputEt.getText().insert(cursor, spannableString);
+                    emList.add(tag);
                 }
             }
         });
@@ -1360,15 +1474,25 @@ public class ChatRoomActivity extends BaseActivity {
         String maxUnSyncMsgId = MessageDao.getMaxUnSyncMsgId(mChatRoom);
 
         if (!TextUtils.isEmpty(maxUnSyncMsgId) && !"0".equals(maxUnSyncMsgId)) {
-            //如果当前页最早一条消息id > 最大未同步消息id, 则需继续从服务器获取数据，
-            //否则，无需继续从服务器拿数据，并且移除所有比当前页最早一条id大的未同步消息id
+            //如果当前页最小一条消息id > 最大未同步消息id, 则需继续从服务器获取数据，
             if (Long.parseLong(pageEarliestMsgId) > Long.parseLong(maxUnSyncMsgId)) {
                 isNeedGetServerMsg = true;
                 backMsgList.get(backMsgList.size() - 1).setUnSyncMsgFirstId(maxUnSyncMsgId);
             } else {
-                isNeedGetServerMsg = false;
+                //如果当前页最小一条消息id <= 最大未同步消息id，则移除所有比pageEarliestMsgId大的未同步消息id
+                //并且重新获取最大未同步消息id，重新判断
                 MessageDao.removeUnSyncMsgId(mChatRoom, pageEarliestMsgId);
+                maxUnSyncMsgId = MessageDao.getMaxUnSyncMsgId(mChatRoom);
+                //如果这里还能拿到最大未同步消息id，说明一定比当前pageEarliestMsgId小，则仍需继续向服务器请求。
+                if (!TextUtils.isEmpty(maxUnSyncMsgId) && !"0".equals(maxUnSyncMsgId)) {
+                    isNeedGetServerMsg = true;
+                    backMsgList.get(backMsgList.size() - 1).setUnSyncMsgFirstId(maxUnSyncMsgId);
+                } else {
+                    isNeedGetServerMsg = false;
+                }
             }
+        } else {
+            isNeedGetServerMsg = false;
         }
 
         MessageDao.addMessageList(backMsgList);
@@ -1396,6 +1520,26 @@ public class ChatRoomActivity extends BaseActivity {
     }
 
     /**
+     * 获取群公告进行弹窗
+     */
+    private void getNewAnnouncement(){
+        if (ChatRoom.TYPE_GROUP.equals(mChatRoom.getRoomType())) {
+            HttpContact.getNewAnnouncement(mChatRoom.getRoomId(), new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                @Override
+                public void success(Object data, int count) {
+                    if (data==null){
+                        return;
+                    }
+                    Announcement announcement=JSON.parseObject(data.toString(),Announcement.class);
+                    if (ActivityUtil.isActivityOnTop(ChatRoomActivity.this)){
+                        announcementDialog(announcement);
+                    }
+                }
+            });
+        }
+    }
+
+    /**
      * 设置消息已读
      */
     private void setMessageRead(String msgId, int readType, final boolean isNeedRefresh) {
@@ -1404,7 +1548,7 @@ public class ChatRoomActivity extends BaseActivity {
                     @Override
                     public void success(Object data, int count) {
                         LogUtil.i("setMessageRead success");
-                        if (isNeedRefresh){
+                        if (isNeedRefresh) {
                             EventTrans.post(EventMsg.CONVERSATION_UNREAD_NUM_REFRESH,
                                     mChatRoom.getRoomId(), mChatRoom.getRoomType());
                         }
@@ -1619,6 +1763,9 @@ public class ChatRoomActivity extends BaseActivity {
                             && !chatMsg.getVoiceCall().getInviteUserId()
                             .equals(SpCons.getUser(getAppContext()).getId())))) {
                         setMessageRead(chatMsg.getMsgId(), ChatMsg.TYPE_READ_NORMAL, false);
+                        if (ChatRoomDao.getAtType(mChatRoom.getRoomId(),mChatRoom.getRoomType())!=ChatMsg.TYPE_AT_NORMAL){
+                            EventTrans.post(EventMsg.CONVERSATION_REFRESH_TYPE_AT_NORMAL, chatMsg);
+                        }
                     }
                 }
                 break;
@@ -1850,12 +1997,17 @@ public class ChatRoomActivity extends BaseActivity {
                     }
                 }
                 break;
-                //删除消息
+            //删除消息
             case EventMsg.CONVERSATION_DELETE_MSG:
-                ChatMsg chat= (ChatMsg) msg.getData();
-                if(mChatRoom.getRoomType().equals(chat.getRoomType())&&mChatRoom.getRoomId().equals(chat.getRoomId())){
-                    mChatMsgList.remove((int) msg.getSecondData());
-                    rcvAdapter.notifyDataSetChanged();
+                ChatMsg chat = (ChatMsg) msg.getData();
+                if (mChatRoom.getRoomType().equals(chat.getRoomType()) && mChatRoom.getRoomId().equals(chat.getRoomId())) {
+                    for (ChatMsg chatMsg1:mChatMsgList){
+                        if (chat.getMsgId().equals(chatMsg1.getMsgId())){
+                            mChatMsgList.remove(chatMsg1);
+                            rcvAdapter.notifyDataSetChanged();
+                            return;
+                        }
+                    }
                 }
                 break;
             default:

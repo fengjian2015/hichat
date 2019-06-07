@@ -9,11 +9,16 @@ import android.text.Spanned;
 import android.text.TextPaint;
 import android.text.style.ClickableSpan;
 import android.view.View;
+
+import com.wewin.hichat.R;
 import com.wewin.hichat.component.constant.ContactCons;
 import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.component.manager.ChatRoomManager;
+import com.wewin.hichat.model.db.dao.FriendDao;
+import com.wewin.hichat.model.db.dao.GroupDao;
 import com.wewin.hichat.model.db.entity.ChatRoom;
 import com.wewin.hichat.view.contact.friend.FriendInfoActivity;
+import com.wewin.hichat.view.conversation.ChatRoomActivity;
 import com.wewin.hichat.view.conversation.DocViewActivity;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -97,7 +102,7 @@ public class HyperLinkUtil {
      * 匹配at更改颜色和跳转
      */
     public static SpannableString getATSpanStr(Context context, SpannableString spanStr,
-                                               Map<String, String> mapContent, int color) {
+                                               Map<String, String> mapContent, int color,String roomId) {
         if (mapContent == null || mapContent.isEmpty()) {
             return spanStr;
         }
@@ -106,7 +111,7 @@ public class HyperLinkUtil {
             Matcher matcher = pattern.matcher(spanStr);
             while (matcher.find()) {
                 spanStr = matcherSearchText(context, spanStr, entry.getKey(), matcher.start() - 1,
-                        matcher.end(), color);
+                        matcher.end(), color,roomId);
             }
         }
         return spanStr;
@@ -116,7 +121,7 @@ public class HyperLinkUtil {
      * AT消息文本变色
      */
     private static SpannableString matcherSearchText(final Context context, SpannableString spanStr,
-                                                     final String id, int start, int end, final int color) {
+                                                     final String id, int start, int end, final int color, final String roomId) {
         ClickableSpan clickableSpan = new ClickableSpan() {
             @Override
             public void updateDrawState(@NonNull TextPaint ds) {
@@ -128,6 +133,10 @@ public class HyperLinkUtil {
             @Override
             public void onClick(@NonNull View v) {
                 if ("0".equals(id) || SpCons.getUser(context).getId().equals(id)) {
+                    return;
+                }
+                if(roomId!=null&&GroupDao.getAddMark(roomId)==0&&FriendDao.findFriendshipMark(id)!=1){
+                    ToastUtil.showShort(context,context.getString(R.string.allow_add_prompt));
                     return;
                 }
                 Intent intent = new Intent(context, FriendInfoActivity.class);

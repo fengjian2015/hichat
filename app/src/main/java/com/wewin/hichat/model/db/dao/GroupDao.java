@@ -32,7 +32,6 @@ public class GroupDao {
     public static final String SHIELD_MARK = "shield_mark";
     public static final String MEMBER_GRADE = "member_grade";
     public static final String USER_ID = "user_id";
-    public static final String ALLOW_ADD_MARK="allow_add_mark";
 
     public static void addGroup(GroupInfo groupInfo){
         List<GroupInfo> groupList = new ArrayList<>();
@@ -102,6 +101,30 @@ public class GroupDao {
         return groupInfo;
     }
 
+
+    /**
+     * 获取群内是否允许添加好友
+     * @return
+     */
+    public static int getAddMark(String groupId) {
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
+            int addMark = 0;
+            Cursor cursor = db.rawQuery("select "+ADD_FRIEND_MARK+" from "+TABLE_NAME+" where "+ GROUP_ID + " =? and "
+                    + USER_ID + " =?",
+                    new String[]{groupId, UserDao.user.getId()});
+            while (cursor.moveToNext()) {
+                addMark = cursor.getInt(cursor.getColumnIndex(ADD_FRIEND_MARK));
+            }
+            cursor.close();
+            DbManager.getInstance().closeDatabase();
+            return addMark;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
     public static void updateTopMark(String groupId, int topMark) {
         update(groupId, TOP_MARK, String.valueOf(topMark));
     }
@@ -145,9 +168,6 @@ public class GroupDao {
             if (groupInfo.getGroupSpeak() >= 0) {
                 values.put(GROUP_SPEAK, groupInfo.getGroupSpeak());
             }
-            if( groupInfo.getAddFlag()>=0){
-                values.put(ALLOW_ADD_MARK,groupInfo.getAddFlag());
-            }
             String whereSql = GROUP_ID + " =? and " + USER_ID + " =?";
             db.update(TABLE_NAME, values, whereSql, new String[]{groupInfo.getId(), UserDao.user.getId()});
             DbManager.getInstance().closeDatabase();
@@ -168,6 +188,20 @@ public class GroupDao {
             e.printStackTrace();
         }
     }
+
+    /**
+     * 清空某一个表
+     */
+    public static void deleteTable(){
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
+            db.execSQL("delete from "+TABLE_NAME);
+            DbManager.getInstance().closeDatabase();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
 
     public static void deleteGroup(String groupId) {
         SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
@@ -200,7 +234,6 @@ public class GroupDao {
         values.put(SHIELD_MARK, groupInfo.getShieldMark());
         values.put(MEMBER_GRADE, groupInfo.getGrade());
         values.put(USER_ID, UserDao.user.getId());
-        values.put(ALLOW_ADD_MARK,groupInfo.getAddFlag());
         return values;
     }
 
@@ -220,7 +253,6 @@ public class GroupDao {
         groupInfo.setTopMark(cursor.getInt(cursor.getColumnIndex(TOP_MARK)));
         groupInfo.setShieldMark(cursor.getInt(cursor.getColumnIndex(SHIELD_MARK)));
         groupInfo.setGrade(cursor.getInt(cursor.getColumnIndex(MEMBER_GRADE)));
-        groupInfo.setAddFlag(cursor.getInt(cursor.getColumnIndex(ALLOW_ADD_MARK)));
         return groupInfo;
     }
 

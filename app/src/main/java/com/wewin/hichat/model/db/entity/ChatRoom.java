@@ -5,6 +5,8 @@ import java.util.Comparator;
 import java.util.Map;
 
 /**
+ * 对话，聊天房间
+ * @author Darren
  * Created by Darren on 2019/4/15
  **/
 public class ChatRoom implements Serializable {

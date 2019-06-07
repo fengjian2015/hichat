@@ -2,6 +2,7 @@ package com.wewin.hichat.view.login;
 
 import android.content.Intent;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -14,9 +15,11 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.wewin.hichat.MainApplication;
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.impl.CustomTextWatcher;
 import com.wewin.hichat.androidlib.event.EventMsg;
+import com.wewin.hichat.androidlib.utils.ActivityUtil;
 import com.wewin.hichat.androidlib.utils.ClassUtil;
 import com.wewin.hichat.androidlib.impl.HttpCallBack;
 import com.wewin.hichat.androidlib.utils.LogUtil;
@@ -28,8 +31,11 @@ import com.wewin.hichat.component.constant.LoginCons;
 import com.wewin.hichat.model.db.entity.CountryInfo;
 import com.wewin.hichat.model.http.HttpLogin;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.Call;
 
 /**
  * 注册-验证码输入
@@ -74,7 +80,6 @@ public class RegisterVerifyCodeActivity extends BaseActivity {
     protected void getIntentData() {
         phoneNum = getIntent().getStringExtra(LoginCons.EXTRA_LOGIN_PHONE_NUM);
         areaCode = getIntent().getStringExtra(LoginCons.EXTRA_LOGIN_AREA_CODE);
-        verifyCode = getIntent().getStringExtra(LoginCons.EXTRA_LOGIN_VERIFY_CODE);
         openType = getIntent().getIntExtra(LoginCons.EXTRA_LOGIN_REGISTER_OPEN_TYPE, 0);
         countryInfo = (CountryInfo) getIntent().getSerializableExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE);
         LogUtil.i("countryInfo", countryInfo);
@@ -108,6 +113,8 @@ public class RegisterVerifyCodeActivity extends BaseActivity {
                 }
             }
         };
+        handler.removeCallbacks(runnable);
+        handler.post(runnable);
     }
 
     @Override
@@ -139,9 +146,6 @@ public class RegisterVerifyCodeActivity extends BaseActivity {
                 return false;
             }
         });
-
-        codeBgEt.setText(verifyCode);
-        ToastUtil.showShort(getApplicationContext(), verifyCode);
     }
 
     @Override
@@ -214,6 +218,13 @@ public class RegisterVerifyCodeActivity extends BaseActivity {
                         intent.putExtra(LoginCons.EXTRA_LOGIN_REGISTER_OPEN_TYPE, openType);
                         intent.putExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE, countryInfo);
                         startActivity(intent);
+                    }
+
+                    @Override
+                    public void failure(int code, String desc) {
+                        if (ActivityUtil.isActivityOnTop(RegisterVerifyCodeActivity.this)) {
+                            codeBgEt.setText("");
+                        }
                     }
                 });
     }

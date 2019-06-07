@@ -163,6 +163,7 @@ public class RegisterPersonalInfoActivity extends BaseActivity {
     }
 
     private void showPhotoDialog() {
+        SystemUtil.hideKeyboard(getHostActivity());
         if (photoDialog == null) {
             PhotoDialog.PhotoBuilder dialogBuilder = new PhotoDialog.PhotoBuilder(this);
             photoDialog = dialogBuilder.setOnSelectClickListener(new PhotoDialog.PhotoBuilder.OnSelectClickListener() {

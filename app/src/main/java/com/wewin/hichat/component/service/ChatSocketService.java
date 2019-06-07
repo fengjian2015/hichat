@@ -23,6 +23,7 @@ public class ChatSocketService extends IntentService {
 
     public static final String NAME_CHAT_SERVICE = "com.wewin.hichat.component.service.ChatSocketService";
 
+    private int receiptNumber=0;
     public ChatSocketService() {
         super("ChatSocketService");
     }
@@ -38,9 +39,27 @@ public class ChatSocketService extends IntentService {
         while (true) {
             try {
                 Thread.sleep(8 * 1000);
+                checkReceipt();
                 checkSocketState();
             } catch (InterruptedException e) {
                 e.printStackTrace();
+            }
+        }
+
+    }
+
+    private void checkReceipt(){
+        if (!SpCons.getLoginState(getApplicationContext())){
+            return;
+        }
+        ++receiptNumber;
+        if (receiptNumber>5){
+            receiptNumber=0;
+            LogUtil.e("jason-:判断是否需要强制重连"+ChatSocket.getInstance().isReceipt());
+            if (!ChatSocket.getInstance().isReceipt()) {
+                ChatSocket.getInstance().setConnectState(false);
+            }else {
+                ChatSocket.getInstance().setReceipt(false);
             }
         }
     }

@@ -103,6 +103,7 @@
     <string name="canceled">已取消</string>
     <string name="you_not_accept">您未接听</string>
     <string name="other_side_busy">用户正忙</string>
+    <string name="side_busy">当前正在语音通话，请稍后再试</string>
     <string name="other_side_no_response">对方无应答</string>
     <string name="invite_voice_call">对方邀请语音通话...</string>
     <string name="waiting_for_accept">正在等待对方接收邀请...</string>
@@ -153,9 +154,9 @@
     <string name="register">注册</string>
     <string name="region">地区</string>
     <string name="china">中国</string>
-    <string name="taiwan">台湾</string>
-    <string name="hongkong">香港</string>
-    <string name="macao">澳门</string>
+    <string name="taiwan">中国台湾</string>
+    <string name="hongkong">中国香港</string>
+    <string name="macao">中国澳门</string>
     <string name="philippines">菲律宾</string>
     <string name="malaysia">马来西亚</string>
     <string name="indonesia">印度尼西亚</string>
@@ -308,4 +309,10 @@
     <string name="determine">确定</string>
     <string name="forward_max_prompt">转发最多选择%1$s个会话</string>
     <string name="allow_member_add_friend">允许群成员互加</string>
+    <string name="allow_add_prompt">群开启了禁止互加</string>
+    <string name="call_prompt">你的手机没有授权嗖嗖Talk获得录音权限，语音通话和录音功能不能正常使用</string>
+    <string name="okay_get_it">好，我知道了！</string>
+    <string name="all_people_delete">所有人删除</string>
+    <string name="local_delete">仅本地删除</string>
+    <string name="been_banned_forwarding">已被禁言，无法转发！</string>
 </resources>

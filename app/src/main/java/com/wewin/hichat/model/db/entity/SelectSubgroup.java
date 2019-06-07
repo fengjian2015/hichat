@@ -82,6 +82,18 @@ public class SelectSubgroup implements Serializable {
         private String roomId;
         private String avatar;
         private String username;
+        /**
+         * 0能发送，1不能发送
+         */
+        private int sendMark;
+
+        public int getSendMark() {
+            return sendMark;
+        }
+
+        public void setSendMark(int sendMark) {
+            this.sendMark = sendMark;
+        }
 
         public String getRoomType() {
             return roomType;

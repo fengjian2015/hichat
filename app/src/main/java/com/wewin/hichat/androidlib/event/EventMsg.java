@@ -57,7 +57,8 @@ public class EventMsg {
     public static final int DOWN_APK = 60;
     public static final int CONVERSATION_VOICE_CALL_FINISH = 61;
     public static final int CONVERSATION_DELETE_MSG=62;
-
+    public static final int CONVERSATION_REFRESH_AT=63;
+    public static final int CONVERSATION_REFRESH_TYPE_AT_NORMAL=64;
 
 
     private int key;

@@ -127,7 +127,7 @@ public class CountrySearchActivity extends BaseActivity {
                 lvAdapter.notifyDataSetChanged();
 
                 Intent intent = new Intent();
-                intent.putExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE, sortModelList.get(position));
+                intent.putExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE, lvAdapter.getDataList().get(position));
                 setResult(RESULT_OK, intent);
                 CountrySearchActivity.this.finish();
             }

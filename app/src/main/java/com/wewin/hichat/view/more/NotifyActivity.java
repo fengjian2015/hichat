@@ -3,7 +3,10 @@ package com.wewin.hichat.view.more;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
+
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.listener.OnLoadMoreListener;
@@ -16,6 +19,8 @@ import com.wewin.hichat.androidlib.utils.ClassUtil;
 import com.wewin.hichat.component.adapter.NotifyListRcvAdapter;
 import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.androidlib.datamanager.SpCache;
+import com.wewin.hichat.component.dialog.SelectPersonListDialog;
+import com.wewin.hichat.component.dialog.SelectSubGroupListDialog;
 import com.wewin.hichat.model.db.entity.ChatRoom;
 import com.wewin.hichat.model.db.entity.Notify;
 import com.wewin.hichat.androidlib.impl.HttpCallBack;
@@ -38,7 +43,7 @@ public class NotifyActivity extends BaseActivity {
     private RecyclerView containerRcv;
     private List<Notify> mNotifyList = new ArrayList<>();
     private NotifyListRcvAdapter rcvAdapter;
-    private Subgroup subgroup;
+    private List<Subgroup> subgroupList;
     private SmartRefreshLayout refreshLayout;
     private int mainCurrentPage = 1;
     private int totalCount = 0;
@@ -85,13 +90,7 @@ public class NotifyActivity extends BaseActivity {
             public void agreeClick(int position) {
                 String noticeType = mNotifyList.get(position).getNoticeType();
                 if (ChatRoom.TYPE_SINGLE.equals(noticeType)) {
-                    if (subgroup == null) {
-                        subgroup = (Subgroup) new SpCache(getAppContext())
-                                .getObject(SpCons.SP_KEY_FRIEND_SUBGROUP);
-                    }
-                    if (subgroup != null) {
-                        agreeFriendAdd(subgroup.getId(), position);
-                    }
+                    selectSubGroup(position);
                 } else if (ChatRoom.TYPE_GROUP.equals(noticeType)) {
                     agreeGroupJoin(mNotifyList.get(position).getNoticeId(), position);
                 }
@@ -107,6 +106,25 @@ public class NotifyActivity extends BaseActivity {
                 }
             }
         });
+    }
+
+    private void selectSubGroup(final int position){
+        if (subgroupList == null) {
+            String sp=SpCons.getString(getHostActivity(),SpCons.SUBGROUP_LIST);
+            if (!TextUtils.isEmpty(sp)){
+                subgroupList=JSON.parseArray(sp,Subgroup.class);
+            }
+        }
+        if (subgroupList != null) {
+            SelectSubGroupListDialog selectSubGroupListDialog = new SelectSubGroupListDialog(this, subgroupList);
+            selectSubGroupListDialog.setSubGroupOnClick(new SelectSubGroupListDialog.SubGroupOnClick() {
+                @Override
+                public void onOkClick(int p) {
+                    agreeFriendAdd(subgroupList.get(p).getId(), position);
+                }
+            });
+            selectSubGroupListDialog.showDialog();
+        }
     }
 
     private void updateRcv() {

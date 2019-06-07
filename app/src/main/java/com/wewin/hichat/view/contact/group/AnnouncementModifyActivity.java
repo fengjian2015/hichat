@@ -96,11 +96,7 @@ public class AnnouncementModifyActivity extends BaseActivity {
             ToastUtil.showShort(this, R.string.content_min_length_limit);
 
         } else {
-            if (announcement == null) {
-                createAnnouncement(title, content);
-            } else {
-                modifyAnnouncement(title, content);
-            }
+            createAnnouncement(title, content);
         }
     }
 
@@ -119,18 +115,6 @@ public class AnnouncementModifyActivity extends BaseActivity {
                 });
     }
 
-    private void modifyAnnouncement(final String title, final String content) {
-        HttpContact.modifyAnnouncement(SpCons.getUser(getAppContext()).getId(), content, announcement.getId(), title,
-                new HttpCallBack(this, ClassUtil.classMethodName()) {
-                    @Override
-                    public void success(Object data, int count) {
-                        announcement.setTitle(title);
-                        announcement.setContent(content);
-                        EventTrans.post(EventMsg.CONTACT_GROUP_ANNOUNCEMENT_REFRESH);
-                        finish();
-                    }
-                });
-    }
 
     @Override
     public void onEventTrans(EventMsg msg) {

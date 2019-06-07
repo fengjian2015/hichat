@@ -3,6 +3,8 @@ package com.wewin.hichat.model.db.entity;
 import java.io.Serializable;
 
 /**
+ * 语音通话
+ * @author Darren
  * Created by Darren on 2019/2/14
  */
 public class VoiceCall implements Serializable {

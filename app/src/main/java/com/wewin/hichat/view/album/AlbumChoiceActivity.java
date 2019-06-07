@@ -190,7 +190,7 @@ public class AlbumChoiceActivity extends BaseActivity implements ListImageDirPop
                         ToastUtil.showShort(getApplicationContext(), "最多选" + maxImgNum + "张");
                     }
                 } else {
-                    selectImgList.remove(mDataList.get(position));
+                    selectImgList.remove(mDataList.get(position).getUrl());
                 }
                 confirmBtn.setText(getString(R.string.confirm) + "(" + selectImgList.size() + "/9)");
             }

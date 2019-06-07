@@ -175,7 +175,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             + GroupDao.TOP_MARK + " varchar, "
             + GroupDao.SHIELD_MARK + " varchar, "
             + GroupDao.MEMBER_GRADE + " varchar, "
-            + GroupDao.ALLOW_ADD_MARK + " integer, "
             + GroupDao.USER_ID + " varchar);";
 
     private final String TABLE_PHONE_CONTACT = "create table "
@@ -231,7 +230,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         switch (oldVersion) {
             case 1:
                 db.execSQL("ALTER TABLE "+MessageDao.TABLE_NAME +" ADD "+ MessageDao.DELETE_MARK+" INTEGER DEFAULT 0");
-                db.execSQL("ALTER TABLE "+GroupDao.TABLE_NAME +" ADD "+ GroupDao.ALLOW_ADD_MARK+" INTEGER DEFAULT 0");
                 break;
             default:
                 break;

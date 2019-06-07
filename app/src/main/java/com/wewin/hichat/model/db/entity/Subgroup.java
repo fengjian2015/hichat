@@ -104,13 +104,13 @@ public class Subgroup implements Serializable {
 
         @Override
         public int compare(Subgroup o1, Subgroup o2) {
-            if (o1.getIsDefault() == TYPE_FRIEND && o2.getIsDefault() != TYPE_FRIEND) {
-                return -1;
-            } else if (o1.getIsDefault() != TYPE_FRIEND && o2.getIsDefault() == TYPE_FRIEND) {
-                return 1;
-            } else if (o1.getIsDefault() == TYPE_PHONE_CONTACT && o2.getIsDefault() != TYPE_PHONE_CONTACT) {
+            if (o1.getIsDefault() == TYPE_PHONE_CONTACT && o2.getIsDefault() != TYPE_PHONE_CONTACT) {
                 return -1;
             } else if (o1.getIsDefault() != TYPE_PHONE_CONTACT && o2.getIsDefault() == TYPE_PHONE_CONTACT) {
+                return 1;
+            }  if (o1.getIsDefault() == TYPE_FRIEND && o2.getIsDefault() != TYPE_FRIEND) {
+                return -1;
+            } else if (o1.getIsDefault() != TYPE_FRIEND && o2.getIsDefault() == TYPE_FRIEND) {
                 return 1;
             } else if (o1.getIsDefault() == TYPE_BLACK && o2.getIsDefault() != TYPE_BLACK) {
                 return 1;

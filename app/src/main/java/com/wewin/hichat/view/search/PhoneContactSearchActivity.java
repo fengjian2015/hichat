@@ -1,5 +1,8 @@
 package com.wewin.hichat.view.search;
 
+import android.content.Intent;
+import android.net.Uri;
+import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -10,6 +13,9 @@ import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.impl.CustomTextWatcher;
 import com.wewin.hichat.androidlib.event.EventTrans;
 import com.wewin.hichat.androidlib.event.EventMsg;
+import com.wewin.hichat.androidlib.permission.Permission;
+import com.wewin.hichat.androidlib.permission.PermissionCallback;
+import com.wewin.hichat.androidlib.permission.Rigger;
 import com.wewin.hichat.androidlib.utils.ClassUtil;
 import com.wewin.hichat.androidlib.impl.HttpCallBack;
 import com.wewin.hichat.androidlib.utils.LogUtil;
@@ -18,13 +24,17 @@ import com.wewin.hichat.androidlib.utils.TimeUtil;
 import com.wewin.hichat.androidlib.widget.SideBarView;
 import com.wewin.hichat.component.adapter.SearchPhoneContactLvAdapter;
 import com.wewin.hichat.component.base.BaseActivity;
+import com.wewin.hichat.component.constant.HttpCons;
+import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.model.db.dao.PhoneContactDao;
 import com.wewin.hichat.model.db.entity.PhoneContact;
 import com.wewin.hichat.model.db.entity.SortModel;
 import com.wewin.hichat.model.http.HttpContact;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 
@@ -91,6 +101,27 @@ public class PhoneContactSearchActivity extends BaseActivity {
             LogUtil.i("phoneStr", phoneStr);
             matchPhoneContact(phoneStr);
         }
+        getInviteTemplate();
+    }
+
+    /**
+     * 获取通讯录文案
+     */
+    private void getInviteTemplate(){
+        HttpContact.getInviteTemplate(new HttpCallBack(getAppContext(), ClassUtil.classMethodName()){
+            @Override
+            public void success(Object data, int count) {
+                try {
+                    if (data==null){
+                        return;
+                    }
+                    Map map= JSON.parseObject(data+"");
+                    SpCons.setString(PhoneContactSearchActivity.this,SpCons.INVITE_TEMPLATE,map.get("template")+"");
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     @Override
@@ -137,21 +168,53 @@ public class PhoneContactSearchActivity extends BaseActivity {
         lvAdapter.setOnInviteClickListener(new SearchPhoneContactLvAdapter.OnInviteClickListener() {
             @Override
             public void inviteClick(int position) {
-                String phone = sortModelList.get(position).getCode();
-                if (TextUtils.isEmpty(phone)){
-                    return;
-                }
-                for (PhoneContact phoneContact : mainPhoneContactList) {
-                    if (phone.equals(phoneContact.getPhone())) {
-                        phoneContact.setInviteTime(TimeUtil.getServerTimestamp());
-                        sortModelList.get(position).setState(PhoneContact.INVITED);
-                        lvAdapter.updateListView(sortModelList);
-                        PhoneContactDao.updatePhoneContact(phoneContact);
-                        break;
-                    }
-                }
+                doSendSMSTo(sortModelList.get(position).getCode(),position);
+
             }
         });
+    }
+
+    /**
+     * 调起系统发短信功能
+     * @param phoneNumber
+     * @param position
+     */
+    public void doSendSMSTo(final String phoneNumber, final int position){
+        final String message=SpCons.getString(this,SpCons.INVITE_TEMPLATE);
+        if(TextUtils.isEmpty(message)){
+            getInviteTemplate();
+            return;
+        }
+        Rigger.on(this).permissions(Permission.SEND_SMS)
+                .start(new PermissionCallback() {
+                    @Override
+                    public void onGranted() {
+                        if(PhoneNumberUtils.isGlobalPhoneNumber(phoneNumber)){
+                            Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:"+phoneNumber));
+                            intent.putExtra("sms_body", message);
+                            startActivity(intent);
+                        }
+//                        String phone = sortModelList.get(position).getCode();
+//                        if (TextUtils.isEmpty(phone)){
+//                            return;
+//                        }
+//                        for (PhoneContact phoneContact : mainPhoneContactList) {
+//                            if (phone.equals(phoneContact.getPhone())) {
+//                                phoneContact.setInviteTime(TimeUtil.getServerTimestamp());
+//                                sortModelList.get(position).setState(PhoneContact.INVITED);
+//                                lvAdapter.updateListView(sortModelList);
+//                                PhoneContactDao.updatePhoneContact(phoneContact);
+//                                break;
+//                            }
+//                        }
+                    }
+
+                    @Override
+                    public void onDenied(HashMap<String, Boolean> permissions) {
+
+                    }
+                });
+
     }
 
     private void matchPhoneContact(String phoneStr) {

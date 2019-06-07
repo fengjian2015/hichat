@@ -48,7 +48,7 @@ public class HttpCallBack implements Callback {
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    failure("");
+                    failure("请求失败");
                 }
             });
         }
@@ -122,7 +122,7 @@ public class HttpCallBack implements Callback {
     }
 
     //主线程回调
-    private void failure(int code, String desc) {
+    public void failure(int code, String desc) {
     }
 
     //子线程回调

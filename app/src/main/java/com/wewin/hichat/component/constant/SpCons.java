@@ -20,6 +20,9 @@ public class SpCons {
     public static final String SP_KEY_FRIEND_SUBGROUP = "SP_KEY_FRIEND_SUBGROUP";
 
     public static final String VERSION_CONTENT="version_content";
+    public static final String SUBGROUP_LIST="subgroup_list";
+    public static final String USER_RECORD="user_record";
+    public static final String INVITE_TEMPLATE="invite_template";
     /**
      * 存储字符串sp
      * @param key

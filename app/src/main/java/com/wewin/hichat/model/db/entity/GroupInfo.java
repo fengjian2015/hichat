@@ -28,7 +28,6 @@ public class GroupInfo extends BaseSearchEntity implements Serializable {
     private int addFriendMark;//是否允许群成员互加好友
     private int groupSpeak;//是否可以发言
     private int grade;//-1不在该群中 0 普通会员 1 管理员 2群主
-    private int addFlag;//是否允许群成员互加
 
     public GroupInfo() {
     }
@@ -39,14 +38,6 @@ public class GroupInfo extends BaseSearchEntity implements Serializable {
         this.groupName = groupName;
         this.groupNum = groupNum;
         this.id = id;
-    }
-
-    public int getAddFlag() {
-        return addFlag;
-    }
-
-    public void setAddFlag(int addFlag) {
-        this.addFlag = addFlag;
     }
 
     public int getAddFriendMark() {
@@ -196,7 +187,6 @@ public class GroupInfo extends BaseSearchEntity implements Serializable {
                 ", addFriendMark=" + addFriendMark +
                 ", groupSpeak=" + groupSpeak +
                 ", grade=" + grade +
-                ", addFlag=" + addFlag +
                 '}';
     }
 }

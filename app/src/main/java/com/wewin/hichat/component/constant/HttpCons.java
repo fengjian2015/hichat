@@ -3,23 +3,25 @@ package com.wewin.hichat.component.constant;
 import com.wewin.hichat.MainApplication;
 
 /**
+ * 测试环境与生产环境切换时，需更改mainApplication中的IS_DEBUG状态，用以切换https证书，
+ * 见本类HTTPS_CER
  * @author darren
  * Created by Darren on 2018/12/17.
  */
 public class HttpCons {
-
-
     //服务器地址
-//    private static final String SERVER_HTTP = "http://10.5.90.116:8084/";//jack
-//    private static final String SERVER_SOCKET = "ws://10.5.90.116:8085/";
-//    private static final String SERVER_HTTP = "http://10.5.90.15:8084/";//william
-//    private static final String SERVER_SOCKET = "ws://10.5.90.15:8085/";
-    private static final String SERVER_HTTP = "https://gateway.wewein18.com/";//测试环境
-    private static final String SERVER_SOCKET = "wss://ws.wewein18.com/";
-    private static final String SERVER_HTML = "https://web.wewein18.com/";
-//    private static final String SERVER_HTTP = "https://gateway.sousoutalk.com/";//release
-//    private static final String SERVER_SOCKET = "wss://ws.sousoutalk.com/";
-//    private static final String SERVER_HTML = "https://web.sousoutalk.com/";
+    //jack
+//    private static final String SERVER_HTTP = MainApplication.IS_DEBUG?"http://10.5.90.116:8084/": "https://gateway.sousoutalk.com/";
+//    private static final String SERVER_SOCKET = MainApplication.IS_DEBUG?"ws://10.5.90.116:8085/":"wss://ws.sousoutalk.com/";
+//    private static final String SERVER_HTML = MainApplication.IS_DEBUG?"https://web.wewein18.com/":"https://web.sousoutalk.com/";
+    //william
+//    private static final String SERVER_HTTP = MainApplication.IS_DEBUG?"http://10.5.90.15:8084/": "https://gateway.sousoutalk.com/";
+//    private static final String SERVER_SOCKET = MainApplication.IS_DEBUG?"ws://10.5.90.15:8085/":"wss://ws.sousoutalk.com/";
+//    private static final String SERVER_HTML = MainApplication.IS_DEBUG?"https://web.wewein18.com/":"https://web.sousoutalk.com/";
+    //测试环境
+    private static final String SERVER_HTTP = MainApplication.IS_DEBUG?"https://gateway.wewein18.com/": "https://gateway.sousoutalk.com/";
+    private static final String SERVER_SOCKET = MainApplication.IS_DEBUG?"wss://ws.wewein18.com/":"wss://ws.sousoutalk.com/";
+    private static final String SERVER_HTML = MainApplication.IS_DEBUG?"https://web.wewein18.com/":"https://web.sousoutalk.com/";
 
     //webSocket
     public static final String SOCKET_IM = SERVER_SOCKET + "im";
@@ -54,6 +56,7 @@ public class HttpCons {
     //校验客户端版本更新
     public static final String PATH_MORE_GET_CHECK_VERSION = SERVER_HTTP + "mobile/check_version";
 
+
     /*好友*/
     //上传文件
     public static final String PATH_CONTACT_UPLOAD_FILE = SERVER_HTTP + "mobile/upload/file";
@@ -87,6 +90,8 @@ public class HttpCons {
     public static final String PATH_CONTACT_FRIEND_CREATE_SUBGROUP = SERVER_HTTP + "mobile/friend/add_friend_group";
     //重命名分组
     public static final String PATH_CONTACT_FRIEND_RENAME_SUBGROUP = SERVER_HTTP + "mobile/friend/rename_friend_group";
+    //获取通讯录邀请文案
+    public static final String PATH_CONTACT_FRIEND_INVITE_TEMPLATE = SERVER_HTTP + "mobile/get_invite_template";
 
     /*群*/
     //创建群
@@ -109,8 +114,6 @@ public class HttpCons {
     public static final String PATH_CONTACT_GROUP_ANNOUNCEMENT_LIST = SERVER_HTTP + "mobile/group/post_lookup";
     //创建群公告
     public static final String PATH_CONTACT_GROUP_ANNOUNCEMENT_CREATE = SERVER_HTTP + "mobile/group/add_group_post";
-    //编辑群公告
-    public static final String PATH_CONTACT_GROUP_ANNOUNCEMENT_MODIFY = SERVER_HTTP + "mobile/group/modify_group_post";
     //删除群公告
     public static final String PATH_CONTACT_GROUP_ANNOUNCEMENT_DELETE = SERVER_HTTP + "mobile/group/del_group_post";
     //修改群信息
@@ -133,6 +136,8 @@ public class HttpCons {
     public static final String PATH_CONTACT_GROUP_INVITE_MEMBER = SERVER_HTTP + "mobile/message/invite_friend_join";
     //屏蔽群会话
     public static final String PATH_CONTACT_GROUP_SHIELD_CONVERSATION = SERVER_HTTP + "mobile/group/shield_mark";
+    //获取最新的群公告
+    public static final String PATH_CONTACT_GROUP_ANNOUNCEMENT_GET_NEW = SERVER_HTTP + "mobile/group/get_latest_group_post";
 
     /*通知*/
     //通知列表
@@ -159,7 +164,8 @@ public class HttpCons {
     public static final String PATH_CONVERSATION_GET_LIST = SERVER_HTTP + "mobile/increment_session_list";
     //查询会话消息记录列表
     public static final String PATH_MESSAGE_GET_LIST = SERVER_HTTP + "mobile/message/message_conversation_search";
-
+    //删除单条消息
+    public static final String PATH_MESSAGE_REMOVE_MESSAGE = SERVER_HTTP + "mobile/message/remove_message";
 
     private static final String HTTPS_CER_DEBUG = "-----BEGIN CERTIFICATE-----\n" +
             "MIIFVDCCBDygAwIBAgISA6i/RbJGn4ddMse61hRwk+JSMA0GCSqGSIb3DQEBCwUA\n" +

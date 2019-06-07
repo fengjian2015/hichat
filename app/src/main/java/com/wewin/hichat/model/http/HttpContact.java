@@ -206,17 +206,6 @@ public class HttpContact {
         HttpUtil.post(HttpCons.PATH_CONTACT_GROUP_ANNOUNCEMENT_CREATE, map, httpCallBack);
     }
 
-    //修改群公告
-    public static void modifyAnnouncement(String accountId, String content, String id,
-                                               String title, HttpCallBack httpCallBack){
-        Map<String, String> map = new HashMap<>(4);
-        map.put("accountId", accountId);
-        map.put("content", content);
-        map.put("id", id);
-        map.put("title", title);
-        HttpUtil.post(HttpCons.PATH_CONTACT_GROUP_ANNOUNCEMENT_MODIFY, map, httpCallBack);
-    }
-
     //删除群公告
     public static void deleteAnnouncement(String id, HttpCallBack httpCallBack){
         Map<String, String> map = new HashMap<>(1);
@@ -314,7 +303,7 @@ public class HttpContact {
 
     //编辑群权限
     public static void editGroupPermission(String groupId, int allowFlag, int groupSpeak, int groupValid,
-                                           int inviteFlag, int searchFlag, HttpCallBack httpCallBack){
+                                           int inviteFlag, int searchFlag,int addFriendMark, HttpCallBack httpCallBack){
         Map<String, String> map = new HashMap<>(6);
         map.put("groupId", groupId);
         map.put("allowFlag", String.valueOf(allowFlag));
@@ -322,6 +311,7 @@ public class HttpContact {
         map.put("groupValid", String.valueOf(groupValid));
         map.put("inviteFlag", String.valueOf(inviteFlag));
         map.put("searchFlag", String.valueOf(searchFlag));
+        map.put("addFriendMark", String.valueOf(addFriendMark));
         HttpUtil.post(HttpCons.PATH_CONTACT_GROUP_EDIT_PERMISSION, map, httpCallBack);
     }
 
@@ -364,4 +354,15 @@ public class HttpContact {
         HttpUtil.post(HttpCons.PATH_CONTACT_GROUP_SHIELD_CONVERSATION, map, httpCallBack);
     }
 
+    //获取通讯录文案
+    public static void getInviteTemplate( HttpCallBack httpCallBack){
+        HttpUtil.get(HttpCons.PATH_CONTACT_FRIEND_INVITE_TEMPLATE, httpCallBack);
+    }
+
+    //获取最新群公告
+    public static void getNewAnnouncement(String groupId, HttpCallBack httpCallBack){
+        Map<String, String> map = new HashMap<>(1);
+        map.put("groupId", groupId);
+        HttpUtil.post(HttpCons.PATH_CONTACT_GROUP_ANNOUNCEMENT_GET_NEW, map, httpCallBack);
+    }
 }

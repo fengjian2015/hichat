@@ -117,7 +117,7 @@ public class ChatRoomDao {
         int unreadNum = 0;
         try {
             SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
-            String sql = "select sum( " + UNREAD_NUM + " ) from " + TABLE_NAME + " where " + USER_ID + " =?";
+            String sql = "select sum( " + UNREAD_NUM + " ) from " + TABLE_NAME + " where " + USER_ID + " =? and " + SHIELD_MARK + " !=1";
             Cursor cursor = db.rawQuery(sql, new String[]{UserDao.user.getId()});
             if (cursor != null) {
                 if (cursor.getCount() > 0 && cursor.moveToNext()) {
@@ -129,6 +129,29 @@ public class ChatRoomDao {
             e.printStackTrace();
         }
         return unreadNum;
+    }
+
+    /**
+     * 获取@type
+     */
+    public static int getAtType(String roomId,String roomType) {
+        int atType = 0;
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
+            Cursor cursor = db.rawQuery("select " + AT_TYPE + " from " + TABLE_NAME + " where " + ROOM_ID + " = ? and " +
+                    ROOM_TYPE + " = ? and " + USER_ID + " = ?",
+                    new String[]{roomId,roomType, UserDao.user.getId()});
+            if (cursor != null) {
+                if (cursor.getCount() > 0 && cursor.moveToNext()) {
+                    atType = cursor.getInt(cursor.getColumnIndex(AT_TYPE));
+                }
+                cursor.close();
+            }
+            DbManager.getInstance().closeDatabase();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return atType;
     }
 
     public static void updateTopMark(String roomId, String roomType, int topMark) {
@@ -180,7 +203,7 @@ public class ChatRoomDao {
         }
     }
 
-    public static void updateTopShieldByGroupList(List<GroupInfo> groupList){
+    public static void updateTopShieldByGroupList(List<GroupInfo> groupList) {
         SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
         db.beginTransaction();
         try {

@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.utils.ImgUtil;
+import com.wewin.hichat.androidlib.utils.ToastUtil;
 import com.wewin.hichat.model.db.entity.FriendInfo;
 import com.wewin.hichat.model.db.entity.SelectSubgroup;
 import com.wewin.hichat.model.db.entity.Subgroup;
@@ -150,23 +151,27 @@ public class ConversationSelectSendElvAdapter extends BaseExpandableListAdapter 
         convertView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!finalIsSelect){
-                    if (context instanceof SelectSendActivity
-                            &&((SelectSendActivity)context).updateSelect()){
-                        mSelectList.add(dataBean);
-                        notifyDataSetChanged();
-                    }
-                }else {
-                    for(SelectSubgroup.DataBean dataBean1:mSelectList){
-                        if (dataBean1.getRoomId().equals(dataBean.getRoomId())&&dataBean1.getRoomType().equals(dataBean.getRoomType())){
-                            mSelectList.remove(dataBean1);
+                if (dataBean.getSendMark()==0) {
+                    if (!finalIsSelect) {
+                        if (context instanceof SelectSendActivity
+                                && ((SelectSendActivity) context).updateSelect()) {
+                            mSelectList.add(dataBean);
                             notifyDataSetChanged();
-                            if (context instanceof SelectSendActivity){
-                                ((SelectSendActivity)context).updateSelect();
+                        }
+                    } else {
+                        for (SelectSubgroup.DataBean dataBean1 : mSelectList) {
+                            if (dataBean1.getRoomId().equals(dataBean.getRoomId()) && dataBean1.getRoomType().equals(dataBean.getRoomType())) {
+                                mSelectList.remove(dataBean1);
+                                notifyDataSetChanged();
+                                if (context instanceof SelectSendActivity) {
+                                    ((SelectSendActivity) context).updateSelect();
+                                }
+                                break;
                             }
-                            break;
                         }
                     }
+                }else {
+                    ToastUtil.showShort(context,context.getString(R.string.been_banned_forwarding));
                 }
             }
         });

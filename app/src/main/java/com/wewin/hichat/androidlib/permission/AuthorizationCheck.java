@@ -96,7 +96,7 @@ public class AuthorizationCheck {
     public static boolean authorizationPermission(RiggerPresenter presenter,Activity activity,Fragment fragment, String[] checkAuthorization) {
         boolean isAuthorization = true;
         for (int i=0;i< checkAuthorization.length;i++) {
-            if (!authorizationCheck(checkAuthorization, activity)){
+            if (!authorizationCheck(checkAuthorization[i], activity)){
                 isAuthorization=false;
             }else {
                 presenter.getResult().put(checkAuthorization[i],true);
@@ -371,27 +371,27 @@ public class AuthorizationCheck {
      * 单个权限
      *
      * @param checkAuthorization 被校验 Manifest.permission.READ_CONTACTS
-     * @param activity           当前Activty
+     * @param Context           context
      * @return true 为有权限   false 没有权限
      */
-    private static boolean authorizationCheck(String checkAuthorization, Activity activity) {
+    public static boolean authorizationCheck(String checkAuthorization, Context context) {
         int targetSdkVersion = 0;
         try {
-            final PackageInfo info = activity.getPackageManager().getPackageInfo(
-                    activity.getPackageName(), 0);
+            final PackageInfo info = context.getPackageManager().getPackageInfo(
+                    context.getPackageName(), 0);
             targetSdkVersion = info.applicationInfo.targetSdkVersion;
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (targetSdkVersion >= Build.VERSION_CODES.M) {
-                if (activity.checkSelfPermission(checkAuthorization) != PackageManager.PERMISSION_GRANTED) {
+                if (context.checkSelfPermission(checkAuthorization) != PackageManager.PERMISSION_GRANTED) {
                     return false;
                 } else {
                     return true;
                 }
             } else {
-                if (PermissionChecker.checkSelfPermission(activity, checkAuthorization) != PermissionChecker.PERMISSION_GRANTED) {
+                if (PermissionChecker.checkSelfPermission(context, checkAuthorization) != PermissionChecker.PERMISSION_GRANTED) {
                     return false;
                 } else {
                     return true;
@@ -457,14 +457,14 @@ public class AuthorizationCheck {
 
     }
 
-    public static void openApplication(Activity activity) {
+    public static void openApplication(Context context) {
         Intent i = new Intent("android.settings.APPLICATION_DETAILS_SETTINGS");
         String pkg = "com.android.settings";
         String cls = "com.android.settings.applications.InstalledAppDetails";
         i.setComponent(new ComponentName(pkg, cls));
-        i.setData(Uri.parse("package:" + activity.getPackageName()));
+        i.setData(Uri.parse("package:" + context.getPackageName()));
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        activity.startActivity(i);
+        context.startActivity(i);
     }
 
     /**

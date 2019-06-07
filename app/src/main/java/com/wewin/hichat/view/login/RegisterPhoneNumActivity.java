@@ -130,18 +130,24 @@ public class RegisterPhoneNumActivity extends BaseActivity {
             case R.id.btn_register_verify_num:
                 String areaCode = codeTv.getText().toString();
                 String phoneNum = phoneNumEt.getText().toString().trim();
+                boolean changePhone=((("+63".equals(areaCode))
+                        ||("+855".equals(areaCode))
+                        ||("+60".equals(areaCode))
+                        ||("+886".equals(areaCode)))
+                        && phoneNum.startsWith("0"));
+
                 if (TextUtils.isEmpty(phoneNum)) {
                     ToastUtil.showShort(getAppContext(), getString(R.string.phone_num_cannot_null));
                 } else if (!PhoneUtil.isPhoneNumValid(countryInfo.getCode(), phoneNum)) {
                     ToastUtil.showShort(getAppContext(), countryInfo.getCountry()
                             + getString(R.string.phone_num_format_error));
                 } else if (openType == LoginCons.TYPE_REGISTER) {
-                    if ("+63".equals(areaCode) && phoneNum.startsWith("0")){
+                    if (changePhone){
                         phoneNum = phoneNum.substring(1, phoneNum.length());
                     }
                     getVerifyCode(areaCode, phoneNum, "register");
                 } else {
-                    if ("+63".equals(areaCode) && phoneNum.startsWith("0")){
+                    if (changePhone){
                         phoneNum = phoneNum.substring(1, phoneNum.length());
                     }
                     getVerifyCode(areaCode, phoneNum, "retrieve");
@@ -168,7 +174,6 @@ public class RegisterPhoneNumActivity extends BaseActivity {
                 Intent intent = new Intent(getAppContext(), RegisterVerifyCodeActivity.class);
                 intent.putExtra(LoginCons.EXTRA_LOGIN_AREA_CODE, areaCode);
                 intent.putExtra(LoginCons.EXTRA_LOGIN_PHONE_NUM, phoneNum);
-                intent.putExtra(LoginCons.EXTRA_LOGIN_VERIFY_CODE, data.toString());
                 intent.putExtra(LoginCons.EXTRA_LOGIN_REGISTER_OPEN_TYPE, openType);
                 intent.putExtra(LoginCons.EXTRA_LOGIN_COUNTRY_CODE, countryInfo);
                 startActivity(intent);

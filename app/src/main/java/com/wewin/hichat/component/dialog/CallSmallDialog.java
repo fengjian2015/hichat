@@ -15,8 +15,8 @@ import com.wewin.hichat.androidlib.widget.CallSmallView;
 import java.util.ArrayList;
 import java.util.List;
 
-/*
- *   author:jason
+/**
+ *   @author jason
  *   date:2019/5/1813:18
  */
 public class CallSmallDialog {

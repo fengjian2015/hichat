@@ -55,7 +55,7 @@ public class ConversationFragment extends BaseFragment {
     private ImageView newMsgIv;
     private LinearLayout cancelLl;
     private FrameLayout searchFl;
-    private RelativeLayout botEditContainerRl;
+    private RelativeLayout botEditContainerRl,noDataConversationRl;
     private RecyclerView containerRcv;
     private List<ChatRoom> mRoomList = new ArrayList<>();
     private ConversationListRcvAdapter rcvAdapter;
@@ -79,6 +79,7 @@ public class ConversationFragment extends BaseFragment {
         botEditContainerRl = parentView.findViewById(R.id.rl_conversation_bot_edit_container);
         cancelLl = parentView.findViewById(R.id.ll_main_conversation_cancel_container);
         searchFl = parentView.findViewById(R.id.fl_conversation_search);
+        noDataConversationRl=parentView.findViewById(R.id.rl_conversation_no_data);
     }
 
     @Override
@@ -197,6 +198,15 @@ public class ConversationFragment extends BaseFragment {
         if (rcvAdapter != null) {
             Collections.sort(mRoomList, new ChatRoom.TopComparator());
             rcvAdapter.notifyDataSetChanged();
+        }
+        if (mRoomList.size()<=0){
+            noDataConversationRl.setVisibility(View.VISIBLE);
+            editTv.setEnabled(false);
+            containerRcv.setVisibility(View.GONE);
+        }else {
+            noDataConversationRl.setVisibility(View.GONE);
+            editTv.setEnabled(true);
+            containerRcv.setVisibility(View.VISIBLE);
         }
         if (isEditMode) {
             int checkedCount = 0;
@@ -387,6 +397,7 @@ public class ConversationFragment extends BaseFragment {
             case EventMsg.CONTACT_FRIEND_SHIELD_REFRESH:
             case EventMsg.CONTACT_GROUP_MAKE_TOP_REFRESH:
             case EventMsg.CONTACT_GROUP_SHIELD_REFRESH:
+            case EventMsg.CONVERSATION_REFRESH_AT:
                 mRoomList.clear();
                 mRoomList.addAll(ChatRoomDao.getRoomList());
                 updateRcv();
@@ -428,7 +439,13 @@ public class ConversationFragment extends BaseFragment {
                     ((MainActivity) getHostActivity()).setUnreadNumView();
                 }
                 break;
-
+            case EventMsg.CONVERSATION_REFRESH_TYPE_AT_NORMAL:
+                ChatMsg chatMsg = (ChatMsg) msg.getData();
+                ChatRoomDao.updateAtType(chatMsg.getRoomId(),ChatRoom.TYPE_GROUP,ChatMsg.TYPE_AT_NORMAL);
+                mRoomList.clear();
+                mRoomList.addAll(ChatRoomDao.getRoomList());
+                updateRcv();
+                break;
             default:
                 break;
         }

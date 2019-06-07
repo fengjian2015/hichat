@@ -267,7 +267,6 @@ public class GroupCreateFragment extends BaseFragment {
                         try {
                             GroupInfo groupInfo = JSON.parseObject(data.toString(), GroupInfo.class);
                             ToastUtil.showShort(getContext(), R.string.create_success);
-                            reset();
                             EventTrans.post(EventMsg.CONTACT_GROUP_CREATE_REFRESH);
                             if (!selectImgList.isEmpty()) {
                                 compressImg(groupInfo, selectImgList.get(selectImgList.size() - 1));
@@ -315,17 +314,6 @@ public class GroupCreateFragment extends BaseFragment {
                 });
     }
 
-    private void reset() {
-        groupNameEt.setText("");
-        introduceEt.setText("");
-        firstLimitCb.setChecked(false);
-        secondLimitCb.setChecked(true);
-        thirdLimitCb.setChecked(false);
-        needVerifyCb.setChecked(true);
-        notVerifyCb.setChecked(false);
-        ImgUtil.load(getActivity(), R.drawable.corner_gray_fa, avatarIv);
-        avatarIconIv.setVisibility(View.VISIBLE);
-    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {

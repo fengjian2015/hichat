@@ -52,7 +52,7 @@ import io.reactivex.ObservableEmitter;
  * 转发消息
  */
 public class SelectSendActivity extends BaseActivity {
-    public static final String DATA="chat_msg";
+    public static final String DATA = "chat_msg";
     private ExpandableListView expandableListView;
     private ListView listView;
     private RecyclerView rcvView;
@@ -110,8 +110,8 @@ public class SelectSendActivity extends BaseActivity {
 
     @Override
     protected void getIntentData() {
-        mChatMsg= (ChatMsg) getIntent().getSerializableExtra(DATA);
-        if(mChatMsg==null){
+        mChatMsg = (ChatMsg) getIntent().getSerializableExtra(DATA);
+        if (mChatMsg == null) {
             finish();
         }
     }
@@ -155,7 +155,7 @@ public class SelectSendActivity extends BaseActivity {
     public boolean updateSelect() {
         if (selectList.size() >= MAX_NUMBER) {
             new PromptDialog.PromptBuilder(this)
-                    .setPromptContent(String.format(getString(R.string.forward_max_prompt), MAX_NUMBER+""))
+                    .setPromptContent(String.format(getString(R.string.forward_max_prompt), MAX_NUMBER + ""))
                     .setOnConfirmClickListener(new PromptDialog.PromptBuilder.OnConfirmClickListener() {
                         @Override
                         public void confirmClick() {
@@ -218,10 +218,10 @@ public class SelectSendActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 //发送消息
-                for (SelectSubgroup.DataBean dataBean:selectList){
+                for (SelectSubgroup.DataBean dataBean : selectList) {
                     //这里保存消息是因为发送文件消息保存消息规则不一样导致无法保存
                     ChatMsg chatMsg = ChatRoomManager.packForwardMsg(mChatMsg, dataBean.getRoomType(), dataBean.getRoomId());
-                    chatMsg.setMsgId(System.currentTimeMillis()+"");
+                    chatMsg.setMsgId(System.currentTimeMillis() + "");
                     ChatSocket.getInstance().send(chatMsg);
                     ChatRoomManager.saveChatMsg(SelectSendActivity.this, chatMsg, true);
                 }
@@ -248,6 +248,7 @@ public class SelectSendActivity extends BaseActivity {
             selectConversation.setGroupName(getString(R.string.recent_contacts));
             selectConversation.setData(new ArrayList<SelectSubgroup.DataBean>());
             List<ChatRoom> roomList = ChatRoomDao.getRoomList();
+            Collections.sort(roomList, new ChatRoom.TopComparator());
             for (ChatRoom chatRoom : roomList) {
                 SelectSubgroup.DataBean dataBean = new SelectSubgroup.DataBean();
                 dataBean.setRoomId(chatRoom.getRoomId());
@@ -257,7 +258,14 @@ public class SelectSendActivity extends BaseActivity {
                     if (groupInfo != null) {
                         dataBean.setUsername(groupInfo.getGroupName());
                         dataBean.setAvatar(groupInfo.getGroupAvatar());
+                        if (groupInfo.getGrade()== GroupInfo.TYPE_GRADE_NORMAL
+                                && groupInfo.getGroupSpeak() == 0) {
+                            dataBean.setSendMark(1);
+                        } else {
+                            dataBean.setSendMark(0);
+                        }
                     }
+
                 } else {
                     FriendInfo contactUser = ContactUserDao.getContactUser(chatRoom.getRoomId());
                     if (contactUser != null) {
@@ -271,6 +279,7 @@ public class SelectSendActivity extends BaseActivity {
                 }
                 selectConversation.getData().add(dataBean);
             }
+
             elvConversationList.add(selectConversation);
         }
         initConversationEL();
@@ -415,6 +424,12 @@ public class SelectSendActivity extends BaseActivity {
                 dataBean.setRoomType(ChatRoom.TYPE_GROUP);
                 dataBean.setUsername(group.getGroupName());
                 dataBean.setAvatar(group.getGroupAvatar());
+                if (group.getGrade() == GroupInfo.TYPE_GRADE_NORMAL
+                        && group.getGroupSpeak() == 0) {
+                    dataBean.setSendMark(1);
+                } else {
+                    dataBean.setSendMark(0);
+                }
                 listGroupList.add(dataBean);
             }
         }
@@ -461,6 +476,12 @@ public class SelectSendActivity extends BaseActivity {
                 dataBean.setRoomType(ChatRoom.TYPE_GROUP);
                 dataBean.setUsername(group.getGroupName());
                 dataBean.setAvatar(group.getGroupAvatar());
+                if (group.getGrade() == GroupInfo.TYPE_GRADE_NORMAL
+                        && group.getGroupSpeak() == 0) {
+                    dataBean.setSendMark(1);
+                } else {
+                    dataBean.setSendMark(0);
+                }
                 listGroupList.add(dataBean);
             }
         }
@@ -506,27 +527,27 @@ public class SelectSendActivity extends BaseActivity {
     public void notifyData() {
         switch (type) {
             case 0:
-                if (elvConversationAdapter!=null) {
+                if (elvConversationAdapter != null) {
                     elvConversationAdapter.notifyDataSetChanged();
                 }
                 break;
             case 1:
-                if (elvFriendAdapter!=null){
+                if (elvFriendAdapter != null) {
                     elvFriendAdapter.notifyDataSetChanged();
                 }
                 break;
             case 2:
-                if(listGroupAdapter!=null){
+                if (listGroupAdapter != null) {
                     listGroupAdapter.notifyDataSetChanged();
                 }
                 break;
             case 3:
-                if(searchAdapter!=null){
+                if (searchAdapter != null) {
                     searchAdapter.notifyDataSetChanged();
                 }
                 break;
             default:
-                if (elvConversationAdapter!=null) {
+                if (elvConversationAdapter != null) {
                     elvConversationAdapter.notifyDataSetChanged();
                 }
                 break;

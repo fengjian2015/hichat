@@ -4,6 +4,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 
 import com.alibaba.fastjson.JSON;
 import com.wewin.hichat.R;
@@ -40,6 +41,7 @@ public class ContactGroupFragment extends BaseFragment {
     private List<GroupInfo> mGroupList = new ArrayList<>();
     private ListView containerLv;
     private ContactGroupLvAdapter lvAdapter;
+    private RelativeLayout noDataRl;
     //汉字转换成拼音的类
     private CharacterParser characterParser = CharacterParser.getInstance();
 
@@ -52,6 +54,7 @@ public class ContactGroupFragment extends BaseFragment {
     @Override
     protected void initViews() {
         containerLv = parentView.findViewById(R.id.lv_contact_group_container);
+        noDataRl=parentView.findViewById(R.id.rl_contact_group_no_data);
     }
 
     @Override
@@ -80,6 +83,7 @@ public class ContactGroupFragment extends BaseFragment {
         mGroupList.clear();
         mGroupList.addAll(groupDataList);
         rebuildData(mGroupList);
+        GroupDao.deleteTable();
         GroupDao.addGroupList(mGroupList);
         ChatRoomDao.updateTopShieldByGroupList(GroupDao.getGroupList());
         EventTrans.post(EventMsg.CONTACT_GROUP_LIST_GET_REFRESH);
@@ -106,6 +110,13 @@ public class ContactGroupFragment extends BaseFragment {
         }
         Collections.sort(dataList, new BaseSearchEntity.SortComparator());
         if (lvAdapter != null) {
+            if (dataList.size()<=0){
+                noDataRl.setVisibility(View.VISIBLE);
+                containerLv.setVisibility(View.GONE);
+            }else {
+                noDataRl.setVisibility(View.GONE);
+                containerLv.setVisibility(View.VISIBLE);
+            }
             lvAdapter.updateListView(dataList);
         }
     }
@@ -133,7 +144,7 @@ public class ContactGroupFragment extends BaseFragment {
         HttpContact.getGroupMemberList(groupId, -1,
                 new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
                     @Override
-                    public void successOnChildThread(Object data, int count, int pages) {
+                    public void success(Object data, int count) {
                         if (data == null) {
                             return;
                         }

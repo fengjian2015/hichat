@@ -1,26 +1,44 @@
 package com.wewin.hichat.component.manager;
 
+import android.app.Activity;
+import android.app.ActivityManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.util.Log;
 
+import com.wewin.hichat.MainActivity;
+import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.event.EventMsg;
 import com.wewin.hichat.androidlib.event.EventTrans;
+import com.wewin.hichat.androidlib.manage.RingVibrateManager;
+import com.wewin.hichat.androidlib.permission.AuthorizationCheck;
+import com.wewin.hichat.androidlib.permission.Permission;
+import com.wewin.hichat.androidlib.permission.PermissionCallback;
+import com.wewin.hichat.androidlib.permission.Rigger;
+import com.wewin.hichat.androidlib.utils.ActivityUtil;
 import com.wewin.hichat.androidlib.utils.LogUtil;
+import com.wewin.hichat.androidlib.utils.MyLifecycleHandler;
 import com.wewin.hichat.androidlib.utils.SpeakerUtil;
+import com.wewin.hichat.androidlib.utils.ToastUtil;
 import com.wewin.hichat.androidlib.widget.CustomCountDownTimer;
 import com.wewin.hichat.component.constant.ContactCons;
 import com.wewin.hichat.component.constant.LibCons;
 import com.wewin.hichat.component.dialog.CallSmallDialog;
+import com.wewin.hichat.component.dialog.PromptDialog;
 import com.wewin.hichat.model.db.entity.ChatRoom;
 import com.wewin.hichat.model.db.entity.VoiceCall;
 import com.wewin.hichat.model.socket.ChatSocket;
 import com.wewin.hichat.view.conversation.ChatVoiceCallActivity;
 
+import java.util.List;
+
 import io.agora.rtc.Constants;
 import io.agora.rtc.IRtcEngineEventHandler;
 import io.agora.rtc.RtcEngine;
+
+import static android.content.Context.ACTIVITY_SERVICE;
 
 /**
  * 语音通话
@@ -46,6 +64,8 @@ public class VoiceCallManager {
     public static final int TYPE_CALL_FINISH = 4;
     private int callType = TYPE_CALL_FINISH;//当前通话状态
     private final int MAX_WAIT_TIME = 60 * 1000;//60S超时挂断
+    private Intent intent;//用于后台情况接受到通话后进行跳转
+    public boolean backstage=false;
 
     private CustomCountDownTimer waitTimer = new CustomCountDownTimer(MAX_WAIT_TIME, 1000) {
         @Override
@@ -114,11 +134,13 @@ public class VoiceCallManager {
      * 初始化
      */
     public void init(Context context) {
+        isRunning = true;
+
         try {
             if (mRtcEngine == null) {
                 mRtcEngine = RtcEngine.create(context, LibCons.AGORA_APP_ID, mRtcEventHandler);
                 mRtcEngine.setChannelProfile(Constants.CHANNEL_PROFILE_COMMUNICATION);
-                isRunning = true;
+
             }
         } catch (Exception e) {
             throw new RuntimeException("NEED TO check rtc sdk init fatal error\n"
@@ -205,6 +227,8 @@ public class VoiceCallManager {
     }
 
     public void stop(Context context) {
+        backstage=false;
+        RingVibrateManager.getInstance().stop();
         LogUtil.i("stop");
         if (!isRunning){
             return;
@@ -233,19 +257,65 @@ public class VoiceCallManager {
 
     //启动语音通话界面(等待接听)
     void startVoiceCallWaitActivity(Context context, ChatRoom chatRoom) {
-        this.callType = TYPE_CALL_WAIT_ANSWER;
-        startVoiceCallActivity(context, chatRoom);
+        if (AuthorizationCheck.authorizationCheck(Permission.RECORD_AUDIO,context)){
+            this.callType = TYPE_CALL_WAIT_ANSWER;
+            startVoiceCallActivity(context, chatRoom);
+        }else {
+            VoiceCallManager.get().voiceCall.setConnectState(VoiceCall.REFUSE);
+            ChatSocket.getInstance().send(ChatRoomManager.packVoiceCallMsg(chatRoom, VoiceCallManager.get().voiceCall));
+            permissionDialog(MyLifecycleHandler.getActivity());
+        }
+
     }
 
     //启动语音通话界面
     public void startVoiceCallActivity(Context context, ChatRoom chatRoom) {
+        if (!AuthorizationCheck.authorizationCheck(Permission.RECORD_AUDIO,context)){
+            permissionDialog(MyLifecycleHandler.getActivity());
+            return;
+        }
+        if (callChatRoom!=null&&chatRoom!=null&&!callChatRoom.getRoomId().equals(chatRoom.getRoomId())){
+            ToastUtil.showShort(context,context.getString(R.string.side_busy));
+            return;
+        }
         if (chatRoom != null){
             VoiceCallManager.get().setCallChatRoom(chatRoom);
+        }
+        if(!MyLifecycleHandler.isApplicationVisible()){
+            backstage=true;
+            SpeakerUtil.setSpeakerphoneOn(context);
+            RingVibrateManager.getInstance().playCallRing(context);
+        }else {
+            backstage=false;
         }
         Intent intent = new Intent(context, ChatVoiceCallActivity.class);
         intent.putExtra(ContactCons.EXTRA_CONTACT_CHAT_ROOM, chatRoom);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
+    }
+
+    /**
+     * 应用在后台的情况下记录，然后打开应用的时候调用
+     * @param context
+     */
+    public void startBackstageCallActivity(Context context){
+        if (backstage){
+            startVoiceCallActivity(context,null);
+        }
+    }
+
+    private void permissionDialog(final Activity activity){
+        new PromptDialog.PromptBuilder(activity)
+                .setPromptContent(activity.getString(R.string.call_prompt))
+                .setOnConfirmClickListener(new PromptDialog.PromptBuilder.OnConfirmClickListener() {
+                    @Override
+                    public void confirmClick() {
+                        AuthorizationCheck.openApplication(activity);
+                    }
+                })
+                .setCancelVisible(false)
+                .create()
+                .show();
     }
 
     public void setOnDurationChangeListener(OnDurationChangeListener durationChangeListener) {

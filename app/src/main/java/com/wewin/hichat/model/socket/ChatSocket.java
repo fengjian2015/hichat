@@ -66,7 +66,7 @@ public class ChatSocket {
 
     private static ChatSocket chatSocket;
     private WebSocket okHttpWebSocket;
-    private Handler handler;
+    private Handler handler=new Handler();
     private OkHttpClient okHttpClient;
     private Request request;
     private final int INTERVAL_HEART = 5 * 1000;//心跳间隔
@@ -74,11 +74,15 @@ public class ChatSocket {
     private String heartBack = "";
     private long heartSendTimestamp = 0;
     private boolean connectState = false;//socket连接状态
+    /**
+     * 用于检测短时间内有没有收到消息，避免handler无限循环发送ping失败
+     */
+    private boolean receipt=false;
     private NotificationUtil notificationUtil;
-    private final int TYPE_RECONNECT_NOT = 0;
-    private final int TYPE_RECONNECTING = 1;
-    private final int TYPE_RECONNECT_SUCCESS = 2;
-    private final int TYPE_RECONNECT_FAILURE = 3;
+    private final int TYPE_RECONNECT_NOT = 0;//未进行重连
+    private final int TYPE_RECONNECTING = 1;//重连中
+    private final int TYPE_RECONNECT_SUCCESS = 2;//重连成功
+    private final int TYPE_RECONNECT_FAILURE = 3;//重连失败
     private int reconnectType = TYPE_RECONNECT_NOT;//0非重连；1重连中；2重连成功；3重连失败；
     private Context mContext;
 
@@ -110,9 +114,6 @@ public class ChatSocket {
         if (notificationUtil == null) {
             notificationUtil = new NotificationUtil();
             notificationUtil.setNotification(context);
-        }
-        if (handler == null) {
-            handler = new Handler();
         }
         String userId = SpCons.getUser(mContext).getId();
         String cuid = SpCons.getCuid(mContext);
@@ -163,6 +164,18 @@ public class ChatSocket {
         return connectState;
     }
 
+    public boolean isReceipt() {
+        return receipt;
+    }
+
+    public void setReceipt(boolean state) {
+        receipt=state;
+    }
+
+    public void setConnectState(boolean state) {
+        connectState=state;
+    }
+
     public void stop() {
         if (okHttpWebSocket != null) {
             okHttpWebSocket.close(CODE_CLOSE_NORMALLY, "stop");
@@ -170,7 +183,6 @@ public class ChatSocket {
         }
         if (handler != null){
             handler.removeCallbacksAndMessages(null);
-            handler = null;
         }
         connectState = false;
     }
@@ -273,6 +285,7 @@ public class ChatSocket {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
+                receipt=true;
                 connectState = "pong".equals(heartBack);
                 heartBack = "";
                 String jsonStr = JSON.toJSONString(new Heart("ping"));
@@ -575,7 +588,14 @@ public class ChatSocket {
                 }
                 serverCookieInvalid(messageInfo.getExpireMessage());
                 break;
-
+            case "removeMessage":
+                ChatMsg chatMsg=new ChatMsg();
+                chatMsg.setMsgId(messageInfo.getMsgId());
+                chatMsg.setRoomId(messageInfo.getConversationId());
+                chatMsg.setRoomType(messageInfo.getConversationType());
+                MessageDao.deleteSingle(chatMsg.getMsgId());
+                EventTrans.post(EventMsg.CONVERSATION_DELETE_MSG,chatMsg);
+                break;
             default:
                 break;
         }
@@ -813,7 +833,7 @@ public class ChatSocket {
     }
 
     private void setNotificationUtil(ChatMsg lastMsg) {
-        ChatRoom chatRoom = ChatRoomManager.getChatRoom(lastMsg);
+        ChatRoom chatRoom = ChatRoomManager.getChatRoom(lastMsg,true);
         if (notificationUtil == null || chatRoom == null) {
             return;
         }

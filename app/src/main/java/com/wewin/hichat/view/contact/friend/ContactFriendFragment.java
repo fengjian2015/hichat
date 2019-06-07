@@ -6,6 +6,7 @@ import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.event.EventTrans;
 import com.wewin.hichat.androidlib.event.EventMsg;
@@ -38,6 +39,7 @@ import io.reactivex.ObservableEmitter;
 
 /**
  * 联系人-好友
+ * @author
  * Created by Darren on 2018/12/22.
  */
 public class ContactFriendFragment extends BaseFragment {
@@ -193,11 +195,19 @@ public class ContactFriendFragment extends BaseFragment {
                         }
                     }
                     updateElv();
-
                     RxJavaScheduler.execute(new OnRxJavaProcessListener() {
                         @Override
                         public void process(ObservableEmitter<Object> emitter) {
+                            List<Subgroup> subgroupList=new ArrayList<>();
                             for (Subgroup subgroup : dataList) {
+                                if (subgroup.getIsDefault() != Subgroup.TYPE_BLACK
+                                        &&subgroup.getIsDefault() != Subgroup.TYPE_TEMPORARY) {
+                                    Subgroup subgroup1 = new Subgroup();
+                                    subgroup1.setIsDefault(subgroup.getIsDefault());
+                                    subgroup1.setGroupName(subgroup.getGroupName());
+                                    subgroup1.setId(subgroup.getId());
+                                    subgroupList.add(subgroup1);
+                                }
                                 if (subgroup.getIsDefault() == Subgroup.TYPE_FRIEND) {
                                     DataCache spCache = new SpCache(getContext());
                                     spCache.setObject(SpCons.SP_KEY_FRIEND_SUBGROUP, subgroup);
@@ -205,6 +215,7 @@ public class ContactFriendFragment extends BaseFragment {
                                 FriendDao.addFriendList(subgroup.getList(), subgroup);
                                 ContactUserDao.addContactUserList(subgroup.getList());
                             }
+                            SpCons.setString(getHostActivity(),SpCons.SUBGROUP_LIST,JSON.toJSONString(subgroupList));
                             ChatRoomDao.updateTopShieldByFriendList(FriendDao.getFriendList());
                         }
                     }, new RxJavaObserver<Object>() {

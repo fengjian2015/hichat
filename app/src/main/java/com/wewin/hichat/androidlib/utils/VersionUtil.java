@@ -53,7 +53,7 @@ public class VersionUtil {
         Intent install = new Intent(Intent.ACTION_VIEW);
         install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         Uri uri;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             uri = FileProvider.getUriForFile(context, context.getApplicationContext().getPackageName() + ".provider", file);
             //添加这一句表示对目标应用临时授权该Uri所代表的文件
             install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);

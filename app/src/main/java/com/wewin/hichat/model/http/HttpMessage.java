@@ -63,4 +63,13 @@ public class HttpMessage {
         HttpUtil.post(HttpCons.PATH_MESSAGE_GET_LIST, map, httpCallBack);
     }
 
+
+    //删除单个消息
+    public static void removeMessage(String msgId, String roomId,String roomType, HttpCallBack httpCallBack){
+        Map<String, String> map = new HashMap<>(3);
+        map.put("msgId", msgId);
+        map.put("sessionId", roomId);
+        map.put("sessionType", roomType);
+        HttpUtil.post(HttpCons.PATH_MESSAGE_REMOVE_MESSAGE, map, httpCallBack);
+    }
 }

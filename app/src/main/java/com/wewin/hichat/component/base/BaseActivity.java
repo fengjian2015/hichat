@@ -23,6 +23,7 @@ import com.wewin.hichat.androidlib.utils.MyLifecycleHandler;
 import com.wewin.hichat.androidlib.utils.StatusBarUtil;
 import com.wewin.hichat.androidlib.utils.SystemUtil;
 import com.wewin.hichat.component.dialog.CallSmallDialog;
+import com.wewin.hichat.component.manager.VoiceCallManager;
 
 import java.lang.reflect.Field;
 
@@ -143,8 +144,7 @@ public abstract class BaseActivity extends AppCompatActivity
         baseLeftContainerLl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //隐藏软键盘
-                SystemUtil.hideKeyboard(getHostActivity());
+
                 BaseActivity.this.finish();
             }
         });
@@ -227,11 +227,14 @@ public abstract class BaseActivity extends AppCompatActivity
         MobclickAgent.onPageStart(getClass().getSimpleName());
         MobclickAgent.onResume(this);
         CallSmallDialog.getInstance().alertWindow();
+        VoiceCallManager.get().startBackstageCallActivity(this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        //隐藏软键盘
+        SystemUtil.hideKeyboard(getHostActivity());
         MobclickAgent.onPageEnd(getClass().getSimpleName());
         MobclickAgent.onPause(this);
     }

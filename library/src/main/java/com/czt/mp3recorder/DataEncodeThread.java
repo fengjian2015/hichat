@@ -21,6 +21,7 @@ public class DataEncodeThread extends HandlerThread implements AudioRecord.OnRec
 	private static final int PROCESS_STOP = 1;
 	private byte[] mMp3Buffer;
 	private FileOutputStream mFileOutputStream;
+	private boolean flushAndRelease=false;
 
 	private static class StopHandler extends Handler {
 		
@@ -73,6 +74,10 @@ public class DataEncodeThread extends HandlerThread implements AudioRecord.OnRec
 	public void sendStopMessage() {
 		check();
 		mHandler.sendEmptyMessage(PROCESS_STOP);
+	}
+
+	public boolean getFlushAndRelease(){
+		return flushAndRelease;
 	}
 	public Handler getHandler() {
 		check();
@@ -131,6 +136,7 @@ public class DataEncodeThread extends HandlerThread implements AudioRecord.OnRec
 					}
 				}
 				LameUtil.close();
+				flushAndRelease=true;
 			}
 		}
 	}

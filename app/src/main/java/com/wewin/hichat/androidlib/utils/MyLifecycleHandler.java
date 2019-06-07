@@ -14,6 +14,7 @@ public class MyLifecycleHandler implements Application.ActivityLifecycleCallback
     private static int paused;
     private static int started;
     private static int stopped;
+    private static Activity sActivity;
 
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
@@ -21,6 +22,7 @@ public class MyLifecycleHandler implements Application.ActivityLifecycleCallback
 
     @Override
     public void onActivityStarted(Activity activity) {
+        sActivity=activity;
         ++started;
     }
 
@@ -43,6 +45,7 @@ public class MyLifecycleHandler implements Application.ActivityLifecycleCallback
 
     @Override
     public void onActivityDestroyed(Activity activity) {
+
     }
 
     @Override
@@ -59,5 +62,9 @@ public class MyLifecycleHandler implements Application.ActivityLifecycleCallback
     public static boolean isApplicationInForeground() {
         // 当所有 Activity 的状态中处于 resumed 的大于 paused 状态的，即可认为有Activity处于前台状态中
         return resumed > paused;
+    }
+
+    public static Activity getActivity(){
+        return sActivity;
     }
 }

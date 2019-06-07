@@ -113,7 +113,7 @@ public class ContactFriendElvAdapter extends BaseExpandableListAdapter {
         }
 
         gHolder.nameTv.setText(friendTypeList.get(groupPosition).getGroupName());
-        gHolder.sumTv.setText(friendTypeList.get(groupPosition).getList().size() + "");
+        gHolder.sumTv.setText("("+friendTypeList.get(groupPosition).getList().size() + ")");
 
         gHolder.containerLl.setOnLongClickListener(new View.OnLongClickListener() {
             @Override

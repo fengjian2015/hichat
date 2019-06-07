@@ -64,15 +64,21 @@ public class TapeRecordManager {
             if (voiceListener != null) {
                 voiceListener.stop(currentVoicePath);
             }
-            currentVoicePath = null;
 
         } catch (Exception e) {
             e.printStackTrace();
             File file = new File(currentVoicePath);
             if (file.exists()){
                 file.delete();
-                currentVoicePath = null;
             }
+        }
+    }
+
+    public boolean getFlushAndRelease(){
+        if (mRecorder!=null) {
+            return mRecorder.getFlushAndRelease();
+        }else {
+            return true;
         }
     }
 
@@ -133,7 +139,6 @@ public class TapeRecordManager {
         if (currentVoicePath != null) {
             File file = new File(currentVoicePath);
             file.delete();
-            currentVoicePath = null;
         }
     }
 

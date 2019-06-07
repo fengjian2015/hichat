@@ -39,7 +39,7 @@ public class SelectDialog extends Dialog {
         private List<String> strList = new ArrayList<>();
         private int textColorPosition = -1;
         private int resourceId = -1;
-
+        private int allResourceId = -1;
         public SelectBuilder(Activity activity) {
             this.activity = activity;
             selectDialog = new SelectDialog(activity, R.style.dialog_common);
@@ -119,6 +119,12 @@ public class SelectDialog extends Dialog {
             return this;
         }
 
+
+        public SelectBuilder setAllTextColor(int resourceId) {
+            this.allResourceId = resourceId;
+            return this;
+        }
+
         private void initListView(List<String> strList) {
             SelectLvAdapter lvAdapter = new SelectLvAdapter(strList);
             containerLv.setAdapter(lvAdapter);
@@ -164,10 +170,14 @@ public class SelectDialog extends Dialog {
                 }
 
                 iHolder.itemTv.setText(strList.get(position));
-                if (position == textColorPosition) {
-                    iHolder.itemTv.setTextColor(activity.getResources().getColor(resourceId));
-                } else {
-                    iHolder.itemTv.setTextColor(activity.getResources().getColor(R.color.black_00));
+                if (allResourceId!=-1){
+                    iHolder.itemTv.setTextColor(activity.getResources().getColor(allResourceId));
+                }else {
+                    if (position == textColorPosition) {
+                        iHolder.itemTv.setTextColor(activity.getResources().getColor(resourceId));
+                    } else {
+                        iHolder.itemTv.setTextColor(activity.getResources().getColor(R.color.black_00));
+                    }
                 }
 
                 return convertView;

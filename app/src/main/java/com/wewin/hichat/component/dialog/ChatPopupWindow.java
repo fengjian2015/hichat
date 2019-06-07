@@ -1,5 +1,6 @@
 package com.wewin.hichat.component.dialog;
 
+import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -11,17 +12,30 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+
+import com.alibaba.fastjson.JSON;
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.event.EventMsg;
 import com.wewin.hichat.androidlib.event.EventTrans;
+import com.wewin.hichat.androidlib.impl.HttpCallBack;
+import com.wewin.hichat.androidlib.utils.ClassUtil;
 import com.wewin.hichat.androidlib.utils.ToastUtil;
+import com.wewin.hichat.model.db.dao.GroupDao;
 import com.wewin.hichat.model.db.dao.MessageDao;
+import com.wewin.hichat.model.db.dao.UserDao;
 import com.wewin.hichat.model.db.entity.ChatMsg;
+import com.wewin.hichat.model.db.entity.ChatRoom;
 import com.wewin.hichat.model.db.entity.FileInfo;
+import com.wewin.hichat.model.db.entity.GroupInfo;
+import com.wewin.hichat.model.http.HttpMessage;
 import com.wewin.hichat.view.conversation.SelectSendActivity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * @author:jason date:2019/5/2318:24
+ * @author Jason
+ *  date:2019/5/2318:24
  */
 public class ChatPopupWindow extends PopupWindow {
     private Context mContext;
@@ -149,14 +163,52 @@ public class ChatPopupWindow extends PopupWindow {
         flDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                MessageDao.deleteSingle(mChatMsg.getMsgId());
-                EventTrans.post(EventMsg.CONVERSATION_DELETE_MSG,mChatMsg,mPosition);
+
+                showDeleteDialog();
                 dismiss();
             }
         });
         return contentView;
     }
 
+    String [] strings = null;
+    private void showDeleteDialog() {
+        if (UserDao.user.getId().equals(mChatMsg.getSenderId())){
+            strings=new String[]{mContext.getString(R.string.all_people_delete),mContext.getString(R.string.local_delete)};
+        }else if(mChatMsg.getRoomType().equals(ChatRoom.TYPE_GROUP)){
+            GroupInfo mGroupInfo = GroupDao.getGroup(mChatMsg.getRoomId());
+            if (mGroupInfo.getGrade() == GroupInfo.TYPE_GRADE_OWNER||mGroupInfo.getGrade()==GroupInfo.TYPE_GRADE_MANAGER){
+                strings=new String[]{mContext.getString(R.string.all_people_delete),mContext.getString(R.string.local_delete)};
+            }else {
+                strings=new String[]{mContext.getString(R.string.local_delete)};
+            }
+        }else {
+            strings=new String[]{mContext.getString(R.string.local_delete)};
+        }
+        SelectDialog.SelectBuilder selectBuilder = new SelectDialog.SelectBuilder((Activity) mContext);
+        SelectDialog deleteDialog = selectBuilder.setSelectStrArr(strings)
+                .setAllTextColor(R.color.red_light2)
+                .setTextColorPosition(0)
+                .setOnLvItemClickListener(new SelectDialog.SelectBuilder.OnLvItemClickListener() {
+                    @Override
+                    public void itemClick(int lvItemPosition) {
+                        if (mContext.getString(R.string.all_people_delete).equals(strings[lvItemPosition])){
+                            HttpMessage.removeMessage(mChatMsg.getMsgId(), mChatMsg.getRoomId(), mChatMsg.getRoomType(),
+                                    new HttpCallBack(mContext, ClassUtil.classMethodName()) {
+                                        @Override
+                                        public void success(Object data, int count) {
+                                            MessageDao.deleteSingle(mChatMsg.getMsgId());
+                                            EventTrans.post(EventMsg.CONVERSATION_DELETE_MSG,mChatMsg);
+                                        }
+                                    });
+                        }else {
+                            EventTrans.post(EventMsg.CONVERSATION_DELETE_MSG,mChatMsg);
+                            MessageDao.deleteSingle(mChatMsg.getMsgId());
+                        }
+                    }
+                }).create();
+        deleteDialog.show();
+    }
 
     /**
      * 计算popwindow在长按view 的什么位置显示

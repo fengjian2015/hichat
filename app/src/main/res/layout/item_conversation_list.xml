@@ -76,7 +76,7 @@
 
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="28dp"
+            android:layout_height="30dp"
             android:orientation="horizontal"
             android:layout_below="@+id/tv_item_conversation_name"
             android:layout_toLeftOf="@+id/tv_item_conversation_unread_msg_num"

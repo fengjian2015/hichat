@@ -55,7 +55,7 @@ public class MessageChatRcvAdapter extends BaseMessageChatRcvAdapter {
                 && msgList.get(position).getAtFriendMap() != null
                 && !msgList.get(position).getAtFriendMap().isEmpty()) {
             spanStr = HyperLinkUtil.getATSpanStr(context, spanStr, msgList.get(position).getAtFriendMap(),
-                    R.color.blue_main);
+                    R.color.blue_main,msgList.get(position).getRoomId());
         }
         rightTextHolder.contentTv.setText(spanStr);
     }
@@ -207,7 +207,7 @@ public class MessageChatRcvAdapter extends BaseMessageChatRcvAdapter {
                 && msgList.get(position).getAtFriendMap() != null
                 && !msgList.get(position).getAtFriendMap().isEmpty()) {
             spanStr = HyperLinkUtil.getATSpanStr(context, spanStr, msgList.get(position).getAtFriendMap(),
-                    R.color.blue_main);
+                    R.color.blue_main,msgList.get(position).getRoomId());
         }
         leftTextHolder.contentTv.setText(spanStr);
     }

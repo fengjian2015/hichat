@@ -10,6 +10,7 @@ import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.utils.ImgUtil;
 import com.wewin.hichat.component.base.BaseSearchAdapter;
 import com.wewin.hichat.model.db.entity.FriendInfo;
+import com.wewin.hichat.model.db.entity.GroupInfo;
 
 import java.util.List;
 
@@ -53,9 +54,11 @@ public class ContactGroupMemberLvAdapter extends BaseSearchAdapter {
         } else {
             iHolder = (ItemViewHolder) convertView.getTag();
         }
-
-        setLetterVisible(iHolder.letterTv, position);
-
+        if (memberList.get(position).getGrade() == GroupInfo.TYPE_GRADE_MANAGER||memberList.get(position).getGrade() == GroupInfo.TYPE_GRADE_OWNER) {
+            iHolder.letterTv.setVisibility(View.GONE);
+        }else {
+            setLetterVisible(iHolder.letterTv, position);
+        }
         ImgUtil.load(context, memberList.get(position).getAvatar(), iHolder.avatarIv);
         iHolder.nameTv.setText(memberList.get(position).getUsername());
         if (memberList.get(position).getGrade() == 1) {

@@ -27,6 +27,8 @@ import com.wewin.hichat.model.db.dao.GroupDao;
 import com.wewin.hichat.model.db.dao.UserDao;
 import com.wewin.hichat.model.db.entity.GroupInfo;
 import com.wewin.hichat.androidlib.impl.HttpCallBack;
+import com.wewin.hichat.model.db.entity.Notify;
+import com.wewin.hichat.model.db.entity.SocketServer;
 import com.wewin.hichat.model.http.HttpContact;
 
 import java.util.List;
@@ -233,7 +235,22 @@ public class GroupSearchFragment extends BaseFragment {
                     getHostActivity().finish();
                 }
                 break;
-
+            case EventMsg.CONTACT_NOTIFY_REFRESH:
+                if (msg.getData()!=null){
+                    Notify notifyInfo = (Notify) msg.getData();
+                    if("group".equals(notifyInfo.getNoticeType())&&notifyInfo.getStatus()==-1){
+                        groupType = 0;
+                        verifyContainerFl.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                verifyContainerFl.setVisibility(View.VISIBLE);
+                                applyBtn.setText(getString(R.string.send_apply));
+                                applyBtn.setEnabled(true);
+                            }
+                        });
+                    }
+                }
+                break;
             default:
 
                 break;

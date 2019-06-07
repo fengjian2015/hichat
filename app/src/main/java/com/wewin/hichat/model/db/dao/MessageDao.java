@@ -200,6 +200,26 @@ public class MessageDao {
         return chatMsg;
     }
 
+    public static ChatMsg getVoiceCall(String channel) {
+        ChatMsg chatMsg = null;
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
+            String sql = "select * from " + TABLE_NAME + " where " + VOICE_CHANNEL + " = ? and " + USER_ID + " = ?";
+            Cursor cursor = db.rawQuery(sql, new String[]{channel, UserDao.user.getId()});
+            if (cursor != null) {
+                if (cursor.getCount() > 0 && cursor.moveToNext()) {
+                    chatMsg = parseCursorData(cursor);
+                }
+                cursor.close();
+            }
+            DbManager.getInstance().closeDatabase();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return chatMsg;
+    }
+
+
     static ChatMsg getLastMessageByRoomId(String roomId, String roomType) {
         ChatMsg chatMsg = null;
         try {
@@ -405,6 +425,16 @@ public class MessageDao {
         }
     }
 
+    public static void deleteVoiceChannel(String voiceChannel) {
+        try {
+            SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
+            String sql = "delete from " + TABLE_NAME + " where " + USER_ID + " = ? and "+VOICE_CHANNEL+" = ?";
+            db.execSQL(sql, new String[]{UserDao.user.getId(),voiceChannel});
+            DbManager.getInstance().closeDatabase();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void deleteSingle(String msgId) {
         try {
@@ -416,7 +446,6 @@ public class MessageDao {
             e.printStackTrace();
         }
     }
-
 
     public static void clearShow() {
         try {

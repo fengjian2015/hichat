@@ -37,7 +37,7 @@ public class FriendSearchActivity extends BaseActivity {
     private ImageView clearIv;
     private String title;
     private List<FriendInfo> mFriendList = new ArrayList<>();
-
+    private List<FriendInfo> mSelectList = new ArrayList<>();
 
     @Override
     protected int getLayoutId() {
@@ -72,6 +72,11 @@ public class FriendSearchActivity extends BaseActivity {
                 lvAdapter.updateListView(mFriendList);
             }
         }
+        for (FriendInfo selectFriend : mFriendList) {
+            if (selectFriend.isChecked()){
+                mSelectList.add(selectFriend);
+            }
+        }
     }
 
     @Override
@@ -100,14 +105,8 @@ public class FriendSearchActivity extends BaseActivity {
 
     @Override
     protected void onRightTvClick() {
-        List<FriendInfo> dataList = new ArrayList<>();
-        for (FriendInfo friendInfo : lvAdapter.getList()) {
-            if (friendInfo.isChecked()){
-                dataList.add(friendInfo);
-            }
-        }
         Intent intent = new Intent();
-        intent.putExtra(ContactCons.EXTRA_CONTACT_FRIEND_LIST, (Serializable) dataList);
+        intent.putExtra(ContactCons.EXTRA_CONTACT_FRIEND_LIST, (Serializable) mSelectList);
         setResult(RESULT_OK, intent);
         this.finish();
     }
@@ -119,8 +118,24 @@ public class FriendSearchActivity extends BaseActivity {
         containerLv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                lvAdapter.getList().get(position).setChecked(!lvAdapter.getList().get(position).isChecked());
+                FriendInfo friendInfo = lvAdapter.getList().get(position);
+                friendInfo.setChecked(!friendInfo.isChecked());
                 lvAdapter.notifyDataSetChanged();
+                if (friendInfo.isChecked()){
+                    for (int i=0;i<mSelectList.size();i++){
+                        if (mSelectList.get(i).getId().equals(friendInfo.getId())){
+                            return;
+                        }
+                    }
+                    mSelectList.add(friendInfo);
+                }else {
+                    for (int i=0;i<mSelectList.size();i++){
+                        if (mSelectList.get(i).getId().equals(friendInfo.getId())){
+                            mSelectList.remove(i);
+                            return;
+                        }
+                    }
+                }
             }
         });
     }

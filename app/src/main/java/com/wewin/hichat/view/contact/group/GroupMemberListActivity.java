@@ -24,8 +24,10 @@ import com.wewin.hichat.component.constant.ContactCons;
 import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.component.dialog.SelectDialog;
 import com.wewin.hichat.component.manager.ChatRoomManager;
+import com.wewin.hichat.model.db.dao.GroupDao;
 import com.wewin.hichat.model.db.dao.GroupMemberDao;
 import com.wewin.hichat.model.db.dao.UserDao;
+import com.wewin.hichat.model.db.entity.BaseSearchEntity;
 import com.wewin.hichat.model.db.entity.ChatRoom;
 import com.wewin.hichat.model.db.entity.FriendInfo;
 import com.wewin.hichat.model.db.entity.GroupInfo;
@@ -35,6 +37,8 @@ import com.wewin.hichat.view.contact.friend.FriendInfoActivity;
 import com.wewin.hichat.view.search.CharacterParser;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -169,6 +173,10 @@ public class GroupMemberListActivity extends BaseActivity {
                         String clickStr = itemStrArr[lvItemPosition];
                         switch (clickStr) {
                             case CHECK_MEMBER_INFO:
+                                if(GroupDao.getAddMark(mGroupInfo.getId())==0&&memberList.get(memberPosition).getFriendship()!=1){
+                                    ToastUtil.showShort(GroupMemberListActivity.this,getString(R.string.allow_add_prompt));
+                                    break;
+                                }
                                 Intent intent = new Intent(getAppContext(), FriendInfoActivity.class);
                                 ChatRoom chatRoom = ChatRoomManager.getChatRoom(memberList
                                         .get(memberPosition).getId(), ChatRoom.TYPE_SINGLE);
@@ -178,6 +186,10 @@ public class GroupMemberListActivity extends BaseActivity {
 
                             case SEND_MESSAGE:
                             case TEMPORARY_CHAT:
+                                if(GroupDao.getAddMark(mGroupInfo.getId())==0&&memberList.get(memberPosition).getFriendship()!=1){
+                                    ToastUtil.showShort(GroupMemberListActivity.this,getString(R.string.allow_add_prompt));
+                                    break;
+                                }
                                 EventTrans.post(EventMsg.CONVERSATION_CHAT_FINISH);
                                 FriendInfo member = memberList.get(memberPosition);
                                 ChatRoomManager.startSingleRoomActivity(getHostActivity(), member);
@@ -192,6 +204,10 @@ public class GroupMemberListActivity extends BaseActivity {
                                 break;
 
                             case ADD_FRIEND:
+                                if(GroupDao.getAddMark(mGroupInfo.getId())==0&&memberList.get(memberPosition).getFriendship()!=1){
+                                    ToastUtil.showShort(GroupMemberListActivity.this,getString(R.string.allow_add_prompt));
+                                    break;
+                                }
                                 DataCache spCache = new SpCache(getAppContext());
                                 Subgroup friendSubgroup = (Subgroup) spCache.getObject(SpCons.SP_KEY_FRIEND_SUBGROUP);
                                 applyAddFriend(memberList.get(memberPosition).getId(),
@@ -327,13 +343,38 @@ public class GroupMemberListActivity extends BaseActivity {
     private void parseSortLetter(List<FriendInfo> friendInfoList) {
         for (FriendInfo friendInfo : friendInfoList) {
             //汉字转换成拼音
-            String pinyin = characterParser.getSelling(friendInfo.getUsername());
+            String name=friendInfo.getFriendNote();
+            if (TextUtils.isEmpty(name)){
+                name=friendInfo.getUsername();
+            }
+            String pinyin = characterParser.getSelling(name);
             String sortString = pinyin.substring(0, 1).toUpperCase();
             // 正则表达式，判断首字母是否是英文字母
             if (sortString.matches("[A-Z]")) {
                 friendInfo.setSortLetter(sortString.toUpperCase());
             } else {
                 friendInfo.setSortLetter("#");
+            }
+            if (friendInfo.getGrade() == GroupInfo.TYPE_GRADE_MANAGER||friendInfo.getGrade() == GroupInfo.TYPE_GRADE_OWNER) {
+                friendInfo.setSortLetter("@");
+            }
+        }
+        Collections.sort(friendInfoList, new SortComparator());
+    }
+
+    public class SortComparator implements Comparator<FriendInfo> {
+        @Override
+        public int compare(FriendInfo o1, FriendInfo o2) {
+            if ("@".equals(o1.getSortLetter())){
+                return 0;
+            }else if ("@".equals(o1.getSortLetter())
+                    || "#".equals(o2.getSortLetter())) {
+                return -1;
+            } else if ("#".equals(o1.getSortLetter())
+                    || "@".equals(o2.getSortLetter())) {
+                return 1;
+            } else {
+                return o1.getSortLetter().compareTo(o2.getSortLetter());
             }
         }
     }

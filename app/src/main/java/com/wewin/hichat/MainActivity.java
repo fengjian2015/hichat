@@ -2,6 +2,7 @@ package com.wewin.hichat;
 
 import android.content.Intent;
 import android.os.Build;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.text.TextUtils;
@@ -370,20 +371,28 @@ public class MainActivity extends BaseActivity {
         if (versionBuilder == null) {
             versionBuilder = new VersionDialog.VersionBuilder(this);
         }
+        //强制更新不显示取消按钮，外部不能点击
         if (versionBean.getStatus() == 0) {
             versionBuilder.setCancelVisible(true);
+            versionBuilder.setCancelableOnTouchOutside(true);
         } else {
             versionBuilder.setCancelVisible(false);
+            versionBuilder.setCancelableOnTouchOutside(false);
         }
+        //下载中的更改显示按钮
         if (versionBean.getStatus() != 0 && DownApkService.isDownload) {
             versionBuilder.setDownState(DownApkService.ON_PREPARE);
         } else {
             versionBuilder.setDownState(-1);
         }
+        if(versionBean.getStatus() == 0&& DownApkService.isDownload){
+            versionBuilder.setCancelVisible(false);
+        }
         versionBuilder.setPromptContent(versionBean.getIntroduction())
                 .setOnConfirmClickListener(new VersionDialog.VersionBuilder.OnConfirmClickListener() {
                     @Override
                     public void confirmClick() {
+                        versionBuilder.setCancelVisible(false);
                         if (versionBuilder.getDownloadState() == DownApkService.ON_COMPLETE) {
                             File file = new File(FileUtil.getSDApkPath(MainActivity.this), "hichat" + versionBean.getVersion() + ".apk");
                             VersionUtil.install(MainActivity.this, file);
@@ -417,7 +426,6 @@ public class MainActivity extends BaseActivity {
                         }
                     }
                 })
-                .setCancelableOnTouchOutside(false)
                 .create()
                 .show();
     }
@@ -480,18 +488,42 @@ public class MainActivity extends BaseActivity {
 
     }
 
+    /**
+     * 菜单、返回键响应
+     */
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_DOWN) {
-            if ((System.currentTimeMillis() - exitTime) > 2000) {
-                Toast.makeText(getAppContext(), "再按一次退出程序", Toast.LENGTH_SHORT).show();
-                exitTime = System.currentTimeMillis();
-            } else {
-                this.finish();
-            }
-            return true;
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            exitBy2Click();      //调用双击退出函数
         }
-        return super.onKeyDown(keyCode, event);
+        return false;
+    }
+    boolean isExit;
+    /**
+     * 返回键控制
+     */
+    private void exitBy2Click() {
+        if (isExit == false) {
+            // 准备退出
+            isExit = true;
+            Toast.makeText(getAppContext(), "再按一次退出程序", Toast.LENGTH_SHORT).show();
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    // 取消退出
+                    isExit = false;
+                }
+            },3000);
+        } else {
+            try {
+                Intent home = new Intent(Intent.ACTION_MAIN);
+                home.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                home.addCategory(Intent.CATEGORY_HOME);
+                startActivity(home);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override

@@ -239,7 +239,12 @@ public class FriendSearchFragment extends BaseFragment {
     }
 
     private void searchFriend(String phoneNum) {
-        if ("+63".equals(selectCountryInfo.getCode())){
+        boolean changePhone=((("+63".equals(selectCountryInfo.getCode()))
+                ||("+855".equals(selectCountryInfo.getCode()))
+                ||("+60".equals(selectCountryInfo.getCode()))
+                ||("+886".equals(selectCountryInfo.getCode())))
+                && phoneNum.startsWith("0"));
+        if (changePhone) {
             phoneNum = phoneNum.substring(1, phoneNum.length());
         }
         HttpContact.searchFriend(1, phoneNum, new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {

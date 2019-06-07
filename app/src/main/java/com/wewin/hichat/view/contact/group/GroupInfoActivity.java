@@ -23,7 +23,9 @@ import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.component.dialog.PromptDialog;
 import com.wewin.hichat.component.manager.ChatRoomManager;
 import com.wewin.hichat.model.db.dao.ChatRoomDao;
+import com.wewin.hichat.model.db.dao.ContactUserDao;
 import com.wewin.hichat.model.db.dao.GroupDao;
+import com.wewin.hichat.model.db.dao.GroupMemberDao;
 import com.wewin.hichat.model.db.dao.MessageDao;
 import com.wewin.hichat.model.db.dao.UserDao;
 import com.wewin.hichat.model.db.entity.ChatRoom;
@@ -207,8 +209,8 @@ public class GroupInfoActivity extends BaseActivity {
 
             case R.id.fl_contact_group_info_allow_member_add:
                 if (mGroupInfo != null) {
-                    int allowAdd = 1 - mGroupInfo.getAddFlag();
-                    editGroupPermission(mGroupInfo.getId(), -1, -1, -1, -1,allowAdd);
+                    int addFriendMark = 1 - mGroupInfo.getAddFriendMark();
+                    editGroupPermission(mGroupInfo.getId(), -1, -1, -1, -1,addFriendMark);
 
                 }
                 break;
@@ -246,7 +248,7 @@ public class GroupInfoActivity extends BaseActivity {
         promptDialog.show();
     }
 
-    private void getGroupMemberList(String groupId) {
+    private void getGroupMemberList(final String groupId) {
         HttpContact.getGroupMemberList(groupId, -1, new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
             @Override
             public void success(Object data, int count) {
@@ -256,7 +258,8 @@ public class GroupInfoActivity extends BaseActivity {
                 try {
                     List<FriendInfo> dataList = JSON.parseArray(data.toString(), FriendInfo.class);
                     LogUtil.i("getGroupMemberList", dataList);
-
+                    ContactUserDao.addContactUserList(dataList);
+                    GroupMemberDao.addGroupMemberList(groupId, dataList);
                     if (dataList == null) {
                         memberSumTv.setText("成员" + 0 + "人");
                     } else {
@@ -295,8 +298,8 @@ public class GroupInfoActivity extends BaseActivity {
     }
 
     private void editGroupPermission(String groupId, final int allowSearch, final int needVerify,
-                                     final int allowInvite, final int banSpeak,final int allowAdd) {
-        HttpContact.editGroupPermission(groupId, -1, banSpeak, needVerify, allowInvite, allowSearch,
+                                     final int allowInvite, final int banSpeak,final int addFriendMark) {
+        HttpContact.editGroupPermission(groupId, -1, banSpeak, needVerify, allowInvite, allowSearch,addFriendMark,
                 new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
@@ -312,8 +315,8 @@ public class GroupInfoActivity extends BaseActivity {
                         if (allowSearch != -1) {
                             mGroupInfo.setSearchFlag(allowSearch);
                         }
-                        if(allowAdd!=-1){
-                            mGroupInfo.setAddFlag(allowAdd);
+                        if(addFriendMark!=-1){
+                            mGroupInfo.setAddFriendMark(addFriendMark);
                         }
                         GroupDao.updatePermission(mGroupInfo);
                         EventTrans.post(EventMsg.CONTACT_GROUP_PERMISSION_REFRESH, mGroupInfo);
@@ -385,7 +388,7 @@ public class GroupInfoActivity extends BaseActivity {
             needVerifyIv.setSelected(false);
         }
         allowInviteIv.setSelected(TransUtil.intToBoolean(mGroupInfo.getInviteFlag()));
-        allowAddIv.setSelected(TransUtil.intToBoolean(mGroupInfo.getAddFlag()));
+        allowAddIv.setSelected(TransUtil.intToBoolean(mGroupInfo.getAddFriendMark()));
         if (mGroupInfo.getInviteFlag() == 1) {
             inviteNewMemberFl.setVisibility(View.VISIBLE);
             if (!needRefreshUI) {
@@ -516,9 +519,6 @@ public class GroupInfoActivity extends BaseActivity {
                 }
                 if (groupInfo2.getGroupValid() != -1) {
                     mGroupInfo.setGroupValid(groupInfo2.getGroupValid());
-                }
-                if (groupInfo2.getAddFlag() != -1) {
-                    mGroupInfo.setAddFlag(groupInfo2.getAddFlag());
                 }
                 setGroupPermissionView(true);
                 break;

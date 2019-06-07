@@ -142,6 +142,11 @@ public class MP3Recorder {
 	public boolean isRecording() {
 		return mIsRecording;
 	}
+
+
+	public boolean getFlushAndRelease(){
+		return mEncodeThread.getFlushAndRelease();
+	}
 	/**
 	 * Initialize audio recorder
 	 */

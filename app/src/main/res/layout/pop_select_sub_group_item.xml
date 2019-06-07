@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingLeft="20dp"
+    android:paddingRight="15dp"
+    >
+    <TextView
+        android:id="@+id/tv_name"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="44dp"
+        android:textSize="16dp"
+        android:textColor="@color/black_00"
+        android:layout_gravity="center_vertical"
+        android:gravity="center_vertical"
+        android:text="我的好友"
+        />
+    <ImageView
+        android:id="@+id/iv_select"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/hook_select_blue"
+        android:layout_gravity="center_vertical|end"/>
+</LinearLayout>

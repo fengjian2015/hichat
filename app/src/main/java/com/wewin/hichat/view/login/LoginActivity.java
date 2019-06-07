@@ -37,6 +37,7 @@ import com.wewin.hichat.model.db.dao.UserDao;
 import com.wewin.hichat.model.db.entity.CountryInfo;
 import com.wewin.hichat.model.db.entity.LoginUser;
 import com.wewin.hichat.model.db.entity.SortModel;
+import com.wewin.hichat.model.db.entity.UserRecordInfo;
 import com.wewin.hichat.model.http.HttpLogin;
 import com.wewin.hichat.view.search.CountrySearchActivity;
 
@@ -54,6 +55,7 @@ public class LoginActivity extends BaseActivity {
     private TextView promptTv;
     private final int INTENT_REQ_COUNTRY_SEARCH = 100;
     private CountryInfo countryInfo;
+    private UserRecordInfo userRecordInfo;
     private String phoneNum;
     private String password;
     private boolean isCookieInvalid;//cookie是否失效
@@ -85,6 +87,19 @@ public class LoginActivity extends BaseActivity {
         isCookieInvalid = getIntent().getBooleanExtra(LoginCons.EXTRA_LOGIN_COOKIE_INVALID, false);
         isCookieInvalidDialog = getIntent().getBooleanExtra(LoginCons.EXTRA_LOGIN_COOKIE_INVALID, false);
         cookieInvalidPrompt = getIntent().getStringExtra(LoginCons.EXTRA_LOGIN_COOKIE_INVALID_INFO);
+        if (TextUtils.isEmpty(phoneNum)){
+            String user=SpCons.getString(this,SpCons.USER_RECORD);
+            if (!TextUtils.isEmpty(user)){
+                userRecordInfo=JSON.parseObject(user,UserRecordInfo.class);
+                phoneNum=userRecordInfo.getPhoneNum();
+                countryInfo=new CountryInfo();
+                countryInfo.setCode(userRecordInfo.getCode());
+                countryInfo.setCountry(userRecordInfo.getCountry());
+            }
+        }
+        if (userRecordInfo==null){
+            userRecordInfo=new UserRecordInfo();
+        }
     }
 
     @Override
@@ -257,8 +272,17 @@ public class LoginActivity extends BaseActivity {
         SystemUtil.hideKeyboard(getHostActivity());
         String phoneNum = phoneNumEt.getText().toString().trim();
         String pwd = pwdEt.getText().toString().trim();
+        userRecordInfo.setPhoneNum(phoneNum);
+        userRecordInfo.setCode(countryInfo.getCode());
+        userRecordInfo.setCountry(countryInfo.getCountry());
+        SpCons.setString(getHostActivity(),SpCons.USER_RECORD,JSON.toJSONString(userRecordInfo));
         if (isLoginAvailable(phoneNum, pwd)) {
-            if ("+63".equals(countryInfo.getCode()) && phoneNum.startsWith("0")) {
+            boolean changePhone=((("+63".equals(countryInfo.getCode()))
+                    ||("+855".equals(countryInfo.getCode()))
+                    ||("+60".equals(countryInfo.getCode()))
+                    ||("+886".equals(countryInfo.getCode())))
+                    && phoneNum.startsWith("0"));
+            if (changePhone) {
                 phoneNum = phoneNum.substring(1, phoneNum.length());
             }
             login(phoneNum, pwd);

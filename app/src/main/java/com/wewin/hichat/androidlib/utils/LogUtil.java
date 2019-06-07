@@ -130,7 +130,7 @@ public class LogUtil {
                     dir.mkdir();
                 }
                 File noMediaDir = new File(path + "/" + ".nomedia");
-                if (!noMediaDir.exists()){
+                if (!noMediaDir.exists()) {
                     noMediaDir.mkdir();
                 }
                 File file = new File(path + "/" + filenameTime + LOG_FILE_NAME);

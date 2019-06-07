@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Random;
 
 /**
+ * 消息
+ * @author Darren
  * Created by Darren on 2018/12/17.
  */
 public class ChatMsg implements Serializable {
@@ -18,9 +20,9 @@ public class ChatMsg implements Serializable {
     public static final int TYPE_CONTENT_AT = 3;//@
     public static final int TYPE_CONTENT_SERVER_ACTION = 4;//服务器消息
 
-    public static final int TYPE_SEND_FAIL = -1;
-    public static final int TYPE_SENDING = 0;
-    public static final int TYPE_SEND_SUCCESS = 1;
+    public static final int TYPE_SEND_FAIL = -1;//发送失败
+    public static final int TYPE_SENDING = 0;//发送中
+    public static final int TYPE_SEND_SUCCESS = 1;//发送成功
 
     public static final int TYPE_AT_NORMAL = 0;//非@
     public static final int TYPE_AT_SINGLE = 1;//@我

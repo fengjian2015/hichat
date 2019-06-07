@@ -47,12 +47,12 @@ public class ImgUtil {
     //图片展示
     public static final String IMG_LIST_KEY = "IMG_LIST_KEY";
     public static final String IMG_CLICK_POSITION = "IMG_CLICK_POSITION";
+    public static final String IMG_DONWLOAD = "IMG_DONWLOAD";
     public static final String IMG_BEAN_LIST_KEY = "IMG_BEAN_LIST_KEY";
 
     private static RequestOptions circleOptions = new RequestOptions()
             .placeholder(R.drawable.img_avatar_default)
             .error(R.drawable.img_avatar_default)
-            .centerCrop()
             .circleCrop()
             .fallback(R.drawable.img_avatar_default);
 
@@ -250,10 +250,10 @@ public class ImgUtil {
             intent.putExtra("crop", "true");
             // 裁剪框的比例（根据需要显示的图片比例进行设置）
             if (type == IMG_CROP_SIZE_1) {
-                intent.putExtra("aspectX", 3);
+                intent.putExtra("aspectX", 2);
                 intent.putExtra("aspectY", 2);
                 // 裁剪后图片的宽高（注意和上面的裁剪比例保持一致)
-                intent.putExtra("outputX", 900);
+                intent.putExtra("outputX", 600);
                 intent.putExtra("outputY", 600);
             } else if (type == IMG_CROP_SIZE_2) {
                 intent.putExtra("aspectX", 26);

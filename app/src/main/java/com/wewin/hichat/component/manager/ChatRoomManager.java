@@ -99,6 +99,7 @@ public class ChatRoomManager {
             return;
         }
         Intent intent = new Intent(context, ChatRoomActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.putExtra(ContactCons.EXTRA_CONTACT_CHAT_ROOM, chatRoom);
         intent.putExtra(ContactCons.EXTRA_MESSAGE_CHAT_START_TIMESTAMP, startTimestamp);
         context.startActivity(intent);
@@ -117,6 +118,7 @@ public class ChatRoomManager {
         }
         ChatRoom chatRoom = packChatRoom(groupId, ChatRoom.TYPE_GROUP);
         Intent intent = new Intent(context, ChatRoomActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.putExtra(ContactCons.EXTRA_CONTACT_CHAT_ROOM, chatRoom);
         intent.putExtra(ContactCons.EXTRA_MESSAGE_CHAT_START_TIMESTAMP, startTimestamp);
         context.startActivity(intent);
@@ -125,14 +127,13 @@ public class ChatRoomManager {
     /**
      * 获取房间,解析消息时创建的房间
      */
-    public static ChatRoom getChatRoom(ChatMsg chatMsg) {
+    public static ChatRoom getChatRoom(ChatMsg chatMsg,boolean at) {
         ChatRoom chatRoom = packChatRoom(chatMsg.getRoomId(), chatMsg.getRoomType());
         if (chatRoom == null) {
             return null;
         }
         //处理@功能文本内容
-        if (chatMsg.getAtFriendMap() != null
-                && chatRoom.getAtType() != ChatMsg.TYPE_AT_ALL) {
+        if (chatMsg.getAtFriendMap() != null &&at) {
             if (chatMsg.getAtFriendMap().containsKey("0")) {
                 chatRoom.setAtType(ChatMsg.TYPE_AT_ALL);
             } else if (chatMsg.getAtFriendMap().containsKey(UserDao.user.getId())) {
@@ -232,8 +233,6 @@ public class ChatRoomManager {
 
     /**
      * 转发消息
-     * @param chatMsg
-     * @return
      */
     public static ChatMsg packForwardMsg(ChatMsg chatMsg,String roomType,String roomId){
         chatMsg.setRoomType(roomType);
@@ -323,11 +322,22 @@ public class ChatRoomManager {
                 || chatMsg.getVoiceCall().getConnectState() == VoiceCall.BUSY)) {
             return;
         }
+        if (chatMsg.getVoiceCall()!=null){
+            ChatMsg chatMsg1=MessageDao.getVoiceCall(chatMsg.getVoiceCall().getChannel());
+            if (chatMsg1!=null){
+                LogUtil.e("走入删除操作"+chatMsg1.getVoiceCall().getChannel());
+                MessageDao.deleteVoiceChannel(chatMsg1.getVoiceCall().getChannel());
+            }
+        }
         MessageDao.addMessage(chatMsg);
+        ChatRoom chatRoom;
         if (isSend) {
             MessageSendingDao.addMessage(chatMsg);
+             chatRoom = ChatRoomManager.getChatRoom(chatMsg,false);
+        }else {
+             chatRoom = ChatRoomManager.getChatRoom(chatMsg,true);
         }
-        ChatRoom chatRoom = ChatRoomManager.getChatRoom(chatMsg);
+
         if (chatRoom == null) {
             return;
         }
@@ -539,7 +549,11 @@ public class ChatRoomManager {
             return;
         }
         ChatSocket.getInstance().send(chatMsg);
-        HttpContact.uploadFile(chatMsg.getFileInfo().getOriginPath(), chatMsg.getFileInfo().getFileType(),
+        String url=chatMsg.getFileInfo().getOriginPath();
+        if (fileInfo.getFileType()==FileInfo.TYPE_IMG){
+            url=chatMsg.getFileInfo().getCompressPath();
+        }
+        HttpContact.uploadFile(url, chatMsg.getFileInfo().getFileType(),
                 chatRoom.getRoomId(), chatRoom.getRoomType(), fileInfo.getDuration(), new HttpCallBack(context, ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
