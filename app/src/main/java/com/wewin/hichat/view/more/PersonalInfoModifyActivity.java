@@ -147,7 +147,7 @@ public class PersonalInfoModifyActivity extends BaseActivity {
                 SpCons.getUser(getAppContext()).getGender(),
                 SpCons.getUser(getAppContext()).getId(), sign, username,
                 SpCons.getUser(getAppContext()).getVibratesCues(),
-                new HttpCallBack(getApplicationContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         ToastUtil.showShort(getApplicationContext(), R.string.modify_success);
@@ -176,7 +176,7 @@ public class PersonalInfoModifyActivity extends BaseActivity {
 
     private void uploadPersonalAvatar(File file) {
         HttpMore.uploadPersonalAvatar(file, SpCons.getUser(getAppContext()).getId(), "", "jpg",
-                new HttpCallBack(getApplicationContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         if (data == null) {

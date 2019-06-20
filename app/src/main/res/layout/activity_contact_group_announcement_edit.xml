@@ -31,7 +31,8 @@
             android:paddingRight="17dp"
             android:paddingTop="6dp"
             android:paddingBottom="6dp"
-            android:maxLines="1"
+            android:maxLines="2"
+            android:text=""
             android:ellipsize="end"
             android:hint="@string/announcement_title_hint"
             android:textSize="@dimen/font_size_14"
@@ -83,7 +84,7 @@
             android:paddingLeft="17dp"
             android:paddingRight="17dp"
             android:paddingTop="10dp"
-            android:paddingBottom="20dp"
+            android:paddingBottom="25dp"
             />
 
         <TextView

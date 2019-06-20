@@ -247,7 +247,7 @@ public class FriendSearchFragment extends BaseFragment {
         if (changePhone) {
             phoneNum = phoneNum.substring(1, phoneNum.length());
         }
-        HttpContact.searchFriend(1, phoneNum, new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
+        HttpContact.searchFriend(1, phoneNum, new HttpCallBack(getHostActivity(), ClassUtil.classMethodName(),true) {
             @Override
             public void success(Object data, int count) {
                 if (data == null) {
@@ -324,7 +324,7 @@ public class FriendSearchFragment extends BaseFragment {
 
     private void applyAddFriend(String friendId, String verifyInfo, String groupingId) {
         HttpContact.applyAddFriend(friendId, verifyInfo, groupingId, SpCons.getUser(getHostActivity()).getId(),
-                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
+                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         resultApplyBtn.setText(getString(R.string.applying));

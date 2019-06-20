@@ -166,6 +166,8 @@ public class HttpCons {
     public static final String PATH_MESSAGE_GET_LIST = SERVER_HTTP + "mobile/message/message_conversation_search";
     //删除单条消息
     public static final String PATH_MESSAGE_REMOVE_MESSAGE = SERVER_HTTP + "mobile/message/remove_message";
+    //获取需要删除的消息ID集合
+    public static final String PATH_MESSAGE_GET_DELETE_LIST = SERVER_HTTP + "mobile/message/get_delete_msg";
 
     private static final String HTTPS_CER_DEBUG = "-----BEGIN CERTIFICATE-----\n" +
             "MIIFVDCCBDygAwIBAgISA6i/RbJGn4ddMse61hRwk+JSMA0GCSqGSIb3DQEBCwUA\n" +

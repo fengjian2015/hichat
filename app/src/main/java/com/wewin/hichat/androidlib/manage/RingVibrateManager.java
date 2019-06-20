@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Vibrator;
@@ -79,6 +80,13 @@ public class RingVibrateManager {
     public void playSmsRing(Context context){
         Uri ringUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         playRing(context, ringUri,null);
+    }
+
+    //获取手机默认短信铃声的Uri
+    public void playSmsRingtone(Context context){
+        Uri ringUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        Ringtone r = RingtoneManager.getRingtone(context, ringUri);
+        r.play();
     }
 
     //播放铃声

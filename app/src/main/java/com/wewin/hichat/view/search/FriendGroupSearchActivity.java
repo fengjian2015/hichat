@@ -113,6 +113,7 @@ public class FriendGroupSearchActivity extends BaseActivity {
                 } else {
                     ChatRoomManager.startSingleRoomActivity(getHostActivity(), clickFriend.getId());
                 }
+                finish();
             }
         });
     }
@@ -139,7 +140,11 @@ public class FriendGroupSearchActivity extends BaseActivity {
     private void parseSortLetter(List<FriendInfo> friendInfoList) {
         for (FriendInfo friendInfo : friendInfoList) {
             //汉字转换成拼音
-            String pinyin = characterParser.getSelling(friendInfo.getUsername());
+            String name=friendInfo.getFriendNote();
+            if (TextUtils.isEmpty(name)){
+                name=friendInfo.getUsername();
+            }
+            String pinyin = characterParser.getSelling(name);
             String sortString = pinyin.substring(0, 1).toUpperCase();
             // 正则表达式，判断首字母是否是英文字母
             if (sortString.matches("[A-Z]")) {

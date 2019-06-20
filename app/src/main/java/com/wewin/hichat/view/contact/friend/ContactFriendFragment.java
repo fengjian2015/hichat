@@ -235,7 +235,7 @@ public class ContactFriendFragment extends BaseFragment {
 
     private void createSubgroup(String subgroupName) {
         HttpContact.createSubgroup(subgroupName, SpCons.getUser(getHostActivity()).getId(),
-                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
+                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         getSubgroupFriendList();
@@ -245,7 +245,7 @@ public class ContactFriendFragment extends BaseFragment {
 
     private void renameSubgroup(String subgroupId, String subgroupName) {
         HttpContact.renameSubgroup(subgroupId, subgroupName,
-                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
+                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         getSubgroupFriendList();
@@ -255,7 +255,7 @@ public class ContactFriendFragment extends BaseFragment {
 
     private void deleteSubgroup(String subgroupId) {
         HttpContact.deleteFriendSubgroup(subgroupId,
-                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
+                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         getSubgroupFriendList();

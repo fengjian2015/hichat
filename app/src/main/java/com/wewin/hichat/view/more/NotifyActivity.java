@@ -136,7 +136,7 @@ public class NotifyActivity extends BaseActivity {
 
     private void getNotifyList(final int currentPage) {
         HttpMore.getNotifyList(LIMIT_PAGE, currentPage,
-                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         LogUtil.i("currentPage", currentPage);
@@ -183,7 +183,7 @@ public class NotifyActivity extends BaseActivity {
 
     private void agreeFriendAdd(String subgroupId, final int position) {
         HttpMore.agreeFriendAdd(subgroupId, mNotifyList.get(position).getNoticeId(),
-                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         mNotifyList.get(position).setStatus(Notify.STATUS_AGREE);
@@ -195,7 +195,7 @@ public class NotifyActivity extends BaseActivity {
 
     private void refuseFriendAdd(String notifyId, final int position) {
         HttpMore.refuseFriendAdd(notifyId,
-                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         mNotifyList.get(position).setStatus(Notify.STATUS_REFUSE);
@@ -206,7 +206,7 @@ public class NotifyActivity extends BaseActivity {
 
     private void agreeGroupJoin(String msgId, final int position) {
         HttpMore.agreeGroupJoin(msgId,
-                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         mNotifyList.get(position).setStatus(Notify.STATUS_AGREE);
@@ -218,7 +218,7 @@ public class NotifyActivity extends BaseActivity {
 
     private void refuseGroupJoin(String msgId, final int position) {
         HttpMore.refuseGroupJoin(msgId,
-                new HttpCallBack(getApplicationContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         mNotifyList.get(position).setStatus(Notify.STATUS_REFUSE);
@@ -254,6 +254,7 @@ public class NotifyActivity extends BaseActivity {
                     if (!isMatch) {
                         mNotifyList.add(0, notifyInfo);
                     }
+                    rcvAdapter.notifyDataSetChanged();
                 } else {
                     getNotifyList(mainCurrentPage);
                 }

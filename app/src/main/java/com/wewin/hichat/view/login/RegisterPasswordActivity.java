@@ -126,7 +126,7 @@ public class RegisterPasswordActivity extends BaseActivity {
 
     private void retrievePassword(final String newPwd) {
         HttpLogin.retrievePassword(newPwd, phoneNum,
-                new HttpCallBack(getApplicationContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         ToastUtil.showShort(getApplicationContext(), R.string.modify_success);

@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 
 import com.alibaba.fastjson.JSONObject;
 import com.wewin.hichat.androidlib.manage.DbManager;
+import com.wewin.hichat.androidlib.utils.LogUtil;
 import com.wewin.hichat.model.db.entity.ChatMsg;
 import com.wewin.hichat.model.db.entity.ChatRoom;
 import com.wewin.hichat.model.db.entity.FriendInfo;
@@ -134,13 +135,13 @@ public class ChatRoomDao {
     /**
      * 获取@type
      */
-    public static int getAtType(String roomId,String roomType) {
+    public static int getAtType(String roomId, String roomType) {
         int atType = 0;
         try {
             SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
             Cursor cursor = db.rawQuery("select " + AT_TYPE + " from " + TABLE_NAME + " where " + ROOM_ID + " = ? and " +
-                    ROOM_TYPE + " = ? and " + USER_ID + " = ?",
-                    new String[]{roomId,roomType, UserDao.user.getId()});
+                            ROOM_TYPE + " = ? and " + USER_ID + " = ?",
+                    new String[]{roomId, roomType, UserDao.user.getId()});
             if (cursor != null) {
                 if (cursor.getCount() > 0 && cursor.moveToNext()) {
                     atType = cursor.getInt(cursor.getColumnIndex(AT_TYPE));
@@ -296,7 +297,7 @@ public class ChatRoomDao {
             values.put(LAST_MSG_TIME, chatRoom.getLastChatMsg().getCreateTimestamp());
         } else {
             values.put(LAST_MSG_ID, "0");
-            values.put(LAST_MSG_TIME, "0");
+//            values.put(LAST_MSG_TIME, "0");
         }
         values.put(TOP_MARK, chatRoom.getTopMark());
         values.put(SHIELD_MARK, chatRoom.getShieldMark());
@@ -312,9 +313,13 @@ public class ChatRoomDao {
         ChatRoom chatRoom = new ChatRoom();
         chatRoom.setRoomId(cursor.getString(cursor.getColumnIndex(ROOM_ID)));
         chatRoom.setRoomType(cursor.getString(cursor.getColumnIndex(ROOM_TYPE)));
-        chatRoom.setLastChatMsg(MessageDao.getLastMessageByRoomId(chatRoom.getRoomId(),
-                chatRoom.getRoomType()));
-        chatRoom.setLastMsgTime(cursor.getLong(cursor.getColumnIndex(LAST_MSG_TIME)));
+        ChatMsg lastMessage = MessageDao.getLastMessageByRoomId(chatRoom.getRoomId(), chatRoom.getRoomType());
+        chatRoom.setLastChatMsg(lastMessage);
+        if (lastMessage != null) {
+            chatRoom.setLastMsgTime(lastMessage.getCreateTimestamp());
+        } else {
+            chatRoom.setLastMsgTime(cursor.getLong(cursor.getColumnIndex(LAST_MSG_TIME)));
+        }
         chatRoom.setTopMark(cursor.getInt(cursor.getColumnIndex(TOP_MARK)));
         chatRoom.setShieldMark(cursor.getInt(cursor.getColumnIndex(SHIELD_MARK)));
         chatRoom.setUnreadNum(cursor.getInt(cursor.getColumnIndex(UNREAD_NUM)));

@@ -76,6 +76,19 @@
         <item name="android:backgroundDimEnabled">false</item>
     </style>
 
+    <!--加载中dialog-->
+    <style name="LoadingProgressDialog" parent="@android:style/Theme.Dialog">
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowAnimationStyle">@android:style/Animation.Dialog</item>
+        <item name="android:windowSoftInputMode">stateUnspecified|adjustPan</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">false</item><!-- dim:模糊的 阴影效果 -->
+    </style>
+
+
     <style name="dialog_common" parent="android:style/Theme.Dialog">
         <item name="android:background">@color/none_color</item>
         <!-- 背景透明 -->

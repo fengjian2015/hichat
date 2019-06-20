@@ -190,7 +190,6 @@ public class GroupMemberListActivity extends BaseActivity {
                                     ToastUtil.showShort(GroupMemberListActivity.this,getString(R.string.allow_add_prompt));
                                     break;
                                 }
-                                EventTrans.post(EventMsg.CONVERSATION_CHAT_FINISH);
                                 FriendInfo member = memberList.get(memberPosition);
                                 ChatRoomManager.startSingleRoomActivity(getHostActivity(), member);
                                 break;
@@ -231,7 +230,7 @@ public class GroupMemberListActivity extends BaseActivity {
 
     private void getGroupMemberList(String groupId) {
         HttpContact.getGroupMemberList(groupId, -1,
-                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         if (data == null) {
@@ -301,7 +300,7 @@ public class GroupMemberListActivity extends BaseActivity {
 
     private void setGroupManager(final int position, final int managerType) {
         HttpContact.setGroupManager(memberList.get(position).getId(), mGroupInfo.getId(), managerType,
-                new HttpCallBack(getApplicationContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         getGroupMemberList(mGroupInfo.getId());
@@ -316,7 +315,7 @@ public class GroupMemberListActivity extends BaseActivity {
 
     private void applyAddFriend(String friendId, String verifyInfo, String groupingId) {
         HttpContact.applyAddFriend(friendId, verifyInfo, groupingId, SpCons.getUser(getAppContext()).getId(),
-                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
+                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         if(data==null){
@@ -330,7 +329,7 @@ public class GroupMemberListActivity extends BaseActivity {
 
     private void moveOutGroupMember(final int position, final String groupId, final FriendInfo member) {
         HttpContact.moveOutGroupMember(memberList.get(position).getGrade(), groupId, member.getId(),
-                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         EventTrans.post(EventMsg.CONTACT_GROUP_REMOVE_MEMBER, mGroupInfo, null, member);

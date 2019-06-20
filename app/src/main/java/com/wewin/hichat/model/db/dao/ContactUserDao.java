@@ -113,6 +113,21 @@ public class ContactUserDao {
         }
     }
 
+    public static void deleteFriend(String friendId) {
+        SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
+        db.beginTransaction();
+        try {
+            db.delete(TABLE_NAME, CONTACT_ID + " = ? and " + USER_ID + " = ?",
+                    new String[]{friendId, UserDao.user.getId()});
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            db.endTransaction();
+            DbManager.getInstance().closeDatabase();
+        }
+    }
+
     private static ContentValues packContentValue(FriendInfo friendInfo) {
         ContentValues values = new ContentValues();
         values.put(CONTACT_ID, friendInfo.getId());

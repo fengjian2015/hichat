@@ -62,6 +62,7 @@ public class MessageSendingDao {
     public static final String PHONE_MARK = "phone_mark";
     public static final String URL_MARK = "url_mark";
     public static final String USER_ID = "user_id";
+    public static final String COMPRESS_PATH="compress_path";
 
 
     public static void addMessage(ChatMsg chatMsg) {
@@ -157,6 +158,7 @@ public class MessageSendingDao {
             fileInfo.setSavePath(cursor.getString(cursor.getColumnIndex(SAVE_PATH)));
             fileInfo.setDuration(cursor.getLong(cursor.getColumnIndex(DURATION)));
             fileInfo.setTapeUnreadMark(cursor.getInt(cursor.getColumnIndex(TAPE_UNREAD_MARK)));
+            fileInfo.setCompressPath(cursor.getString(cursor.getColumnIndex(COMPRESS_PATH)));
             chatMsg.setFileInfo(fileInfo);
         } else if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_VOICE_CALL) {
             VoiceCall voiceCall = new VoiceCall();
@@ -193,9 +195,10 @@ public class MessageSendingDao {
         values.put(CREATE_TIMESTAMP, chatMsg.getCreateTimestamp());
         values.put(CREATE_TIME, TimeUtil.timestampToStr(chatMsg.getCreateTimestamp()));
         values.put(REPLY_MSG_ID, chatMsg.getReplyMsgId());
-        if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_AT) {
+        if ((chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_AT
+                ||chatMsg.getContentType()==ChatMsg.TYPE_CONTENT_REPLY)
+                &&chatMsg.getAtFriendMap()!=null) {
             values.put(AT_FRIEND_MAP, JSON.toJSONString(chatMsg.getAtFriendMap()));
-
         } else if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_FILE
                 && chatMsg.getFileInfo() != null) {
             values.put(FILE_ID, chatMsg.getFileInfo().getId());
@@ -208,6 +211,7 @@ public class MessageSendingDao {
             values.put(SAVE_PATH, chatMsg.getFileInfo().getSavePath());
             values.put(DURATION, chatMsg.getFileInfo().getDuration());
             values.put(TAPE_UNREAD_MARK, chatMsg.getFileInfo().getTapeUnreadMark());
+            values.put(COMPRESS_PATH,chatMsg.getFileInfo().getCompressPath());
 
         } else if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_VOICE_CALL
                 && chatMsg.getVoiceCall() != null) {

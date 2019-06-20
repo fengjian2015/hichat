@@ -5,6 +5,7 @@ import android.content.Context;
 
 import com.facebook.stetho.Stetho;
 import com.wewin.hichat.androidlib.manage.DbManager;
+import com.wewin.hichat.androidlib.threadpool.CustomThreadPool;
 import com.wewin.hichat.androidlib.umeng.UMMessage;
 import com.wewin.hichat.androidlib.utils.EmoticonUtil;
 import com.wewin.hichat.androidlib.utils.HttpUtil;
@@ -42,6 +43,7 @@ public class MainApplication extends Application {
         //facebook数据库调式工具
         Stetho.initializeWithDefaults(this);
         CallSmallDialog.init(this);
+        CustomThreadPool.getInstance().init();
     }
 
 }

@@ -16,6 +16,7 @@ import com.wewin.hichat.androidlib.datamanager.SpCache;
 import com.wewin.hichat.androidlib.event.EventTrans;
 import com.wewin.hichat.androidlib.event.EventMsg;
 import com.wewin.hichat.androidlib.utils.ClassUtil;
+import com.wewin.hichat.androidlib.utils.FileUtil;
 import com.wewin.hichat.androidlib.utils.ImgUtil;
 import com.wewin.hichat.androidlib.utils.LogUtil;
 import com.wewin.hichat.androidlib.utils.ToastUtil;
@@ -34,10 +35,13 @@ import com.wewin.hichat.model.db.dao.MessageDao;
 import com.wewin.hichat.model.db.entity.ChatRoom;
 import com.wewin.hichat.model.db.entity.FriendInfo;
 import com.wewin.hichat.androidlib.impl.HttpCallBack;
+import com.wewin.hichat.model.db.entity.ImgUrl;
 import com.wewin.hichat.model.db.entity.Subgroup;
 import com.wewin.hichat.model.http.HttpContact;
 import com.wewin.hichat.model.http.HttpMessage;
+import com.wewin.hichat.view.album.ImgShowActivity;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -119,6 +123,7 @@ public class FriendInfoActivity extends BaseActivity {
         deleteFriendTv.setOnClickListener(this);
         friendNoteTv.setOnClickListener(this);
         addFriendTv.setOnClickListener(this);
+        avatarIv.setOnClickListener(this);
     }
 
     @Override
@@ -189,6 +194,19 @@ public class FriendInfoActivity extends BaseActivity {
                 Subgroup friendSubgroup = (Subgroup) spCache.getObject(SpCons.SP_KEY_FRIEND_SUBGROUP);
                 applyAddFriend(mFriendInfo.getId(), SpCons.getUser(getAppContext()).getUsername() + getString(R.string.apply_add_friend),
                         friendSubgroup.getId());
+                break;
+
+            case R.id.civ_contact_friend_info_avatar:
+                //多选则跳转图片展示
+                Intent intent = new Intent(getApplicationContext(), ImgShowActivity.class);
+                intent.putExtra(ImgUtil.IMG_CLICK_POSITION, 0);
+                ArrayList<ImgUrl> mDataList = new ArrayList<>();
+                ImgUrl imgUrl = new ImgUrl(mFriendInfo.getAvatar());
+                imgUrl.setFileName(mFriendInfo.getId()+mFriendInfo.getUsername()+".jpg");
+                mDataList.add(imgUrl);
+                intent.putExtra(ImgUtil.IMG_LIST_KEY, mDataList);
+                intent.putExtra(ImgUtil.IMG_DONWLOAD, true);
+                startActivity(intent);
                 break;
 
             default:
@@ -318,7 +336,7 @@ public class FriendInfoActivity extends BaseActivity {
 
     private void getFriendInfo(final String friendId) {
         HttpContact.getFriendInfo(friendId,
-                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         if (data == null) {
@@ -339,7 +357,7 @@ public class FriendInfoActivity extends BaseActivity {
 
     private void pullBlackFriend(final String friendId, final int blackMark, int friendShipMark) {
         HttpContact.pullBlackFriend(friendId, blackMark, friendShipMark,
-                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         if (mFriendInfo != null) {
@@ -348,7 +366,7 @@ public class FriendInfoActivity extends BaseActivity {
                             setViewByData();
                             if (mFriendInfo.getBlackMark() == 1) {
                                 ChatRoomDao.deleteRoom(friendId, ChatRoom.TYPE_SINGLE);
-                                MessageDao.updateShowMark(friendId, ChatRoom.TYPE_SINGLE);
+                                MessageDao.deleteRoomMsg(friendId, ChatRoom.TYPE_SINGLE);
                             }
                             EventTrans.post(EventMsg.CONTACT_FRIEND_BLACK_REFRESH, friendId);
                         }
@@ -358,7 +376,7 @@ public class FriendInfoActivity extends BaseActivity {
 
     private void shieldFriendConversation(final String friendId, final int shieldMark) {
         HttpContact.shieldFriendConversation(friendId, shieldMark, FriendDao.findFriendshipMark(friendId),
-                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         if (mFriendInfo == null) {
@@ -377,7 +395,7 @@ public class FriendInfoActivity extends BaseActivity {
 
     private void makeTopFriend(final String friendId, final int topMark, int friendShipMark) {
         HttpContact.makeTopFriend(friendId, topMark, friendShipMark,
-                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         if (mFriendInfo == null) {
@@ -395,12 +413,12 @@ public class FriendInfoActivity extends BaseActivity {
 
     private void deleteFriend(String accountId, final String friendId) {
         HttpContact.deleteFriend(accountId, friendId,
-                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         ToastUtil.showShort(getAppContext(), R.string.delete_success);
                         ChatRoomDao.deleteRoom(friendId, ChatRoom.TYPE_SINGLE);
-                        MessageDao.updateShowMark(friendId, ChatRoom.TYPE_SINGLE);
+                        MessageDao.deleteRoomMsg(friendId, ChatRoom.TYPE_SINGLE);
                         FriendDao.deleteFriend(friendId);
                         EventTrans.post(EventMsg.CONTACT_FRIEND_DELETE_REFRESH, friendId);
                     }
@@ -409,7 +427,7 @@ public class FriendInfoActivity extends BaseActivity {
 
     private void modifyFriendNote(String accountId, final String friendId, final String friendNote, int friendShipMark) {
         HttpContact.modifyFriendNote(accountId, friendId, friendNote, friendShipMark,
-                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         friendNoteTv.setText(friendNote);
@@ -428,11 +446,11 @@ public class FriendInfoActivity extends BaseActivity {
 
     private void clearConversation(final String friendId) {
         HttpMessage.deleteSingleConversation(friendId, ChatRoom.TYPE_SINGLE,
-                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         ChatRoomDao.clearConversation(friendId, ChatRoom.TYPE_SINGLE);
-                        MessageDao.updateShowMark(friendId, ChatRoom.TYPE_SINGLE);
+                        MessageDao.deleteRoomMsg(friendId, ChatRoom.TYPE_SINGLE);
                         EventTrans.post(EventMsg.CONVERSATION_CLEAR_REFRESH, mFriendInfo.getId());
                         ToastUtil.showShort(getAppContext(), R.string.cleared);
                     }
@@ -441,7 +459,7 @@ public class FriendInfoActivity extends BaseActivity {
 
     private void applyAddFriend(String friendId, String verifyInfo, String groupingId) {
         HttpContact.applyAddFriend(friendId, verifyInfo, groupingId, SpCons.getUser(getAppContext()).getId(),
-                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
+                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         if (data == null) {

@@ -1,5 +1,6 @@
 package com.wewin.hichat.model.db.entity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -81,6 +82,15 @@ public class ServerConversation {
         private int topMark;
         private int unreadNum;
         private String unSyncMsgFirstId;//未同步的最早一条消息id
+        private ArrayList<String> needDropMsgIdArray;//需要删除的消息id
+
+        public ArrayList<String> getNeedDropMsgIdArray() {
+            return needDropMsgIdArray;
+        }
+
+        public void setNeedDropMsgIdArray(ArrayList<String> needDropMsgIdArray) {
+            this.needDropMsgIdArray = needDropMsgIdArray;
+        }
 
         public String getUnSyncMsgFirstId() {
             return unSyncMsgFirstId;

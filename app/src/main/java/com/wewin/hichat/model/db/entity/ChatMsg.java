@@ -18,7 +18,7 @@ public class ChatMsg implements Serializable {
     public static final int TYPE_CONTENT_VOICE_CALL = 1;//语音通话
     public static final int TYPE_CONTENT_FILE = 2;//文件图片
     public static final int TYPE_CONTENT_AT = 3;//@
-    public static final int TYPE_CONTENT_SERVER_ACTION = 4;//服务器消息
+    public static final int TYPE_CONTENT_REPLY = 4;//回复消息
 
     public static final int TYPE_SEND_FAIL = -1;//发送失败
     public static final int TYPE_SENDING = 0;//发送中
@@ -40,7 +40,7 @@ public class ChatMsg implements Serializable {
     private String senderId;//发送者id
     private String receiverId;//接收者id
     private String groupId;//群id
-    private int contentType;//0文本; 1语音通话; 2文件图片; 3@; 4系统消息
+    private int contentType;//0文本; 1语音通话; 2文件图片; 3@; 4回复消息
     private String content;//消息内容
     private String contentDesc;//版本不支持时的提示内容
     private long createTimestamp;//消息生成时间戳
@@ -53,6 +53,7 @@ public class ChatMsg implements Serializable {
     private FriendInfo receiverInfo;//临时会话接收者信息
     private int friendshipMark;//好友标识 0 非好友 1 好友
     private int deleteMark;//记录是否本地删除 0未删除 1删除
+    private ReplyMsgInfo replyMsgInfo;//被回复消息内容
 
     private int sendState;//发送状态 -1发送失败； 0发送中；1发送成功；
     private int emoMark;//是否包含表情
@@ -110,16 +111,16 @@ public class ChatMsg implements Serializable {
         }
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this){
-            return true;
-        }
-        if (!(obj instanceof ChatMsg)){
-            return false;
-        }
-        return msgId.equals(((ChatMsg) obj).msgId);
-    }
+//    @Override
+//    public boolean equals(Object obj) {
+//        if (obj == this){
+//            return true;
+//        }
+//        if (!(obj instanceof ChatMsg)){
+//            return false;
+//        }
+//        return msgId.equals(((ChatMsg) obj).msgId);
+//    }
 
     @Override
     public int hashCode() {
@@ -130,6 +131,14 @@ public class ChatMsg implements Serializable {
         }else {
             return new Random().nextInt(1000) * 31 + UUIDUtil.get32UUID().hashCode();
         }
+    }
+
+    public ReplyMsgInfo getReplyMsgInfo() {
+        return replyMsgInfo;
+    }
+
+    public void setReplyMsgInfo(ReplyMsgInfo replyMsgInfo) {
+        this.replyMsgInfo = replyMsgInfo;
     }
 
     public int getDeleteMark() {

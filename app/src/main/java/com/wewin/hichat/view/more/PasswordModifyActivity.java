@@ -107,7 +107,7 @@ public class PasswordModifyActivity extends BaseActivity {
 
     private void modifyPassword(String newPwd, String oldPwd) {
         HttpLogin.modifyPassword(newPwd, oldPwd, SpCons.getUser(getAppContext()).getPhone(), 0,
-                new HttpCallBack(getApplicationContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         ToastUtil.showShort(getApplicationContext(), R.string.modify_success);

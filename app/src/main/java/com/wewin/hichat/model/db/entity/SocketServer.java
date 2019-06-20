@@ -362,6 +362,24 @@ public class SocketServer {
         private int msgRecordMark;
         private int shieldMark;
         private int topMark;
+        private int isRead;
+        private ChatMsg latestMessage;
+
+        public ChatMsg getLatestMessage() {
+            return latestMessage;
+        }
+
+        public void setLatestMessage(ChatMsg latestMessage) {
+            this.latestMessage = latestMessage;
+        }
+
+        public int getIsRead() {
+            return isRead;
+        }
+
+        public void setIsRead(int isRead) {
+            this.isRead = isRead;
+        }
 
         public String getConversationId() {
             return conversationId;
@@ -418,6 +436,7 @@ public class SocketServer {
         public void setTopMark(int topMark) {
             this.topMark = topMark;
         }
+
     }
 
     public static class ExecutorInfo{

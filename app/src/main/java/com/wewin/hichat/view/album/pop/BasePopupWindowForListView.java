@@ -71,7 +71,7 @@ public abstract class BasePopupWindowForListView<T> extends PopupWindow {
         return mContentView.findViewById(id);
     }
 
-    protected static int dpToPx(Context context, int dp) {
+    protected static int Px(Context context, int dp) {
         return (int) (context.getResources().getDisplayMetrics().density * dp + 0.5f);
     }
 

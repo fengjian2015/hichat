@@ -28,12 +28,16 @@ import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.component.dialog.PromptDialog;
 import com.wewin.hichat.component.dialog.SexDialog;
 import com.wewin.hichat.model.db.dao.UserDao;
+import com.wewin.hichat.model.db.entity.ImgUrl;
 import com.wewin.hichat.model.db.entity.LoginUser;
 import com.wewin.hichat.model.db.entity.VersionBean;
 import com.wewin.hichat.model.http.HttpLogin;
 import com.wewin.hichat.model.http.HttpMore;
+import com.wewin.hichat.view.album.ImgShowActivity;
 import com.wewin.hichat.view.conversation.DocViewActivity;
 import com.wewin.hichat.view.login.LoginActivity;
+
+import java.util.ArrayList;
 
 /**
  * 主页-通知
@@ -109,6 +113,7 @@ public class MoreFragment extends BaseFragment {
         aboutFl.setOnClickListener(this);
         logoutTv.setOnClickListener(this);
         checkFl.setOnClickListener(this);
+        avatarIv.setOnClickListener(this);
     }
 
     @Override
@@ -157,6 +162,18 @@ public class MoreFragment extends BaseFragment {
                 if (getHostActivity() instanceof MainActivity){
                     ((MainActivity)getHostActivity()).checkVersion();
                 }
+                break;
+            case R.id.civ_more_personal_avatar:
+                //多选则跳转图片展示
+                Intent intent1 = new Intent(getHostActivity(), ImgShowActivity.class);
+                intent1.putExtra(ImgUtil.IMG_CLICK_POSITION, 0);
+                ArrayList<ImgUrl> mDataList = new ArrayList<>();
+                ImgUrl imgUrl = new ImgUrl(SpCons.getUser(getHostActivity()).getAvatar());
+                imgUrl.setFileName(SpCons.getUser(getHostActivity()).getId()+SpCons.getUser(getHostActivity()).getUsername()+".jpg");
+                mDataList.add(imgUrl);
+                intent1.putExtra(ImgUtil.IMG_LIST_KEY, mDataList);
+                intent1.putExtra(ImgUtil.IMG_DONWLOAD, true);
+                startActivity(intent1);
                 break;
             default:
                 break;
@@ -241,7 +258,7 @@ public class MoreFragment extends BaseFragment {
         HttpMore.modifyAccountInfo(audioCues, gender, SpCons.getUser(getHostActivity()).getId(),
                 SpCons.getUser(getHostActivity()).getSign(),
                 SpCons.getUser(getHostActivity()).getUsername(), vibratesCues,
-                new HttpCallBack(getActivity(), ClassUtil.classMethodName()) {
+                new HttpCallBack(getActivity(), ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         LoginUser user = SpCons.getUser(getHostActivity());
@@ -279,7 +296,7 @@ public class MoreFragment extends BaseFragment {
     }
 
     private void logout() {
-        HttpLogin.logout(new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
+        HttpLogin.logout(new HttpCallBack(getHostActivity(), ClassUtil.classMethodName(),true) {
             @Override
             public void success(Object data, int count) {
                 CommonUtil.clearDataByLogout(getHostActivity());

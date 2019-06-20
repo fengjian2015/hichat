@@ -10,8 +10,10 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
 
 import com.alibaba.fastjson.JSON;
 import com.wewin.hichat.R;
@@ -19,6 +21,9 @@ import com.wewin.hichat.androidlib.event.EventMsg;
 import com.wewin.hichat.androidlib.event.EventTrans;
 import com.wewin.hichat.androidlib.impl.HttpCallBack;
 import com.wewin.hichat.androidlib.utils.ClassUtil;
+import com.wewin.hichat.androidlib.utils.LogUtil;
+import com.wewin.hichat.androidlib.utils.NameUtil;
+import com.wewin.hichat.androidlib.utils.TimeUtil;
 import com.wewin.hichat.androidlib.utils.ToastUtil;
 import com.wewin.hichat.model.db.dao.GroupDao;
 import com.wewin.hichat.model.db.dao.MessageDao;
@@ -44,10 +49,20 @@ public class ChatPopupWindow extends PopupWindow {
     private ChatMsg mChatMsg;
     private int mPosition;
 
-    private FrameLayout flCopy;
-    private FrameLayout flForward;
-    private FrameLayout flReply;
-    private FrameLayout flDelete;
+    private FrameLayout flCopy,flForward,flReply,flDelete;
+    private ImageView ivUp,ivDown;
+    private LinearLayout llContent;
+
+    private OnChatPopListener mOnChatPopListener;
+
+    /**
+     * 记录上面显示还是下面显示
+     */
+    private boolean isNeedShowUp;
+    /**
+     * 记录箭头横向偏移位置
+     */
+    private int locArrow;
 
     public ChatPopupWindow(Context context) {
         mContext = context;
@@ -69,6 +84,24 @@ public class ChatPopupWindow extends PopupWindow {
         // 设置好参数之后再show
         setViewType();
         int[] windowPos = calculatePopWindowPos(anchorView, contentView);
+        if (isNeedShowUp){
+            ivDown.setVisibility(View.VISIBLE);
+            ivUp.setVisibility(View.GONE);
+            //防止计算出问题或者在最边缘界面展示问题，重新计算
+            if (locArrow>llContent.getMeasuredWidth()-ivDown.getMeasuredWidth()){
+                locArrow=llContent.getMeasuredWidth()-ivDown.getMeasuredWidth()-dip2px(mContext,3);
+            }
+            RelativeLayout.LayoutParams layoutParams= (RelativeLayout.LayoutParams) ivDown.getLayoutParams();
+            layoutParams.leftMargin=locArrow;
+        }else {
+            ivDown.setVisibility(View.GONE);
+            ivUp.setVisibility(View.VISIBLE);
+            if (locArrow>llContent.getMeasuredWidth()-ivUp.getMeasuredWidth()){
+                locArrow=llContent.getMeasuredWidth()-ivUp.getMeasuredWidth()-dip2px(mContext,3);
+            }
+            RelativeLayout.LayoutParams layoutParams= (RelativeLayout.LayoutParams) ivUp.getLayoutParams();
+            layoutParams.leftMargin=locArrow;
+        }
         showAtLocation(anchorView, Gravity.TOP | Gravity.START, windowPos[0], windowPos[1]);
     }
 
@@ -81,9 +114,16 @@ public class ChatPopupWindow extends PopupWindow {
             case ChatMsg.TYPE_CONTENT_AT:
                 //文本
                 flCopy.setVisibility(View.VISIBLE);
-                flForward.setVisibility(View.VISIBLE);
-                flReply.setVisibility(View.VISIBLE);
+
                 flDelete.setVisibility(View.VISIBLE);
+                if(mChatMsg.getSendState()==ChatMsg.TYPE_SEND_FAIL
+                        ||mChatMsg.getSendState()==ChatMsg.TYPE_SENDING){
+                    flReply.setVisibility(View.GONE);
+                    flForward.setVisibility(View.GONE);
+                }else {
+                    flReply.setVisibility(View.VISIBLE);
+                    flForward.setVisibility(View.VISIBLE);
+                }
                 break;
             case ChatMsg.TYPE_CONTENT_VOICE_CALL:
                 //语音通话
@@ -97,7 +137,7 @@ public class ChatPopupWindow extends PopupWindow {
                 if(mChatMsg.getFileInfo().getFileType()==FileInfo.TYPE_TAPE_RECORD){
                     flCopy.setVisibility(View.GONE);
                     flForward.setVisibility(View.GONE);
-                    flReply.setVisibility(View.GONE);
+                    flReply.setVisibility(View.VISIBLE);
                     flDelete.setVisibility(View.VISIBLE);
                 }else {
                     flCopy.setVisibility(View.GONE);
@@ -111,6 +151,13 @@ public class ChatPopupWindow extends PopupWindow {
                     flForward.setVisibility(View.GONE);
                     flReply.setVisibility(View.GONE);
                 }
+                break;
+            case ChatMsg.TYPE_CONTENT_REPLY:
+                //回复
+                flCopy.setVisibility(View.VISIBLE);
+                flForward.setVisibility(View.VISIBLE);
+                flReply.setVisibility(View.VISIBLE);
+                flDelete.setVisibility(View.VISIBLE);
                 break;
             default:
                 break;
@@ -136,6 +183,9 @@ public class ChatPopupWindow extends PopupWindow {
         flForward = contentView.findViewById(R.id.fl_pop_chat_forward);
         flReply = contentView.findViewById(R.id.fl_pop_chat_reply);
         flDelete = contentView.findViewById(R.id.fl_pop_chat_delete);
+        ivUp=contentView.findViewById(R.id.iv_up);
+        ivDown=contentView.findViewById(R.id.iv_down);
+        llContent=contentView.findViewById(R.id.ll_content);
         flCopy.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -157,6 +207,9 @@ public class ChatPopupWindow extends PopupWindow {
         flReply.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (mOnChatPopListener!=null){
+                    mOnChatPopListener.reply(mChatMsg);
+                }
                 dismiss();
             }
         });
@@ -173,17 +226,34 @@ public class ChatPopupWindow extends PopupWindow {
 
     String [] strings = null;
     private void showDeleteDialog() {
-        if (UserDao.user.getId().equals(mChatMsg.getSenderId())){
-            strings=new String[]{mContext.getString(R.string.all_people_delete),mContext.getString(R.string.local_delete)};
-        }else if(mChatMsg.getRoomType().equals(ChatRoom.TYPE_GROUP)){
-            GroupInfo mGroupInfo = GroupDao.getGroup(mChatMsg.getRoomId());
-            if (mGroupInfo.getGrade() == GroupInfo.TYPE_GRADE_OWNER||mGroupInfo.getGrade()==GroupInfo.TYPE_GRADE_MANAGER){
-                strings=new String[]{mContext.getString(R.string.all_people_delete),mContext.getString(R.string.local_delete)};
-            }else {
-                strings=new String[]{mContext.getString(R.string.local_delete)};
-            }
-        }else {
+        //大于24小时不允许删除
+        if (TimeUtil.getServerTimestamp()-mChatMsg.getCreateTimestamp()>86400000){
             strings=new String[]{mContext.getString(R.string.local_delete)};
+        } else if (mChatMsg.getSendState()==ChatMsg.TYPE_SEND_FAIL
+                ||mChatMsg.getSendState()==ChatMsg.TYPE_SENDING){
+            //发送中和发送失败的不允许删除
+            strings=new String[]{mContext.getString(R.string.local_delete)};
+        }else {
+            if (UserDao.user.getId().equals(mChatMsg.getSenderId())) {
+                if (ChatRoom.TYPE_GROUP.equals(mChatMsg.getRoomType())){
+                    strings = new String[]{mContext.getString(R.string.all_people_delete1), mContext.getString(R.string.local_delete)};
+                }else {
+                    strings = new String[]{String.format(mContext.getString(R.string.all_people_delete), NameUtil.getName(mChatMsg.getRoomId())), mContext.getString(R.string.local_delete)};
+                }
+            } else if (mChatMsg.getRoomType().equals(ChatRoom.TYPE_GROUP)) {
+                GroupInfo mGroupInfo = GroupDao.getGroup(mChatMsg.getRoomId());
+                if (mGroupInfo.getGrade() == GroupInfo.TYPE_GRADE_OWNER || mGroupInfo.getGrade() == GroupInfo.TYPE_GRADE_MANAGER) {
+                    if (ChatRoom.TYPE_GROUP.equals(mChatMsg.getRoomType())){
+                        strings = new String[]{mContext.getString(R.string.all_people_delete1), mContext.getString(R.string.local_delete)};
+                    }else {
+                        strings = new String[]{String.format(mContext.getString(R.string.all_people_delete),  NameUtil.getName(mChatMsg.getRoomId())), mContext.getString(R.string.local_delete)};
+                    }
+                } else {
+                    strings = new String[]{mContext.getString(R.string.local_delete)};
+                }
+            } else {
+                strings = new String[]{mContext.getString(R.string.local_delete)};
+            }
         }
         SelectDialog.SelectBuilder selectBuilder = new SelectDialog.SelectBuilder((Activity) mContext);
         SelectDialog deleteDialog = selectBuilder.setSelectStrArr(strings)
@@ -192,9 +262,10 @@ public class ChatPopupWindow extends PopupWindow {
                 .setOnLvItemClickListener(new SelectDialog.SelectBuilder.OnLvItemClickListener() {
                     @Override
                     public void itemClick(int lvItemPosition) {
-                        if (mContext.getString(R.string.all_people_delete).equals(strings[lvItemPosition])){
+                        if (String.format(mContext.getString(R.string.all_people_delete),  NameUtil.getName(mChatMsg.getRoomId())).equals(strings[lvItemPosition])
+                                ||mContext.getString(R.string.all_people_delete1).equals(strings[lvItemPosition])){
                             HttpMessage.removeMessage(mChatMsg.getMsgId(), mChatMsg.getRoomId(), mChatMsg.getRoomType(),
-                                    new HttpCallBack(mContext, ClassUtil.classMethodName()) {
+                                    new HttpCallBack(mContext, ClassUtil.classMethodName(),true) {
                                         @Override
                                         public void success(Object data, int count) {
                                             MessageDao.deleteSingle(mChatMsg.getMsgId());
@@ -202,13 +273,14 @@ public class ChatPopupWindow extends PopupWindow {
                                         }
                                     });
                         }else {
-                            EventTrans.post(EventMsg.CONVERSATION_DELETE_MSG,mChatMsg);
                             MessageDao.deleteSingle(mChatMsg.getMsgId());
+                            EventTrans.post(EventMsg.CONVERSATION_DELETE_MSG,mChatMsg);
                         }
                     }
                 }).create();
         deleteDialog.show();
     }
+
 
     /**
      * 计算popwindow在长按view 的什么位置显示
@@ -226,37 +298,59 @@ public class ChatPopupWindow extends PopupWindow {
         anchorView.getLocationOnScreen(anchorLoc);
         //当前item的高度
         final int anchorHeight = anchorView.getHeight();
+        //当前item的宽度
+        final int anchorWidth = anchorView.getWidth();
         // 获取屏幕的高宽
         final int screenHeight = getScreenHeight(anchorView.getContext());
         final int screenWidth = getScreenWidth(anchorView.getContext());
         // 测量popView 弹出框
         popView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
         // 计算弹出框的高宽
-        final int popHeight = popView.getMeasuredHeight();
-        final int popWidth = popView.getMeasuredWidth();
+        final int popHeight = llContent.getMeasuredHeight();
+        final int popWidth = llContent.getMeasuredWidth();
         // 判断需要向上弹出还是向下弹出显示
         // 屏幕高度-触点距离左上角的高度 < popwindow的高度
         // 如果小于弹出框的高度那么说明下方空间不够显示 popwindow，需要放在触点的上方显示
-        final boolean isNeedShowUp = (screenHeight - anchorLoc[1] < popHeight);
+        isNeedShowUp = (anchorLoc[1]-dip2px(mContext,50) > popHeight);
         // 判断需要向右边弹出还是向左边弹出显示
         //判断触点右边的剩余空间是否够显示popwindow 大于就说明够显示
-        final boolean isNeedShowRight = (screenWidth - anchorLoc[0] > popWidth);
+        final boolean isNeedShowRight = anchorLoc[0] > screenWidth/2;
         if (isNeedShowUp) {
             //如果在上方显示 则用 触点的距离上方的距离 - 弹框的高度
-            windowPos[1] = anchorLoc[1] - popHeight;
+            windowPos[1] = anchorLoc[1] - popHeight-dip2px(mContext,5);
         } else {
             //如果在下方显示 则用 触点的距离上方的距离
-            windowPos[1] = anchorLoc[1];
+            windowPos[1] = anchorLoc[1]+anchorHeight+dip2px(mContext,5);
         }
         if (isNeedShowRight) {
-            windowPos[0] = anchorLoc[0];
+            windowPos[0] = anchorLoc[0]- dip2px(mContext,10);
         } else {
             //显示在左边的话 那么弹出框的位置在触点左边出现，则是触点距离左边距离 - 弹出框的宽度
-            windowPos[0] = anchorLoc[0] - popWidth;
+            windowPos[0] = anchorLoc[0] + dip2px(mContext,10);
+        }
+        //用于判断如果展示位置超过屏幕，则进行调整
+        if ((windowPos[0]+popWidth)>screenWidth){
+            windowPos[0]=screenWidth-popWidth-dip2px(mContext,10);
+        }else if(windowPos[0]<dip2px(mContext,10)){
+            windowPos[0]=dip2px(mContext,10);
+        }
+        //计算需要位移距离
+        locArrow=anchorLoc[0]+anchorWidth/2;
+        if(locArrow>windowPos[0]+popWidth){
+            locArrow=popWidth/2;
+        }else {
+            locArrow=locArrow-windowPos[0];
         }
         return windowPos;
     }
 
+    public static int dip2px(Context context,float f) {
+        return (int) (0.5D + (double) (f * getDensity(context)));
+    }
+
+    public static float getDensity(Context context) {
+        return context.getResources().getDisplayMetrics().density;
+    }
     /**
      * 获取屏幕高度(px)
      */
@@ -283,5 +377,13 @@ public class ChatPopupWindow extends PopupWindow {
         if (cm!=null) {
             cm.setPrimaryClip(mClipData);
         }
+    }
+
+    public void setOnChatPopListener(OnChatPopListener onChatPopListener){
+        mOnChatPopListener=onChatPopListener;
+    }
+
+    public interface OnChatPopListener{
+        void reply(ChatMsg chatMsg);
     }
 }

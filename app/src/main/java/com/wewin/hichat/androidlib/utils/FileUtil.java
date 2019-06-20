@@ -4,9 +4,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Environment;
 import android.text.TextUtils;
+import android.widget.ImageView;
+
+import com.wewin.hichat.R;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class FileUtil {
 
@@ -425,6 +431,71 @@ public class FileUtil {
             return originLength / 1024 / 1024 + "MB";
         }else {
             return originLength / 1024 / 1024 / 1024 + "G";
+        }
+    }
+
+    /**
+     * 复制单个文件
+     *
+     * @param oldPath String 原文件路径 如：c:/fqf.txt
+     * @param newPath String 复制后路径 如：f:/fqf.txt
+     * @return boolean
+     */
+    public static void copyFile(String oldPath, String newPath) {
+        try {
+            int bytesum = 0;
+            int byteread = 0;
+            File oldfile = new File(oldPath);
+            if (oldfile.exists()) { //文件存在时
+                InputStream inStream = new FileInputStream(oldPath); //读入原文件
+                FileOutputStream fs = new FileOutputStream(newPath);
+                byte[] buffer = new byte[1444];
+                int length;
+                while ((byteread = inStream.read(buffer)) != -1) {
+                    bytesum += byteread; //字节数 文件大小
+                    System.out.println(bytesum);
+                    fs.write(buffer, 0, byteread);
+                }
+                inStream.close();
+            }
+        } catch (Exception e) {
+            System.out.println("复制单个文件操作出错");
+            e.printStackTrace();
+
+        }
+    }
+
+    public static void imageTypeView(String type,ImageView imageView){
+        switch (type) {
+            case ".txt":
+                imageView.setImageResource(R.drawable.icon_txt);
+                break;
+
+            case ".doc":
+            case ".docx":
+                imageView.setImageResource(R.drawable.icon_word);
+                break;
+
+            case ".xls":
+            case ".xlsx":
+                imageView.setImageResource(R.drawable.icon_excel);
+                break;
+
+            case ".ppt":
+            case ".pptx":
+                imageView.setImageResource(R.drawable.icon_ppt);
+                break;
+
+            case ".pdf":
+                imageView.setImageResource(R.drawable.icon_pdf);
+                break;
+
+            case ".mp3":
+            case ".mp4":
+                imageView.setImageResource(R.drawable.icon_music);
+                break;
+            default:
+                break;
         }
     }
 

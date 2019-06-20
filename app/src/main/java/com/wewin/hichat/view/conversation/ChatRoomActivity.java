@@ -45,8 +45,11 @@ import com.wewin.hichat.androidlib.rxjava.RxJavaScheduler;
 import com.wewin.hichat.androidlib.utils.ActivityUtil;
 import com.wewin.hichat.androidlib.utils.FileOpenUtil;
 import com.wewin.hichat.androidlib.utils.HyperLinkUtil;
+import com.wewin.hichat.androidlib.utils.NameUtil;
 import com.wewin.hichat.androidlib.utils.NotificationUtil;
 import com.wewin.hichat.androidlib.utils.SystemUtil;
+import com.wewin.hichat.androidlib.widget.CornerGifView;
+import com.wewin.hichat.androidlib.widget.MyLinearLayoutManager;
 import com.wewin.hichat.component.adapter.MessageChatRcvAdapter;
 import com.wewin.hichat.component.base.BaseMessageChatRcvAdapter;
 import com.wewin.hichat.component.dialog.AnnouncementDialog;
@@ -85,6 +88,7 @@ import com.wewin.hichat.model.db.dao.FriendDao;
 import com.wewin.hichat.model.db.dao.GroupDao;
 import com.wewin.hichat.model.db.dao.GroupMemberDao;
 import com.wewin.hichat.model.db.dao.MessageDao;
+import com.wewin.hichat.model.db.dao.UserDao;
 import com.wewin.hichat.model.db.entity.Announcement;
 import com.wewin.hichat.model.db.entity.ChatMsg;
 import com.wewin.hichat.model.db.entity.ChatRoom;
@@ -93,6 +97,7 @@ import com.wewin.hichat.model.db.entity.FileInfo;
 import com.wewin.hichat.model.db.entity.FriendInfo;
 import com.wewin.hichat.model.db.entity.GroupInfo;
 import com.wewin.hichat.model.db.entity.ImgUrl;
+import com.wewin.hichat.model.db.entity.ReplyMsgInfo;
 import com.wewin.hichat.model.db.entity.Subgroup;
 import com.wewin.hichat.model.http.HttpContact;
 import com.wewin.hichat.model.http.HttpMessage;
@@ -109,12 +114,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import io.reactivex.ObservableEmitter;
 
@@ -125,21 +127,22 @@ import io.reactivex.ObservableEmitter;
  * @author Darren
  * Created by Darren on 2018/12/17.
  */
-public class ChatRoomActivity extends BaseActivity {
+public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.OnChatPopListener {
 
     private RecyclerView containerRcv;
     private EditText contentInputEt, searchInputEt;
     private MicImageView tapeRecordIv;
     private ImageView voiceCallIv, botMoreIv, emoticonIv, sendMsgIv, recordPressIv, recordDeleteIv,
-            leftSlideIv, rightExpandIv, searchClearIv;
+            leftSlideIv, rightExpandIv, searchClearIv, replyVideoIv, replyFinishIv;
     private TextView voiceTimingTv, leftSlidePromptTv, blackShelterTv, addFriendTv, ignoreTv,
-            centerTitleTv, searchCancelTv, pullBlackListTv;
+            centerTitleTv, searchCancelTv, pullBlackListTv, replyNameTv, replyContentTv;
     private GridView emoticonGv;
     private FrameLayout inputContainerFl, searchContainerFl;
-    private RelativeLayout titleLayoutRl;
+    private RelativeLayout titleLayoutRl, replyRl;
     private LinearLayout temporaryLl, leftBackLl, chatSendContainerLl;
+    private CornerGifView replyIv;
     private KeyboardRelativeLayout rootViewKrl;
-    private LinearLayoutManager layoutManager;
+    private MyLinearLayoutManager layoutManager;
 
     private List<ChatMsg> mChatMsgList = new ArrayList<>();
     private List<Emoticon> emoticonList = new ArrayList<>();
@@ -147,6 +150,7 @@ public class ChatRoomActivity extends BaseActivity {
     private ChatPlusDialog chatPlusDialog;
     private PopupWindow rightMorePop;
     private ChatRoom mChatRoom;
+    private MessageChatEmoticonGvAdapter emoticonGvAdapter;
 
     private int topLoadLastOffset = 0;//下拉加载消息偏移量
     private int mKeyboardHeight = 0;//键盘高度
@@ -163,8 +167,14 @@ public class ChatRoomActivity extends BaseActivity {
     private boolean isNeedGetServerMsg = false;//是否需要请求服务器获取消息列表
     private long searchStartTimestamp;//聊天记录搜索的起始时间戳
     private Map<String, String> atMap = new HashMap<>();//@人的列表
-    private ArrayList<String> emList=new ArrayList<>();//表情保存
+    private ArrayList<String> emList = new ArrayList<>();//表情保存
     private String pageEarliestMsgId = null;//每页最早的一条消息id
+    //记录当前同步删除的最老的一条消息
+    private String mNotesMsgId;
+    //获取当前列表最老的消息id
+    private String minMsgId;
+    //回复的消息
+    private ReplyMsgInfo replyMsgInfo;
     /**
      * 长按消息弹窗，选择复制转发回复删除
      */
@@ -173,7 +183,7 @@ public class ChatRoomActivity extends BaseActivity {
 
     //录音计时器
     private CustomCountDownTimer recordCountDown
-            = new CustomCountDownTimer(MAX_VOICE_RECORD_SECOND , 1000) {
+            = new CustomCountDownTimer(MAX_VOICE_RECORD_SECOND, 1000) {
         @Override
         public void onTick(long millisUntilFinished) {
             voiceTimingTv.setText(TimeUtil.formatTimeStr(tapeRecordSecond));
@@ -234,6 +244,7 @@ public class ChatRoomActivity extends BaseActivity {
             searchStartTimestamp = intent.getLongExtra(ContactCons.EXTRA_MESSAGE_CHAT_START_TIMESTAMP, 0);
             mChatRoom = (ChatRoom) intent.getSerializableExtra(ContactCons.EXTRA_CONTACT_CHAT_ROOM);
             initViewsData();
+            setListener();
         }
     }
 
@@ -268,6 +279,12 @@ public class ChatRoomActivity extends BaseActivity {
         searchClearIv = findViewById(R.id.iv_conversation_chat_search_clear);
         searchContainerFl = findViewById(R.id.fl_conversation_chat_search_container);
         pullBlackListTv = findViewById(R.id.tv_conversation_chat_temporary_blacklist);
+        replyRl = findViewById(R.id.rl_message_chat_reply);
+        replyIv = findViewById(R.id.iv_message_chat_reply_img);
+        replyVideoIv = findViewById(R.id.iv_message_chat_reply_video);
+        replyNameTv = findViewById(R.id.tv_message_chat_reply_name);
+        replyContentTv = findViewById(R.id.tv_message_chat_reply_type);
+        replyFinishIv = findViewById(R.id.iv_message_chat_reply_finish);
     }
 
     @Override
@@ -281,19 +298,55 @@ public class ChatRoomActivity extends BaseActivity {
         ChatRoomManager.setCurrentRoomId(mChatRoom.getRoomId());
         ChatRoomManager.setCurrentRoomType(mChatRoom.getRoomType());
         mKeyboardHeight = SpCons.getKeyboardHeight(getAppContext());
-
         initRecyclerView();
-        initEmoticonGridView();
         setRoomTypeView();
         initMsgDataList();
         getNewAnnouncement();
-        //通知会话界面未读消息数量置为0
-        EventTrans.post(EventMsg.CONVERSATION_UNREAD_NUM_REFRESH, mChatRoom.getRoomId(),
-                mChatRoom.getRoomType());
         // 起初的布局可自动调整大小
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
                 | WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        initDeaft();
+    }
 
+
+    /**
+     * 处理草稿
+     */
+    private void initDeaft() {
+        try {
+            String draft = SpCons.getString(this, UserDao.user.getId() + mChatRoom.getRoomId() + mChatRoom.getRoomType() + SpCons.DRAFT);
+            if (!TextUtils.isEmpty(draft)) {
+                contentInputEt.setText(SpCons.getString(this, UserDao.user.getId() + mChatRoom.getRoomId() + mChatRoom.getRoomType() + SpCons.DRAFT));
+                contentInputEt.setSelection(contentInputEt.getText().length());
+                String em = SpCons.getString(this, UserDao.user.getId() + mChatRoom.getRoomId() + mChatRoom.getRoomType() + SpCons.DRAFT_EM_LIST);
+                if (!TextUtils.isEmpty(em)) {
+                    emList = (ArrayList<String>) JSON.parseArray(em, String.class);
+                }
+                String at = SpCons.getString(this, UserDao.user.getId() + mChatRoom.getRoomId() + mChatRoom.getRoomType() + SpCons.DRAFT_AT_MAP);
+                if (!TextUtils.isEmpty(at)) {
+                    atMap = (Map<String, String>) JSON.parseObject(at, Map.class);
+                }
+                String reply = SpCons.getString(this, UserDao.user.getId() + mChatRoom.getRoomId() + mChatRoom.getRoomType() + SpCons.DRAFT_REPLY);
+                if (!TextUtils.isEmpty(reply)) {
+                    replyMsgInfo = JSON.parseObject(reply, ReplyMsgInfo.class);
+                    replyView();
+                }
+            }
+            changeSendMsgView();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void changeSendMsgView() {
+        isTapeRecordAvailable = !(contentInputEt.getText().toString().trim().length() > 0);
+        if (isTapeRecordAvailable) {
+            tapeRecordIv.setVisibility(View.VISIBLE);
+            sendMsgIv.setVisibility(View.INVISIBLE);
+        } else {
+            tapeRecordIv.setVisibility(View.INVISIBLE);
+            sendMsgIv.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -310,6 +363,8 @@ public class ChatRoomActivity extends BaseActivity {
         searchClearIv.setOnClickListener(this);
         searchCancelTv.setOnClickListener(this);
         pullBlackListTv.setOnClickListener(this);
+        replyFinishIv.setOnClickListener(this);
+        chatPopupWindow.setOnChatPopListener(this);
 
         contentInputEt.addTextChangedListener(new CustomTextWatcher() {
             int delIndex = -1;
@@ -317,14 +372,7 @@ public class ChatRoomActivity extends BaseActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                isTapeRecordAvailable = !(contentInputEt.getText().toString().trim().length() > 0);
-                if (isTapeRecordAvailable) {
-                    tapeRecordIv.setVisibility(View.VISIBLE);
-                    sendMsgIv.setVisibility(View.INVISIBLE);
-                } else {
-                    tapeRecordIv.setVisibility(View.INVISIBLE);
-                    sendMsgIv.setVisibility(View.VISIBLE);
-                }
+                changeSendMsgView();
                 if (delIndex >= 0 && delLength > 0) {
                     int temp1 = delIndex;
                     int temp2 = delLength;
@@ -349,7 +397,7 @@ public class ChatRoomActivity extends BaseActivity {
                 }
             }
 
-            private void checkIsEmoticon( int index) {
+            private void checkIsEmoticon(int index) {
                 if (index <= 0) {
                     return;
                 }
@@ -365,11 +413,11 @@ public class ChatRoomActivity extends BaseActivity {
                 if (index - atIndex <= 1) {
                     return;
                 }
-                String name = sub.substring(atIndex , index)+"]";
+                String name = sub.substring(atIndex, index) + "]";
                 for (String value : emList) {
                     if (value.equals(name)) {
                         delIndex = index;
-                        delLength = name.length()-1;
+                        delLength = name.length() - 1;
                         return;
                     }
                 }
@@ -402,6 +450,7 @@ public class ChatRoomActivity extends BaseActivity {
                         delIndex = index;
                         //+1是因为把@也要删除掉
                         delLength = name.length() + 1;
+                        atMap.remove(value);
                         return;
                     }
                 }
@@ -448,7 +497,7 @@ public class ChatRoomActivity extends BaseActivity {
                             @Override
                             public void onDenied(HashMap<String, Boolean> permissions) {
                                 isTapeRecordPermit = false;
-                                if(!permissions.get(Permission.RECORD_AUDIO)){
+                                if (!permissions.get(Permission.RECORD_AUDIO)) {
                                     new PromptDialog.PromptBuilder(ChatRoomActivity.this)
                                             .setPromptContent(getString(R.string.call_prompt))
                                             .setOnConfirmClickListener(new PromptDialog.PromptBuilder.OnConfirmClickListener() {
@@ -505,6 +554,7 @@ public class ChatRoomActivity extends BaseActivity {
                 break;
 
             case R.id.iv_conversation_chat_emoticon:
+                initEmoticonGridView();
                 showEmoticonGv();
                 break;
 
@@ -546,7 +596,10 @@ public class ChatRoomActivity extends BaseActivity {
             case R.id.tv_conversation_chat_temporary_blacklist:
                 pullBlack();
                 break;
-
+            case R.id.iv_message_chat_reply_finish:
+                replyMsgInfo = null;
+                replyRl.setVisibility(View.GONE);
+                break;
             default:
                 break;
         }
@@ -563,12 +616,25 @@ public class ChatRoomActivity extends BaseActivity {
         } else {
             contentInputEt.setText("");
             emList.clear();
-            String atContent = JSONObject.toJSONString(atMap);
-            if (atMap == null || atMap.size() <= 0) {
-                ChatSocket.getInstance().send(ChatRoomManager.packTextMsg(mChatRoom, messageStr));
-            } else {
-                ChatSocket.getInstance().send(ChatRoomManager.packTextMsg(mChatRoom, messageStr, atContent));
+
+            for (Iterator<Map.Entry<String, String>> it = atMap.entrySet().iterator(); it.hasNext(); ) {
+                Map.Entry<String, String> item = it.next();
+                if (!messageStr.contains(item.getValue())) {
+                    it.remove();
+                }
             }
+            String atContent = JSONObject.toJSONString(atMap);
+            if (replyMsgInfo != null) {
+                ChatSocket.getInstance().send(ChatRoomManager.packReplyMsg(mChatRoom, messageStr, atContent, replyMsgInfo));
+            } else {
+                if (atMap == null || atMap.size() <= 0) {
+                    ChatSocket.getInstance().send(ChatRoomManager.packTextMsg(mChatRoom, messageStr, replyMsgInfo));
+                } else {
+                    ChatSocket.getInstance().send(ChatRoomManager.packTextMsg(mChatRoom, messageStr, atContent, replyMsgInfo));
+                }
+            }
+            replyMsgInfo = null;
+            replyRl.setVisibility(View.GONE);
             atMap.clear();
         }
     }
@@ -589,7 +655,7 @@ public class ChatRoomActivity extends BaseActivity {
     }
 
     private void initMsgDataList() {
-        if (mChatRoom.getLastChatMsg()!=null) {
+        if (mChatRoom.getLastChatMsg() != null) {
             setMessageRead(mChatRoom.getLastChatMsg().getMsgId(), ChatMsg.TYPE_READ_NORMAL, true);
         }
         //如果searchStartTimestamp > 0,则搜索历史消息记录
@@ -614,7 +680,7 @@ public class ChatRoomActivity extends BaseActivity {
             } else {
                 layoutManager.scrollToPositionWithOffset(1, 0);
             }
-
+            oldServerMsgDelete();
         } else {
             //正常打开聊天页面
             List<ChatMsg> dataList = MessageDao.getMessageBeforeList(mChatRoom.getRoomId(),
@@ -627,15 +693,16 @@ public class ChatRoomActivity extends BaseActivity {
                 boolean isLoadLocalData = TextUtils.isEmpty(maxUnSyncMsgId)
                         || (Long.parseLong(pageFirstMsgId) > Long.parseLong(maxUnSyncMsgId)
                         && dataList.size() >= MessageDao.getPageSize());
+                mChatMsgList.clear();
+                mChatMsgList.addAll(dataList);
+                updateRcv();
+                if (rcvAdapter.getTopPullViewVisible()) {
+                    layoutManager.scrollToPositionWithOffset(mChatMsgList.size(), 0);
+                } else {
+                    layoutManager.scrollToPositionWithOffset(mChatMsgList.size() - 1, 0);
+                }
                 if (isLoadLocalData) {
-                    mChatMsgList.clear();
-                    mChatMsgList.addAll(dataList);
-                    updateRcv();
-                    if (rcvAdapter.getTopPullViewVisible()) {
-                        layoutManager.scrollToPositionWithOffset(mChatMsgList.size(), 0);
-                    } else {
-                        layoutManager.scrollToPositionWithOffset(mChatMsgList.size() - 1, 0);
-                    }
+                    oldServerMsgDelete();
                 } else {
                     getServerMsgList(1, "0");
                 }
@@ -649,23 +716,13 @@ public class ChatRoomActivity extends BaseActivity {
         switch (mChatRoom.getRoomType()) {
             case ChatRoom.TYPE_SINGLE:
                 FriendInfo friend = FriendDao.getFriendInfo(mChatRoom.getRoomId());
-                FriendInfo friendInfo = ContactUserDao.getContactUser(mChatRoom.getRoomId());
                 if (friend == null || friend.getFriendship() == 0) {
                     //临时会话
-                    if (friendInfo != null) {
-                        centerTitleTv.setText(String.format(getString(R.string.temporary_chat),
-                                friendInfo.getUsername()));
-                    }
+                    centerTitleTv.setText(String.format(getString(R.string.temporary_chat), NameUtil.getName(mChatRoom.getRoomId())));
                     temporaryLl.setVisibility(View.VISIBLE);
                 } else {
                     //单聊
-                    if (friendInfo != null) {
-                        if (!TextUtils.isEmpty(friendInfo.getFriendNote())) {
-                            centerTitleTv.setText(friendInfo.getFriendNote());
-                        } else {
-                            centerTitleTv.setText(friendInfo.getUsername());
-                        }
-                    }
+                    centerTitleTv.setText(NameUtil.getName(mChatRoom.getRoomId()));
                     temporaryLl.setVisibility(View.GONE);
                 }
                 voiceCallIv.setVisibility(View.VISIBLE);
@@ -711,12 +768,12 @@ public class ChatRoomActivity extends BaseActivity {
             public void onClickItem(int position) {
                 String id = list.get(position).getId();
                 String name = list.get(position).getUsername();
-                inputATMember(id, name);
+                inputATMember(id, name, true);
             }
 
             @Override
             public void allMember() {
-                inputATMember("0", "全体成员");
+                inputATMember("0", "全体成员", true);
             }
         });
         selectPersonListDialog.showDialog();
@@ -725,10 +782,12 @@ public class ChatRoomActivity extends BaseActivity {
     /**
      * 把@的消息输入到文本框中
      */
-    private void inputATMember(String id, String name) {
+    private void inputATMember(String id, String name, boolean inputMark) {
         int index = contentInputEt.getSelectionStart();
-        Editable editable = contentInputEt.getText();
-        editable.delete(index - 1, index);
+        if (inputMark) {
+            Editable editable = contentInputEt.getText();
+            editable.delete(index - 1, index);
+        }
         atMap.put(id, name);
         String atContentStr = "@" + name + " ";
         Editable editText = contentInputEt.getEditableText();
@@ -754,14 +813,21 @@ public class ChatRoomActivity extends BaseActivity {
     /**
      * 展示公告信息
      */
-    private void announcementDialog(Announcement announcement){
-        new AnnouncementDialog.PromptBuilder(this)
-                .setPromptTitle(announcement.getTitle())
-                .setPromptNameTime(announcement.getAccount().getUsername()+"发布于"+TimeUtil.timestampToStr(announcement.getPostTime(),"yyyy/MM/dd"))
-                .setPromptContent(announcement.getContent())
-                .setCancelableOnTouchOutside(false)
-                .create()
-                .show();
+    private AnnouncementDialog.PromptBuilder aVoid;
+
+    private void announcementDialog(Announcement announcement) {
+        if (aVoid == null) {
+            aVoid = new AnnouncementDialog.PromptBuilder(this);
+        }
+        String name = NameUtil.getName(announcement.getAccount().getId());
+        aVoid.setPromptTitle(announcement.getTitle())
+                .setPromptNameTime(name + "发布于" + TimeUtil.timestampToStr(announcement.getPostTime(), "yyyy/MM/dd"))
+                .setPromptContent(announcement.getContent());
+        if (!aVoid.isShowing()) {
+            aVoid.setCancelableOnTouchOutside(false)
+                    .create()
+                    .show();
+        }
     }
 
     private void setGroupSpeakView() {
@@ -814,6 +880,15 @@ public class ChatRoomActivity extends BaseActivity {
     protected void onPause() {
         super.onPause();
         resetTapeRecordView();
+        SpCons.setString(this, UserDao.user.getId() + mChatRoom.getRoomId() + mChatRoom.getRoomType() + SpCons.DRAFT, contentInputEt.getText().toString());
+        SpCons.setString(this, UserDao.user.getId() + mChatRoom.getRoomId() + mChatRoom.getRoomType() + SpCons.DRAFT_EM_LIST, JSON.toJSONString(emList));
+        SpCons.setString(this, UserDao.user.getId() + mChatRoom.getRoomId() + mChatRoom.getRoomType() + SpCons.DRAFT_AT_MAP, JSON.toJSONString(atMap));
+        if (replyMsgInfo != null) {
+            SpCons.setString(this, UserDao.user.getId() + mChatRoom.getRoomId() + mChatRoom.getRoomType() + SpCons.DRAFT_REPLY, JSON.toJSONString(replyMsgInfo));
+        }
+        //这里需要刷新会话列表，所以不重复调用刷新草稿变化
+        //通知会话界面未读消息数量置为0
+        EventTrans.post(EventMsg.CONVERSATION_UNREAD_NUM_REFRESH, mChatRoom.getRoomId(), mChatRoom.getRoomType());
     }
 
     /**
@@ -843,7 +918,7 @@ public class ChatRoomActivity extends BaseActivity {
                     RxJavaScheduler.execute(new OnRxJavaProcessListener() {
                         @Override
                         public void process(ObservableEmitter<Object> emitter) {
-                            while (!TapeRecordManager.getInstance().getFlushAndRelease()){
+                            while (!TapeRecordManager.getInstance().getFlushAndRelease()) {
                                 LogUtil.e("jason--:占用中");
                             }
                             LogUtil.e("jason--:未被占用");
@@ -851,7 +926,7 @@ public class ChatRoomActivity extends BaseActivity {
                     }, new RxJavaObserver<Object>() {
                         @Override
                         public void onComplete() {
-                            LogUtil.e("jason--:"+file.exists()+"   "+file.length());
+                            LogUtil.e("jason--:" + file.exists() + "   " + file.length());
                             ChatRoomManager.uploadFile(getAppContext(), mChatRoom, fileInfo);
                         }
                     });
@@ -866,7 +941,7 @@ public class ChatRoomActivity extends BaseActivity {
 
     private void initRecyclerView() {
         rcvAdapter = new MessageChatRcvAdapter(this, mChatMsgList);
-        layoutManager = new LinearLayoutManager(getAppContext());
+        layoutManager = new MyLinearLayoutManager(getAppContext());
         containerRcv.setLayoutManager(layoutManager);
         containerRcv.setAdapter(rcvAdapter);
 
@@ -902,6 +977,7 @@ public class ChatRoomActivity extends BaseActivity {
                     List<ChatMsg> dataList = MessageDao.getMessageBeforeList(mChatRoom.getRoomId(),
                             mChatRoom.getRoomType(), beginTimestamp);
                     if (dataList.isEmpty()) {
+                        rcvAdapter.setTopPullViewVisible(false);
                         return;
                     }
                     mChatMsgList.addAll(0, dataList);
@@ -911,7 +987,9 @@ public class ChatRoomActivity extends BaseActivity {
                     } else {
                         layoutManager.scrollToPositionWithOffset(dataList.size(), topLoadLastOffset);
                     }
+                    oldServerMsgDelete();
                 }
+
             }
         });
         rcvAdapter.setOmMsgLongClickListener(new BaseMessageChatRcvAdapter.OmMsgLongClickListener() {
@@ -956,6 +1034,20 @@ public class ChatRoomActivity extends BaseActivity {
                     chatPopupWindow.showPopupWindow(mChatMsgList.get(position), view, position);
                 }
             }
+
+            @Override
+            public void avatarLeftLongClick(int position, View view) {
+                String id = mChatMsgList.get(position).getSenderId();
+                String name = ContactUserDao.getContactUser(mChatMsgList.get(position).getSenderId()).getUsername();
+                inputATMember(id, name, false);
+            }
+
+            @Override
+            public void replyLongClick(int position, View view) {
+                if (chatPopupWindow != null) {
+                    chatPopupWindow.showPopupWindow(mChatMsgList.get(position), view, position);
+                }
+            }
         });
         //各类型消息点击事件
         rcvAdapter.setOnMsgClickListener(new MessageChatRcvAdapter.OnMsgClickListener() {
@@ -966,18 +1058,7 @@ public class ChatRoomActivity extends BaseActivity {
                         && fileInfo.getFileType() != FileInfo.TYPE_MUSIC)) {
                     return;
                 }
-                if (!TextUtils.isEmpty(fileInfo.getOriginPath())
-                        && FileUtil.isFileExists(fileInfo.getOriginPath())) {
-                    FileOpenUtil.openFile(getHostActivity(), fileInfo.getOriginPath());
-
-                } else if (!TextUtils.isEmpty(fileInfo.getSavePath())
-                        && FileUtil.isFileExists(fileInfo.getSavePath())) {
-                    FileOpenUtil.openFile(getHostActivity(), fileInfo.getSavePath());
-
-                } else if (!TextUtils.isEmpty(fileInfo.getDownloadPath())) {
-                    String docSaveDir = FileUtil.getSdDocPath(getAppContext());
-                    downloadFile(mChatMsgList.get(position), docSaveDir);
-                }
+                openFile(fileInfo, position);
             }
 
             @Override
@@ -985,10 +1066,7 @@ public class ChatRoomActivity extends BaseActivity {
                 if (mChatMsgList.get(position).getFileInfo() == null) {
                     return;
                 }
-                Intent intent = new Intent(getAppContext(), VideoPlayActivity.class);
-                intent.putExtra(ContactCons.EXTRA_MESSAGE_CHAT_FILE,
-                        mChatMsgList.get(position).getFileInfo());
-                startActivity(intent);
+                intentPlayVideo(mChatMsgList.get(position).getFileInfo());
             }
 
             @Override
@@ -996,60 +1074,42 @@ public class ChatRoomActivity extends BaseActivity {
                 if (mChatMsgList.get(position).getFileInfo() == null) {
                     return;
                 }
-                List<ImgUrl> imgUrlList = new ArrayList<>();
-                int imgClickPosition = 0;
-                for (ChatMsg chatMsg:mChatMsgList){
-                    if (chatMsg.getFileInfo()!=null
-                            &&!TextUtils.isEmpty(chatMsg.getFileInfo().getDownloadPath())
-                            &&chatMsg.getFileInfo().getFileType()==FileInfo.TYPE_IMG) {
-                        ImgUrl imgUrl = new ImgUrl(chatMsg.getFileInfo().getDownloadPath());
-                        imgUrl.setFileName(chatMsg.getFileInfo().getFileName());
-                        imgUrlList.add(imgUrl);
-                        if(chatMsg.getMsgId().equals(mChatMsgList.get(position).getMsgId())){
-                            imgClickPosition=imgUrlList.indexOf(imgUrl);
-                        }
-                    }
-                }
-
-                Intent intent = new Intent(getAppContext(), ImgShowActivity.class);
-                intent.putExtra(ImgUtil.IMG_DONWLOAD, true);
-                intent.putExtra(ImgUtil.IMG_CLICK_POSITION, imgClickPosition);
-                intent.putExtra(ImgUtil.IMG_LIST_KEY, (Serializable) imgUrlList);
-                startActivity(intent);
+                clickImage(position);
             }
 
             @Override
             public void tapeRecordClick(final int position) {
-                Rigger.on(getHostActivity()).permissions(Permission.WRITE_EXTERNAL_STORAGE)
-                        .start(new PermissionCallback() {
-                            @Override
-                            public void onGranted() {
-                                FileInfo fileInfo = mChatMsgList.get(position).getFileInfo();
-                                if (fileInfo == null
-                                        || fileInfo.getFileType() != FileInfo.TYPE_TAPE_RECORD) {
-                                    return;
-                                }
-                                mChatMsgList.get(position).getFileInfo().setTapeUnreadMark(0);
-                                if (!FileUtil.isFileExists(fileInfo.getOriginPath())
-                                        && !FileUtil.isFileExists(fileInfo.getSavePath())) {
-                                    String tapeSaveDir = FileUtil.getSDTapeRecordPath(getAppContext());
-                                    FileUtil.createDir(tapeSaveDir + ".nomedia");
-                                    downloadFile(mChatMsgList.get(position), tapeSaveDir);
-                                } else {
-                                    playVoiceRecord(mChatMsgList.get(position));
-                                }
-                            }
-
-                            @Override
-                            public void onDenied(HashMap<String, Boolean> permissions) {
-
-                            }
-                        });
+                openTapeRecord(mChatMsgList.get(position).getFileInfo(), position);
             }
 
             @Override
             public void voiceCallClick() {
                 VoiceCallManager.get().startVoiceCallActivity(getAppContext(), mChatRoom);
+            }
+
+            @Override
+            public void replyClick(final int position) {
+                ChatMsg chatMsg = mChatMsgList.get(position);
+                if (chatMsg.getReplyMsgInfo() != null && chatMsg.getReplyMsgInfo().getFileInfo() != null) {
+                    final FileInfo fileInfo = chatMsg.getReplyMsgInfo().getFileInfo();
+                    switch (fileInfo.getFileType()) {
+                        case FileInfo.TYPE_IMG:
+                            clickImage(position);
+                            break;
+                        case FileInfo.TYPE_VIDEO:
+                            intentPlayVideo(fileInfo);
+                            break;
+                        case FileInfo.TYPE_DOC:
+                        case FileInfo.TYPE_MUSIC:
+                            openFile(fileInfo, position);
+                            break;
+                        case FileInfo.TYPE_TAPE_RECORD:
+                            openTapeRecord(fileInfo, position);
+                            break;
+                        default:
+                            break;
+                    }
+                }
             }
 
             @Override
@@ -1073,38 +1133,141 @@ public class ChatRoomActivity extends BaseActivity {
         });
     }
 
-    private void initEmoticonGridView() {
-        MessageChatEmoticonGvAdapter emoticonGvAdapter = new MessageChatEmoticonGvAdapter(getAppContext(),
-                emoticonList);
-        emoticonGv.setAdapter(emoticonGvAdapter);
-        emoticonGv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Emoticon emoticon = emoticonList.get(position);
-                int cursor = contentInputEt.getSelectionStart();
-                String tag = emoticon.getTag();
-                SpannableString spannableString = new SpannableString(tag);
-                int resId = getResources().getIdentifier(emoticon.getId(), "drawable",
-                        getPackageName());
-                // 通过上面匹配得到的字符串来生成图片资源id
-                if (resId != 0) {
-                    Drawable drawable = getResources().getDrawable(resId);
-                    drawable.setBounds(0, 0, SystemUtil.dp2px(getAppContext(), 26),
-                            SystemUtil.dp2px(getAppContext(), 26));
-                    // 通过图片资源id来得到bitmap，用一个ImageSpan来包装
-                    ImageSpan imageSpan = new ImageSpan(drawable, ImageSpan.ALIGN_BOTTOM);
-                    // 计算该图片名字的长度，也就是要替换的字符串的长度
-                    // 将该图片替换字符串中规定的位置中
-                    spannableString.setSpan(imageSpan, 0, tag.length(),
-                            Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
-                    contentInputEt.getText().insert(cursor, spannableString);
-                    emList.add(tag);
+
+    /**
+     * 点击打开录音文件
+     *
+     * @param fileInfo
+     * @param position
+     */
+    private void openTapeRecord(final FileInfo fileInfo, final int position) {
+        Rigger.on(getHostActivity()).permissions(Permission.WRITE_EXTERNAL_STORAGE)
+                .start(new PermissionCallback() {
+                    @Override
+                    public void onGranted() {
+                        fileInfo.setTapeUnreadMark(0);
+                        if (!FileUtil.isFileExists(fileInfo.getOriginPath())
+                                && !FileUtil.isFileExists(fileInfo.getSavePath())) {
+                            String tapeSaveDir = FileUtil.getSDTapeRecordPath(getAppContext());
+                            FileUtil.createDir(tapeSaveDir + ".nomedia");
+                            downloadFile(mChatMsgList.get(position), tapeSaveDir);
+                        } else {
+                            playVoiceRecord(mChatMsgList.get(position));
+                        }
+                    }
+
+                    @Override
+                    public void onDenied(HashMap<String, Boolean> permissions) {
+                    }
+                });
+    }
+
+    /**
+     * 点击打开文件
+     *
+     * @param fileInfo
+     * @param position
+     */
+    private void openFile(FileInfo fileInfo, int position) {
+        if (!TextUtils.isEmpty(fileInfo.getOriginPath())
+                && FileUtil.isFileExists(fileInfo.getOriginPath())) {
+            FileOpenUtil.openFile(getHostActivity(), fileInfo.getOriginPath());
+
+        } else if (!TextUtils.isEmpty(fileInfo.getSavePath())
+                && FileUtil.isFileExists(fileInfo.getSavePath())) {
+            FileOpenUtil.openFile(getHostActivity(), fileInfo.getSavePath());
+
+        } else if (!TextUtils.isEmpty(fileInfo.getDownloadPath())) {
+            String docSaveDir = FileUtil.getSdDocPath(getAppContext());
+            downloadFile(mChatMsgList.get(position), docSaveDir);
+        }
+    }
+
+    /**
+     * 点击查看视频
+     *
+     * @param fileInfo
+     */
+    private void intentPlayVideo(FileInfo fileInfo) {
+        Intent intent = new Intent(getAppContext(), VideoPlayActivity.class);
+        intent.putExtra(ContactCons.EXTRA_MESSAGE_CHAT_FILE, fileInfo);
+        startActivity(intent);
+    }
+
+    /**
+     * 点击查看大图
+     *
+     * @param position
+     */
+    private void clickImage(int position) {
+        List<ImgUrl> imgUrlList = new ArrayList<>();
+        int imgClickPosition = 0;
+        for (ChatMsg chatMsg : mChatMsgList) {
+            if (chatMsg.getFileInfo() != null
+                    && !TextUtils.isEmpty(chatMsg.getFileInfo().getDownloadPath())
+                    && chatMsg.getFileInfo().getFileType() == FileInfo.TYPE_IMG) {
+
+                ImgUrl imgUrl = new ImgUrl(chatMsg.getFileInfo().getDownloadPath());
+                imgUrl.setFileName(chatMsg.getFileInfo().getFileName());
+                imgUrlList.add(imgUrl);
+                if (chatMsg.getMsgId().equals(mChatMsgList.get(position).getMsgId())) {
+                    imgClickPosition = imgUrlList.indexOf(imgUrl);
                 }
             }
-        });
-        emoticonList.clear();
-        emoticonList.addAll(EmoticonUtil.getEmoticonList());
-        emoticonGvAdapter.notifyDataSetChanged();
+            if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY
+                    && chatMsg.getReplyMsgInfo() != null
+                    && chatMsg.getReplyMsgInfo().getFileInfo() != null
+                    && chatMsg.getReplyMsgInfo().getFileInfo().getFileType() == FileInfo.TYPE_IMG
+                    && !TextUtils.isEmpty(chatMsg.getReplyMsgInfo().getFileInfo().getDownloadPath())) {
+                ImgUrl imgUrl = new ImgUrl(chatMsg.getReplyMsgInfo().getFileInfo().getDownloadPath());
+                imgUrl.setFileName(chatMsg.getReplyMsgInfo().getFileInfo().getFileName());
+                imgUrlList.add(imgUrl);
+                if (chatMsg.getMsgId().equals(mChatMsgList.get(position).getMsgId())) {
+                    imgClickPosition = imgUrlList.indexOf(imgUrl);
+                }
+            }
+        }
+        Intent intent = new Intent(getAppContext(), ImgShowActivity.class);
+        intent.putExtra(ImgUtil.IMG_DONWLOAD, true);
+        intent.putExtra(ImgUtil.IMG_CLICK_POSITION, imgClickPosition);
+        intent.putExtra(ImgUtil.IMG_LIST_KEY, (Serializable) imgUrlList);
+        startActivity(intent);
+    }
+
+    private void initEmoticonGridView() {
+        if (emoticonGvAdapter == null) {
+            emoticonGvAdapter = new MessageChatEmoticonGvAdapter(getAppContext(),
+                    emoticonList);
+            emoticonGv.setAdapter(emoticonGvAdapter);
+            emoticonGv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    Emoticon emoticon = emoticonList.get(position);
+                    int cursor = contentInputEt.getSelectionStart();
+                    String tag = emoticon.getTag();
+                    SpannableString spannableString = new SpannableString(tag);
+                    int resId = getResources().getIdentifier(emoticon.getId(), "drawable",
+                            getPackageName());
+                    // 通过上面匹配得到的字符串来生成图片资源id
+                    if (resId != 0) {
+                        Drawable drawable = getResources().getDrawable(resId);
+                        drawable.setBounds(0, 0, SystemUtil.dp2px(getAppContext(), 20),
+                                SystemUtil.dp2px(getAppContext(), 20));
+                        // 通过图片资源id来得到bitmap，用一个ImageSpan来包装
+                        ImageSpan imageSpan = new ImageSpan(drawable, ImageSpan.ALIGN_BOTTOM);
+                        // 计算该图片名字的长度，也就是要替换的字符串的长度
+                        // 将该图片替换字符串中规定的位置中
+                        spannableString.setSpan(imageSpan, 0, tag.length(),
+                                Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+                        contentInputEt.getText().insert(cursor, spannableString);
+                        emList.add(tag);
+                    }
+                }
+            });
+            emoticonList.clear();
+            emoticonList.addAll(EmoticonUtil.getEmoticonList());
+            emoticonGvAdapter.notifyDataSetChanged();
+        }
     }
 
     //底部更多按钮
@@ -1194,10 +1357,17 @@ public class ChatRoomActivity extends BaseActivity {
      * 播放录音
      */
     private void playVoiceRecord(final ChatMsg chatMsg) {
-        if (chatMsg == null || chatMsg.getFileInfo() == null) {
+        if (chatMsg == null) {
             return;
         }
-        final FileInfo fileInfo = chatMsg.getFileInfo();
+        final FileInfo fileInfo;
+        if (chatMsg.getReplyMsgInfo() != null && chatMsg.getReplyMsgInfo().getFileInfo() != null && chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY) {
+            fileInfo = chatMsg.getReplyMsgInfo().getFileInfo();
+        } else if (chatMsg.getFileInfo() != null) {
+            fileInfo = chatMsg.getFileInfo();
+        } else {
+            return;
+        }
         String tapePath = "";
         if (FileUtil.isFileExists(fileInfo.getOriginPath())) {
             tapePath = fileInfo.getOriginPath();
@@ -1213,6 +1383,12 @@ public class ChatRoomActivity extends BaseActivity {
             if (msg.getFileInfo() != null
                     && msg.getFileInfo().getFileType() == FileInfo.TYPE_TAPE_RECORD) {
                 msg.getFileInfo().setTapePlayingMark(0);
+            }
+            if (msg.getReplyMsgInfo() != null
+                    && msg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY
+                    && msg.getReplyMsgInfo().getFileInfo() != null
+                    && msg.getReplyMsgInfo().getFileInfo().getFileType() == FileInfo.TYPE_TAPE_RECORD) {
+                msg.getReplyMsgInfo().getFileInfo().setTapePlayingMark(0);
             }
         }
         fileInfo.setTapePlayingMark(1 - playingMark);
@@ -1255,23 +1431,37 @@ public class ChatRoomActivity extends BaseActivity {
     }
 
     private void downloadFile(final ChatMsg chatMsg, final String saveDir) {
-        if (chatMsg == null || chatMsg.getFileInfo() == null) {
+        if (chatMsg == null) {
             return;
         }
-        chatMsg.getFileInfo().setDownloadState(FileInfo.TYPE_DOWNLOADING);
+        final FileInfo fileInfo;
+        if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY
+                && chatMsg.getReplyMsgInfo() != null
+                && chatMsg.getReplyMsgInfo().getFileInfo() != null) {
+            fileInfo = chatMsg.getReplyMsgInfo().getFileInfo();
+        } else if (chatMsg.getFileInfo() != null) {
+            fileInfo = chatMsg.getFileInfo();
+        } else {
+            return;
+        }
+        fileInfo.setDownloadState(FileInfo.TYPE_DOWNLOADING);
         updateRcv();
-        MessageDao.updateFileInfo(chatMsg.getLocalMsgId(), chatMsg.getFileInfo());
-        HttpUtil.downloadFile(chatMsg.getFileInfo().getDownloadPath(), saveDir,
-                chatMsg.getFileInfo().getFileName(), new HttpUtil.OnDownloadListener() {
+        if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY) {
+            MessageDao.updateReplyFileInfo(chatMsg.getLocalMsgId(), fileInfo);
+        } else {
+            MessageDao.updateFileInfo(chatMsg.getLocalMsgId(), fileInfo);
+        }
+        HttpUtil.downloadFile(fileInfo.getDownloadPath(), saveDir,
+                fileInfo.getFileName(), new HttpUtil.OnDownloadListener() {
                     @Override
                     public void onDownloadSuccess() {
-                        chatMsg.getFileInfo().setSavePath(saveDir + chatMsg.getFileInfo().getFileName());
-                        chatMsg.getFileInfo().setDownloadState(FileInfo.TYPE_DOWNLOAD_SUCCESS);
+                        fileInfo.setSavePath(saveDir + fileInfo.getFileName());
+                        fileInfo.setDownloadState(FileInfo.TYPE_DOWNLOAD_SUCCESS);
 
-                        if (chatMsg.getFileInfo().getFileType() == FileInfo.TYPE_DOC
-                                || chatMsg.getFileInfo().getFileType() == FileInfo.TYPE_MUSIC) {
-                            SystemUtil.notifyMediaStoreRefresh(getAppContext(), chatMsg.getFileInfo().getSavePath());
-                            FileOpenUtil.openFile(getHostActivity(), chatMsg.getFileInfo().getSavePath());
+                        if (fileInfo.getFileType() == FileInfo.TYPE_DOC
+                                || fileInfo.getFileType() == FileInfo.TYPE_MUSIC) {
+                            SystemUtil.notifyMediaStoreRefresh(getAppContext(), fileInfo.getSavePath());
+                            FileOpenUtil.openFile(getHostActivity(), fileInfo.getSavePath());
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -1279,17 +1469,25 @@ public class ChatRoomActivity extends BaseActivity {
                                 }
                             });
 
-                        } else if (chatMsg.getFileInfo().getFileType() == FileInfo.TYPE_TAPE_RECORD) {
+                        } else if (fileInfo.getFileType() == FileInfo.TYPE_TAPE_RECORD) {
                             playVoiceRecord(chatMsg);
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     updateRcv();
-                                    setMessageRead(chatMsg.getMsgId(), ChatMsg.TYPE_READ_TAPE, false);
+                                    if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY) {
+                                        setMessageRead(chatMsg.getMsgId(), ChatMsg.TYPE_READ_NORMAL, false);
+                                    } else {
+                                        setMessageRead(chatMsg.getMsgId(), ChatMsg.TYPE_READ_TAPE, false);
+                                    }
                                 }
                             });
                         }
-                        MessageDao.updateFileInfo(chatMsg.getLocalMsgId(), chatMsg.getFileInfo());
+                        if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY) {
+                            MessageDao.updateReplyFileInfo(chatMsg.getLocalMsgId(), fileInfo);
+                        } else {
+                            MessageDao.updateFileInfo(chatMsg.getLocalMsgId(), fileInfo);
+                        }
                     }
 
                     @Override
@@ -1300,8 +1498,12 @@ public class ChatRoomActivity extends BaseActivity {
                     @Override
                     public void onDownloadFailed() {
                         LogUtil.i("downloadFile Failure");
-                        chatMsg.getFileInfo().setDownloadState(FileInfo.TYPE_DOWNLOAD_FAIL);
-                        MessageDao.updateFileInfo(chatMsg.getLocalMsgId(), chatMsg.getFileInfo());
+                        fileInfo.setDownloadState(FileInfo.TYPE_DOWNLOAD_FAIL);
+                        if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY) {
+                            MessageDao.updateReplyFileInfo(chatMsg.getLocalMsgId(), fileInfo);
+                        } else {
+                            MessageDao.updateFileInfo(chatMsg.getLocalMsgId(), fileInfo);
+                        }
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -1311,6 +1513,7 @@ public class ChatRoomActivity extends BaseActivity {
                     }
                 });
     }
+
 
     private void compressImg(final String filePath) {
         ImgUtil.compress(getAppContext(), filePath, new LubanCallBack() {
@@ -1444,13 +1647,15 @@ public class ChatRoomActivity extends BaseActivity {
                         mChatRoom.getRoomType(), TimeUtil.getServerTimestamp());
                 mChatMsgList.clear();
                 mChatMsgList.addAll(cacheList);
-                updateRcv();
                 if (rcvAdapter.getTopPullViewVisible()) {
                     layoutManager.scrollToPositionWithOffset(mChatMsgList.size(), 0);
                 } else {
                     layoutManager.scrollToPositionWithOffset(mChatMsgList.size() - 1, 0);
                 }
             }
+            MessageDao.removeUnSyncMsgId(mChatRoom, MessageDao.getMinMsgId(mChatRoom));
+            isNeedGetServerMsg = false;
+            updateRcv();
             return;
         }
         for (ChatMsg msg : backMsgList) {
@@ -1458,7 +1663,8 @@ public class ChatRoomActivity extends BaseActivity {
             msg.setRoomType(mChatRoom.getRoomType());
             msg.setSendState(ChatMsg.TYPE_SEND_SUCCESS);
             if (ChatMsg.TYPE_CONTENT_TEXT == msg.getContentType()
-                    || ChatMsg.TYPE_CONTENT_AT == msg.getContentType()) {
+                    || ChatMsg.TYPE_CONTENT_AT == msg.getContentType()
+                    || ChatMsg.TYPE_CONTENT_REPLY == msg.getContentType()) {
                 if (EmoticonUtil.isContainEmotion(msg.getContent())) {
                     msg.setEmoMark(1);
                 }
@@ -1470,7 +1676,14 @@ public class ChatRoomActivity extends BaseActivity {
                 }
             }
         }
-        pageEarliestMsgId = backMsgList.get(backMsgList.size() - 1).getMsgId();
+        //避免获取的msgid为空，发送中和发送失败的都为空，msgId之后成功后的消息才会有
+        for (int i=backMsgList.size()-1;i>=0;i--){
+            if (backMsgList.get(i).getMsgId()!=null){
+                pageEarliestMsgId =backMsgList.get(i).getMsgId() ;
+                break;
+            }
+        }
+
         String maxUnSyncMsgId = MessageDao.getMaxUnSyncMsgId(mChatRoom);
 
         if (!TextUtils.isEmpty(maxUnSyncMsgId) && !"0".equals(maxUnSyncMsgId)) {
@@ -1494,22 +1707,33 @@ public class ChatRoomActivity extends BaseActivity {
         } else {
             isNeedGetServerMsg = false;
         }
+        backMsgList = MessageDao.addMessageList(backMsgList);
+        Collections.sort(backMsgList, new ChatMsg.TimeRiseComparator());
 
-        MessageDao.addMessageList(backMsgList);
-
-        //去重
-        Set<ChatMsg> msgSet = new HashSet<>();
-        msgSet.addAll(mChatMsgList);
-        msgSet.addAll(backMsgList);
         mChatMsgList.clear();
-        mChatMsgList.addAll(msgSet);
-
-        Collections.sort(mChatMsgList, new ChatMsg.TimeRiseComparator());
+        mChatMsgList.addAll(MessageDao.getMessageBeforeListAll(mChatRoom.getRoomId(), mChatRoom.getRoomType(), backMsgList.get(backMsgList.size() - 1).getCreateTimestamp()));
+//        //遍历删除,除去已被本地删除的
+//        Iterator<ChatMsg> iterator = backMsgList.iterator();
+//        while (iterator.hasNext()) {
+//            ChatMsg cm = iterator.next();
+//            if (cm.getDeleteMark() == 1) {
+//                iterator.remove();//使用迭代器的删除方法删除
+//            }
+//        }
+//        //去重
+//        Set<ChatMsg> msgSet = new HashSet<>();
+//        msgSet.addAll(mChatMsgList);
+//        msgSet.addAll(backMsgList);
+//        mChatMsgList.clear();
+//        mChatMsgList.addAll(msgSet);
+//        Collections.sort(mChatMsgList, new ChatMsg.TimeRiseComparator());
         updateRcv();
         if (firstMark == 1) {
             layoutManager.scrollToPositionWithOffset(rcvAdapter.getItemCount() - 1, 0);
-            String lastId = backMsgList.get(0).getMsgId();
-            setMessageRead(lastId, ChatMsg.TYPE_READ_NORMAL, true);
+            if (backMsgList.size() > 0) {
+                String lastId = backMsgList.get(0).getMsgId();
+                setMessageRead(lastId, ChatMsg.TYPE_READ_NORMAL, true);
+            }
         } else {
             if (rcvAdapter.getTopPullViewVisible()) {
                 layoutManager.scrollToPositionWithOffset(backMsgList.size() + 1, topLoadLastOffset);
@@ -1517,21 +1741,76 @@ public class ChatRoomActivity extends BaseActivity {
                 layoutManager.scrollToPositionWithOffset(backMsgList.size(), topLoadLastOffset);
             }
         }
+        oldServerMsgDelete();
     }
+
+
+    private void oldServerMsgDelete() {
+        if (mChatMsgList.size() <= 0) {
+            return;
+        }
+        if (TextUtils.isEmpty(mNotesMsgId)) {
+            //避免获取的msgid为空，发送中和发送失败的都为空，msgId之后成功后的消息才会有
+            for (int i=mChatMsgList.size()-1;i>=0;i--){
+                if (mChatMsgList.get(i).getMsgId()!=null){
+                    mNotesMsgId =mChatMsgList.get(i).getMsgId() ;
+                    break;
+                }
+            }
+        }
+        //获取最老的id
+        if (mChatMsgList.get(0) == null) {
+            return;
+        }
+        minMsgId = mChatMsgList.get(0).getMsgId();
+        if (minMsgId == null || minMsgId.equals(mNotesMsgId)) {
+            return;
+        }
+        HttpMessage.getDeleteMessageList(mChatRoom.getRoomId(), mChatRoom.getRoomType(), mNotesMsgId, minMsgId, new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+            @Override
+            public void success(Object data, int count) {
+                mNotesMsgId = minMsgId;
+                if (data == null) {
+                    return;
+                }
+                try {
+                    List<String> msgIdList = JSON.parseArray(data.toString(), String.class);
+                    if (msgIdList == null || msgIdList.size() <= 0) {
+                        return;
+                    }
+                    MessageDao.deleteList(msgIdList);
+                    for (String msgId : msgIdList) {
+                        Iterator<ChatMsg> iterator = mChatMsgList.iterator();
+                        while (iterator.hasNext()) {
+                            ChatMsg chatMsg1 = iterator.next();
+                            if (chatMsg1.getMsgId().equals(msgId)) {
+                                iterator.remove();//使用迭代器的删除方法删除
+                                break;
+                            }
+                        }
+                    }
+                    updateRcv();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
 
     /**
      * 获取群公告进行弹窗
      */
-    private void getNewAnnouncement(){
+    private void getNewAnnouncement() {
         if (ChatRoom.TYPE_GROUP.equals(mChatRoom.getRoomType())) {
             HttpContact.getNewAnnouncement(mChatRoom.getRoomId(), new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
                 @Override
                 public void success(Object data, int count) {
-                    if (data==null){
+                    if (data == null) {
                         return;
                     }
-                    Announcement announcement=JSON.parseObject(data.toString(),Announcement.class);
-                    if (ActivityUtil.isActivityOnTop(ChatRoomActivity.this)){
+                    Announcement announcement = JSON.parseObject(data.toString(), Announcement.class);
+                    if (ActivityUtil.isActivityOnTop(ChatRoomActivity.this)) {
                         announcementDialog(announcement);
                     }
                 }
@@ -1543,6 +1822,10 @@ public class ChatRoomActivity extends BaseActivity {
      * 设置消息已读
      */
     private void setMessageRead(String msgId, int readType, final boolean isNeedRefresh) {
+        if (msgId==null){
+            //这里说明最新一条消息是本地的失败消息或者发送中的消息
+            return;
+        }
         HttpMessage.setMessageRead(mChatRoom.getRoomId(), mChatRoom.getRoomType(), msgId, readType,
                 new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
                     @Override
@@ -1578,8 +1861,9 @@ public class ChatRoomActivity extends BaseActivity {
                 });
     }
 
+
     private void makeTopFriend(final String friendId, final int topMark) {
-        HttpContact.makeTopFriend(friendId, topMark, FriendDao.findFriendshipMark(friendId), new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+        HttpContact.makeTopFriend(friendId, topMark, FriendDao.findFriendshipMark(friendId), new HttpCallBack(this, ClassUtil.classMethodName(), true) {
             @Override
             public void success(Object data, int count) {
                 if (mChatRoom != null) {
@@ -1594,7 +1878,7 @@ public class ChatRoomActivity extends BaseActivity {
     }
 
     private void shieldFriendConversation(final String friendId, final int shieldMark) {
-        HttpContact.shieldFriendConversation(friendId, shieldMark, FriendDao.findFriendshipMark(friendId), new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+        HttpContact.shieldFriendConversation(friendId, shieldMark, FriendDao.findFriendshipMark(friendId), new HttpCallBack(this, ClassUtil.classMethodName(), true) {
             @Override
             public void success(Object data, int count) {
                 if (mChatRoom != null) {
@@ -1609,7 +1893,7 @@ public class ChatRoomActivity extends BaseActivity {
     }
 
     private void makeTopGroup(final String groupId, final int topMark) {
-        HttpContact.makeTopGroup(groupId, topMark, new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+        HttpContact.makeTopGroup(groupId, topMark, new HttpCallBack(this, ClassUtil.classMethodName(), true) {
             @Override
             public void success(Object data, int count) {
                 if (mChatRoom != null) {
@@ -1623,7 +1907,7 @@ public class ChatRoomActivity extends BaseActivity {
     }
 
     private void shieldGroupConversation(final String groupId, final int shieldMark) {
-        HttpContact.shieldGroupConversation(groupId, shieldMark, new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+        HttpContact.shieldGroupConversation(groupId, shieldMark, new HttpCallBack(this, ClassUtil.classMethodName(), true) {
             @Override
             public void success(Object data, int count) {
                 if (mChatRoom != null) {
@@ -1638,11 +1922,11 @@ public class ChatRoomActivity extends BaseActivity {
 
     private void clearConversation(final String roomId, final String roomType) {
         HttpMessage.deleteSingleConversation(roomId, roomType,
-                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(), true) {
                     @Override
                     public void success(Object data, int count) {
                         ChatRoomDao.clearConversation(roomId, roomType);
-                        MessageDao.updateShowMark(roomId, roomType);
+                        MessageDao.deleteRoomMsg(roomId, roomType);
                         EventTrans.post(EventMsg.CONVERSATION_CLEAR_REFRESH, roomId);
                     }
                 });
@@ -1650,7 +1934,7 @@ public class ChatRoomActivity extends BaseActivity {
 
     private void applyAddFriend(String friendId, String verifyInfo, String subgroupId) {
         HttpContact.applyAddFriend(friendId, verifyInfo, subgroupId, SpCons.getUser(getAppContext()).getId(),
-                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
+                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName(), true) {
                     @Override
                     public void success(Object data, int count) {
                         if (data == null) {
@@ -1690,7 +1974,7 @@ public class ChatRoomActivity extends BaseActivity {
 
     private void pullBlackFriend(final String friendId, int friendshipMark) {
         HttpContact.pullBlackFriend(friendId, 1, friendshipMark,
-                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(), true) {
                     @Override
                     public void success(Object data, int count) {
                         FriendInfo mFriendInfo = ContactUserDao.getContactUser(friendId);
@@ -1699,7 +1983,7 @@ public class ChatRoomActivity extends BaseActivity {
                             mFriendInfo.setTopMark(0);
                             if (mFriendInfo.getBlackMark() == 1) {
                                 ChatRoomDao.deleteRoom(friendId, ChatRoom.TYPE_SINGLE);
-                                MessageDao.updateShowMark(friendId, ChatRoom.TYPE_SINGLE);
+                                MessageDao.deleteRoomMsg(friendId, ChatRoom.TYPE_SINGLE);
                             }
                             ContactUserDao.addContactUser(mFriendInfo);
                             EventTrans.post(EventMsg.CONTACT_FRIEND_BLACK_REFRESH, friendId);
@@ -1747,12 +2031,33 @@ public class ChatRoomActivity extends BaseActivity {
                 LogUtil.i("SOCKET_ON_MESSAGE", chatMsg);
                 if (chatMsg != null && chatMsg.getRoomId().equals(mChatRoom.getRoomId())
                         && chatMsg.getRoomType().equals(mChatRoom.getRoomType())) {
-                    mChatMsgList.clear();
-                    mChatMsgList.addAll(MessageDao.getMessageBeforeList(mChatRoom.getRoomId(),
-                            mChatRoom.getRoomType(), TimeUtil.getServerTimestamp()));
-                    Collections.sort(mChatMsgList, new ChatMsg.TimeRiseComparator());
-                    updateRcv();
-                    layoutManager.scrollToPositionWithOffset(rcvAdapter.getItemCount() - 1, 0);
+                    chatMsg = MessageDao.getMessage(chatMsg.getMsgId(), chatMsg.getLocalMsgId());
+
+                    boolean removeMark = false;
+                    //遍历删除,除去重复消息
+                    Iterator<ChatMsg> iterator = mChatMsgList.iterator();
+                    while (iterator.hasNext()) {
+                        ChatMsg cm = iterator.next();
+                        if (cm.getLocalMsgId().equals(chatMsg.getLocalMsgId())) {
+                            iterator.remove();//使用迭代器的删除方法删除
+                            removeMark = true;
+                        }
+                    }
+                    mChatMsgList.add(chatMsg);
+                    if (removeMark) {
+                        rcvAdapter.notifyDataSetChanged();
+                    } else {
+                        //这里+1是由于适配器重写固定增加底部加载，所以获取到的少一个
+                        rcvAdapter.notifyItemInserted(mChatMsgList.indexOf(chatMsg) + 1);
+                    }
+                    if (containerRcv.canScrollVertically(1) && UserDao.user.getId().equals(chatMsg.getSenderId())) {
+                        layoutManager.scrollToPositionWithOffset(rcvAdapter.getItemCount() - 1, 0);
+                    } else if (!containerRcv.canScrollVertically(1)) {
+                        layoutManager.scrollToPositionWithOffset(rcvAdapter.getItemCount() - 1, 0);
+                    }
+                    boolean isTopPullAvailable = MessageDao.getCount(mChatRoom.getRoomId(),
+                            mChatRoom.getRoomType()) > mChatMsgList.size() || isNeedGetServerMsg;
+                    rcvAdapter.setTopPullViewVisible(isTopPullAvailable);
                     //收到的所有消息，反馈给服务器消息已读
                     if (chatMsg.getRoomType().equals(mChatRoom.getRoomType())
                             && chatMsg.getRoomId().equals(mChatRoom.getRoomId())
@@ -1763,7 +2068,7 @@ public class ChatRoomActivity extends BaseActivity {
                             && !chatMsg.getVoiceCall().getInviteUserId()
                             .equals(SpCons.getUser(getAppContext()).getId())))) {
                         setMessageRead(chatMsg.getMsgId(), ChatMsg.TYPE_READ_NORMAL, false);
-                        if (ChatRoomDao.getAtType(mChatRoom.getRoomId(),mChatRoom.getRoomType())!=ChatMsg.TYPE_AT_NORMAL){
+                        if (ChatRoomDao.getAtType(mChatRoom.getRoomId(), mChatRoom.getRoomType()) != ChatMsg.TYPE_AT_NORMAL) {
                             EventTrans.post(EventMsg.CONVERSATION_REFRESH_TYPE_AT_NORMAL, chatMsg);
                         }
                     }
@@ -1772,11 +2077,21 @@ public class ChatRoomActivity extends BaseActivity {
 
             case EventMsg.CONVERSATION_CHAT_REFRESH:
                 LogUtil.i("CONVERSATION_CHAT_REFRESH");
-                mChatMsgList.clear();
-                mChatMsgList.addAll(MessageDao.getMessageBeforeList(mChatRoom.getRoomId(),
-                        mChatRoom.getRoomType(), TimeUtil.getServerTimestamp()));
-                Collections.sort(mChatMsgList, new ChatMsg.TimeRiseComparator());
-                updateRcv();
+                for (int i = 0; i < mChatMsgList.size(); i++) {
+                    ChatMsg chatMsg1 = mChatMsgList.get(i);
+                    if ((chatMsg1.getLocalMsgId() != null && chatMsg1.getLocalMsgId().equals(msg.getData()))
+                            || chatMsg1.getMsgId() != null && chatMsg1.getMsgId().equals(msg.getSecondData())) {
+                        ChatMsg message = MessageDao.getMessage(chatMsg1.getMsgId(), chatMsg1.getLocalMsgId());
+                        if (message == null) {
+                            break;
+                        }
+                        chatMsg1.setSendState(message.getSendState());
+                        chatMsg1.setMsgId(message.getMsgId());
+                        chatMsg1.setFileInfo(message.getFileInfo());
+                        rcvAdapter.notifyDataSetChanged();
+                        break;
+                    }
+                }
                 break;
 
             case EventMsg.CONVERSATION_CHAT_FINISH:
@@ -1810,6 +2125,7 @@ public class ChatRoomActivity extends BaseActivity {
                         centerTitleTv.setText(friendInfo6.getUsername());
                     }
                 }
+                rcvAdapter.notifyDataSetChanged();
                 break;
 
             case EventMsg.CONTACT_GROUP_INFO_REFRESH:
@@ -2001,8 +2317,8 @@ public class ChatRoomActivity extends BaseActivity {
             case EventMsg.CONVERSATION_DELETE_MSG:
                 ChatMsg chat = (ChatMsg) msg.getData();
                 if (mChatRoom.getRoomType().equals(chat.getRoomType()) && mChatRoom.getRoomId().equals(chat.getRoomId())) {
-                    for (ChatMsg chatMsg1:mChatMsgList){
-                        if (chat.getMsgId().equals(chatMsg1.getMsgId())){
+                    for (ChatMsg chatMsg1 : mChatMsgList) {
+                        if (chat.getMsgId().equals(chatMsg1.getMsgId())) {
                             mChatMsgList.remove(chatMsg1);
                             rcvAdapter.notifyDataSetChanged();
                             return;
@@ -2010,6 +2326,11 @@ public class ChatRoomActivity extends BaseActivity {
                     }
                 }
                 break;
+            case EventMsg.CONVERSATION_ADD_GROUP_POST:
+                //发布公告
+                if (ChatRoom.TYPE_GROUP.equals(mChatRoom.getRoomType()) && mChatRoom.getRoomId().equals(msg.getData())) {
+                    getNewAnnouncement();
+                }
             default:
                 break;
         }
@@ -2030,6 +2351,7 @@ public class ChatRoomActivity extends BaseActivity {
         return super.onKeyDown(keyCode, event);
     }
 
+
     @Override
     protected void onDestroy() {
         if (rightMorePop != null) {
@@ -2037,7 +2359,85 @@ public class ChatRoomActivity extends BaseActivity {
         }
         TapeRecordManager.getInstance().playEndOrFail();
         ChatRoomManager.clearRoomInfo();
+
         super.onDestroy();
     }
 
+    @Override
+    public void reply(ChatMsg chatMsg) {
+        if (replyMsgInfo == null) {
+            replyMsgInfo = new ReplyMsgInfo();
+        }
+        FriendInfo friendInfo = ContactUserDao.getContactUser(chatMsg.getSenderId());
+        if (friendInfo == null) {
+            friendInfo = new FriendInfo();
+            friendInfo.setId(chatMsg.getSenderId());
+        }
+        replyMsgInfo.setSenderInfo(friendInfo);
+        replyMsgInfo.setFileInfo(chatMsg.getFileInfo());
+        replyMsgInfo.setContentType(chatMsg.getContentType());
+        replyMsgInfo.setContent(chatMsg.getContent());
+        replyView();
+    }
+
+    private void replyView() {
+        if (replyMsgInfo.getContentType() == ChatMsg.TYPE_CONTENT_TEXT
+                || replyMsgInfo.getContentType() == ChatMsg.TYPE_CONTENT_AT
+                || replyMsgInfo.getContentType() == ChatMsg.TYPE_CONTENT_REPLY) {
+            replyIv.setVisibility(View.GONE);
+            replyContentTv.setText(replyMsgInfo.getContent());
+        } else {
+            FileInfo fileInfo = replyMsgInfo.getFileInfo();
+            replyIv.setVisibility(View.VISIBLE);
+            replyVideoIv.setVisibility(View.GONE);
+            if (fileInfo != null) {
+                String filePath = "";
+                switch (fileInfo.getFileType()) {
+                    case FileInfo.TYPE_IMG:
+                        if (!TextUtils.isEmpty(fileInfo.getOriginPath())) {
+                            filePath = fileInfo.getOriginPath();
+                        } else if (!TextUtils.isEmpty(fileInfo.getSavePath())) {
+                            filePath = fileInfo.getSavePath();
+                        } else if (!TextUtils.isEmpty(fileInfo.getDownloadPath())) {
+                            filePath = fileInfo.getDownloadPath();
+                        }
+                        ImgUtil.load(this, filePath, replyIv, R.drawable.con_img_vertical);
+                        replyContentTv.setText(getString(R.string.image));
+                        break;
+                    case FileInfo.TYPE_VIDEO:
+                        if (!TextUtils.isEmpty(fileInfo.getOriginPath())) {
+                            filePath = fileInfo.getOriginPath();
+                        } else if (!TextUtils.isEmpty(fileInfo.getSavePath())) {
+                            filePath = fileInfo.getSavePath();
+                        } else if (!TextUtils.isEmpty(fileInfo.getDownloadPath())) {
+                            filePath = fileInfo.getDownloadPath();
+                        }
+                        ImgUtil.load(this, filePath, replyIv, R.drawable.con_img_vertical);
+                        replyVideoIv.setVisibility(View.VISIBLE);
+                        replyContentTv.setText(getString(R.string.video));
+                        break;
+                    case FileInfo.TYPE_DOC:
+                        String nameStr = fileInfo.getFileName();
+                        String type = nameStr.substring(nameStr.lastIndexOf("."), nameStr.length());
+                        FileUtil.imageTypeView(type, replyIv);
+                        replyContentTv.setText(getString(R.string.document));
+                        break;
+                    case FileInfo.TYPE_MUSIC:
+                        String nameStr1 = fileInfo.getFileName();
+                        String type1 = nameStr1.substring(nameStr1.lastIndexOf("."), nameStr1.length());
+                        FileUtil.imageTypeView(type1, replyIv);
+                        replyContentTv.setText(getString(R.string.musicInfo));
+                        break;
+                    case FileInfo.TYPE_TAPE_RECORD:
+                        replyIv.setVisibility(View.GONE);
+                        replyContentTv.setText(getString(R.string.audio));
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+        replyNameTv.setText(NameUtil.getName(replyMsgInfo.getSenderInfo().getId()));
+        replyRl.setVisibility(View.VISIBLE);
+    }
 }

@@ -1,13 +1,17 @@
 package com.wewin.hichat.view.conversation;
 
+import android.animation.ObjectAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.alibaba.fastjson.JSON;
@@ -19,6 +23,7 @@ import com.wewin.hichat.androidlib.event.EventTrans;
 import com.wewin.hichat.androidlib.impl.CustomTextWatcher;
 import com.wewin.hichat.androidlib.impl.HttpCallBack;
 import com.wewin.hichat.androidlib.utils.ClassUtil;
+import com.wewin.hichat.androidlib.utils.NameUtil;
 import com.wewin.hichat.component.adapter.ConversationSelectAdapter;
 import com.wewin.hichat.component.adapter.ConversationSelectSendAdapter;
 import com.wewin.hichat.component.adapter.ConversationSelectSendElvAdapter;
@@ -62,6 +67,8 @@ public class SelectSendActivity extends BaseActivity {
     private TextView contentTv;
     private TextView rightTv;
     private TextView leftTv;
+    private LinearLayout llSelectSend;
+    private RelativeLayout rlSelectSendTop;
     private ChatMsg mChatMsg;
     /**
      * 汉字转换成拼音的类
@@ -127,7 +134,8 @@ public class SelectSendActivity extends BaseActivity {
         leftTv = findViewById(R.id.tv_left_text);
         contentTv = findViewById(R.id.tv_center_title);
         rightTv = findViewById(R.id.tv_right_text);
-        contentTv.setText(getString(R.string.forward));
+        llSelectSend=findViewById(R.id.ll_select_send);
+        rlSelectSendTop=findViewById(R.id.rl_select_send_top);
         rightTv.setText(getString(R.string.determine));
         leftTv.setText(getString(R.string.back));
 
@@ -221,9 +229,11 @@ public class SelectSendActivity extends BaseActivity {
                 for (SelectSubgroup.DataBean dataBean : selectList) {
                     //这里保存消息是因为发送文件消息保存消息规则不一样导致无法保存
                     ChatMsg chatMsg = ChatRoomManager.packForwardMsg(mChatMsg, dataBean.getRoomType(), dataBean.getRoomId());
-                    chatMsg.setMsgId(System.currentTimeMillis() + "");
                     ChatSocket.getInstance().send(chatMsg);
-                    ChatRoomManager.saveChatMsg(SelectSendActivity.this, chatMsg, true);
+                    //文件类型需要保存一份，由于文件发送机制
+                    if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_FILE) {
+                        ChatRoomManager.saveChatMsg(SelectSendActivity.this, chatMsg, true);
+                    }
                 }
                 finish();
             }
@@ -234,6 +244,7 @@ public class SelectSendActivity extends BaseActivity {
      * 初始化第一个界面，需要展示会话
      */
     private void initConversation() {
+        contentTv.setText(getString(R.string.forward));
         type = 0;
         if (elvConversationList.size() <= 0) {
             SelectSubgroup selectFriend = new SelectSubgroup();
@@ -267,14 +278,18 @@ public class SelectSendActivity extends BaseActivity {
                     }
 
                 } else {
-                    FriendInfo contactUser = ContactUserDao.getContactUser(chatRoom.getRoomId());
+                    FriendInfo contactUser = FriendDao.getFriendInfo(chatRoom.getRoomId());
+                    if (contactUser==null){
+                        contactUser=ContactUserDao.getContactUser(chatRoom.getRoomId());
+                    }
                     if (contactUser != null) {
-                        if (!TextUtils.isEmpty(contactUser.getFriendNote())) {
-                            dataBean.setUsername(contactUser.getFriendNote());
-                        } else {
-                            dataBean.setUsername(contactUser.getUsername());
-                        }
+                        dataBean.setUsername(NameUtil.getName(chatRoom.getRoomId()));
                         dataBean.setAvatar(contactUser.getAvatar());
+                        if (contactUser.getBlackMark()==1){
+                            dataBean.setSendMark(1);
+                        }else {
+                            dataBean.setSendMark(0);
+                        }
                     }
                 }
                 selectConversation.getData().add(dataBean);
@@ -319,6 +334,8 @@ public class SelectSendActivity extends BaseActivity {
      * 初始化朋友，展示的时候调用
      */
     private void initFriend() {
+        contentTv.setText(getString(R.string.select_friend));
+        viewAnim();
         type = 1;
         listView.setVisibility(View.GONE);
         expandableListView.setVisibility(View.VISIBLE);
@@ -356,7 +373,8 @@ public class SelectSendActivity extends BaseActivity {
                     final List<Subgroup> dataList = JSON.parseArray(data.toString(), Subgroup.class);
                     elvFriendList.clear();
                     for (Subgroup subgroup : dataList) {
-                        if (subgroup.getIsDefault() != Subgroup.TYPE_TEMPORARY) {
+                        if (subgroup.getIsDefault() != Subgroup.TYPE_TEMPORARY
+                                &&subgroup.getIsDefault() != Subgroup.TYPE_BLACK) {
                             //临时会话不显示
                             SelectSubgroup selectSubgroup = new SelectSubgroup();
                             selectSubgroup.setGroupName(subgroup.getGroupName());
@@ -373,7 +391,11 @@ public class SelectSendActivity extends BaseActivity {
                                 } else {
                                     dataBean.setUsername(friendInfo.getFriendNote());
                                 }
-
+                                if (friendInfo.getBlackMark()==1){
+                                    dataBean.setSendMark(1);
+                                }else {
+                                    dataBean.setSendMark(0);
+                                }
                                 selectSubgroup.getData().add(dataBean);
                             }
                             elvFriendList.add(selectSubgroup);
@@ -413,6 +435,8 @@ public class SelectSendActivity extends BaseActivity {
      * 初始化群聊，展示的时候调用
      */
     private void initGroup() {
+        contentTv.setText(getString(R.string.select_group));
+        viewAnim();
         type = 2;
         listView.setVisibility(View.VISIBLE);
         expandableListView.setVisibility(View.GONE);
@@ -552,5 +576,30 @@ public class SelectSendActivity extends BaseActivity {
                 }
                 break;
         }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode==KeyEvent.KEYCODE_BACK){
+            if (type == 0) {
+                finish();
+                return false;
+            }
+            changeView();
+            return false;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    private void viewAnim(){
+        ObjectAnimator translationX = ObjectAnimator.ofFloat(expandableListView, "translationX", llSelectSend.getMeasuredWidth(),0);
+        translationX.setDuration(400);
+        translationX.start();
+        ObjectAnimator translationX1 = ObjectAnimator.ofFloat(listView, "translationX", llSelectSend.getMeasuredWidth(),0);
+        translationX1.setDuration(400);
+        translationX1.start();
+        ObjectAnimator translationX2 = ObjectAnimator.ofFloat(rlSelectSendTop, "translationX", llSelectSend.getMeasuredWidth(),0);
+        translationX2.setDuration(400);
+        translationX2.start();
     }
 }

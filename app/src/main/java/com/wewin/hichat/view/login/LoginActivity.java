@@ -291,7 +291,7 @@ public class LoginActivity extends BaseActivity {
 
     private void login(String phone, String password) {
         HttpLogin.login(phone, password, "acc",
-                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         if (data == null) {
@@ -314,7 +314,7 @@ public class LoginActivity extends BaseActivity {
     }
 
     private void logout() {
-        HttpLogin.logout(new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+        HttpLogin.logout(new HttpCallBack(this, ClassUtil.classMethodName(),true) {
             @Override
             public void success(Object data, int count) {
                 SpCons.setCuid(getAppContext(), "");

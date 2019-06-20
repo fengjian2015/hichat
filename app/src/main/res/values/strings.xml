@@ -308,11 +308,13 @@
     <string name="recent_contacts">最近联系人</string>
     <string name="determine">确定</string>
     <string name="forward_max_prompt">转发最多选择%1$s个会话</string>
-    <string name="allow_member_add_friend">允许群成员互加</string>
+    <string name="allow_member_add_friend">禁止群成员互加</string>
     <string name="allow_add_prompt">群开启了禁止互加</string>
     <string name="call_prompt">你的手机没有授权嗖嗖Talk获得录音权限，语音通话和录音功能不能正常使用</string>
     <string name="okay_get_it">好，我知道了！</string>
-    <string name="all_people_delete">所有人删除</string>
+    <string name="all_people_delete">从本地和 %1$s 删除</string>
+    <string name="all_people_delete1">所有人删除</string>
     <string name="local_delete">仅本地删除</string>
-    <string name="been_banned_forwarding">已被禁言，无法转发！</string>
+    <string name="been_banned_forwarding">已被禁言或被拉黑，无法转发！</string>
+    <string name="draft">[草稿]</string>
 </resources>

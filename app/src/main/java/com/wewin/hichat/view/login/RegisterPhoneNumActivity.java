@@ -168,7 +168,7 @@ public class RegisterPhoneNumActivity extends BaseActivity {
 
     private void getVerifyCode(final String areaCode, final String phoneNum, String type) {
         LogUtil.i("phoneNum", phoneNum);
-        HttpLogin.getSms(areaCode.replace("+", ""), phoneNum, type, new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+        HttpLogin.getSms(areaCode.replace("+", ""), phoneNum, type, new HttpCallBack(this, ClassUtil.classMethodName(),true) {
             @Override
             public void success(Object data, int count) {
                 Intent intent = new Intent(getAppContext(), RegisterVerifyCodeActivity.class);

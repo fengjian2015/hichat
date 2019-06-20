@@ -109,7 +109,7 @@ public class AnnouncementListActivity extends BaseActivity {
 
     private void getAnnouncementList(int page) {
         HttpContact.getAnnouncementList(mGroupInfo.getId(), 10, page, "",
-                new HttpCallBack(getApplicationContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         if (data == null) {
@@ -131,7 +131,7 @@ public class AnnouncementListActivity extends BaseActivity {
 
     private void deleteAnnouncement(final int position) {
         HttpContact.deleteAnnouncement(announcementList.get(position).getId(),
-                new HttpCallBack(getApplicationContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         announcementList.remove(position);

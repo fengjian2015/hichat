@@ -14,6 +14,7 @@ import com.wewin.hichat.androidlib.event.EventMsg;
 import com.wewin.hichat.androidlib.utils.ClassUtil;
 import com.wewin.hichat.androidlib.impl.HttpCallBack;
 import com.wewin.hichat.androidlib.utils.ImgUtil;
+import com.wewin.hichat.androidlib.utils.NameUtil;
 import com.wewin.hichat.androidlib.utils.TimeUtil;
 import com.wewin.hichat.androidlib.utils.ToastUtil;
 import com.wewin.hichat.component.base.BaseActivity;
@@ -66,10 +67,10 @@ public class AnnouncementDetailActivity extends BaseActivity {
 
         if (announcement != null) {
             ImgUtil.load(this, announcement.getAccount().getAvatar(), avatarIv);
-            nameTv.setText(announcement.getAccount().getUsername());
+            nameTv.setText(NameUtil.getName(announcement.getAccount().getId()));
             titleTv.setText(announcement.getTitle());
             contentTv.setText(announcement.getContent());
-            timeTv.setText(announcement.getAccount().getUsername() + "发表于" +
+            timeTv.setText(NameUtil.getName(announcement.getAccount().getId())+ "发表于" +
                     TimeUtil.timestampToStr(announcement.getPostTime(), "yyyy年MM月dd日"));
         }
         if (mGroupInfo.getGrade() > GroupInfo.TYPE_GRADE_NORMAL) {
@@ -135,7 +136,7 @@ public class AnnouncementDetailActivity extends BaseActivity {
     }
 
     private void deleteAnnouncement(String announcementId) {
-        HttpContact.deleteAnnouncement(announcementId, new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+        HttpContact.deleteAnnouncement(announcementId, new HttpCallBack(this, ClassUtil.classMethodName(),true) {
             @Override
             public void success(Object data, int count) {
                 EventTrans.post(EventMsg.CONTACT_GROUP_ANNOUNCEMENT_REFRESH);

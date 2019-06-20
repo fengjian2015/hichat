@@ -100,20 +100,47 @@ public class HyperLinkUtil {
 
     /**
      * 匹配at更改颜色和跳转
+     * 匹配必须放最前面，因为需要更改文本
      */
     public static SpannableString getATSpanStr(Context context, SpannableString spanStr,
                                                Map<String, String> mapContent, int color,String roomId) {
         if (mapContent == null || mapContent.isEmpty()) {
             return spanStr;
         }
+        spanStr= getATSpanChangeName(spanStr,mapContent);
         for (Map.Entry<String, String> entry : mapContent.entrySet()) {
-            Pattern pattern = Pattern.compile(entry.getValue());
-            Matcher matcher = pattern.matcher(spanStr);
-            while (matcher.find()) {
-                spanStr = matcherSearchText(context, spanStr, entry.getKey(), matcher.start() - 1,
-                        matcher.end(), color,roomId);
+            String name;
+            if ("0".equals(entry.getKey())) {
+                name=entry.getValue();
+            }else {
+                name=NameUtil.getName(entry.getKey());
+            }
+            int index = spanStr.toString().indexOf(name);
+            if (index >= 1) {
+                while (index < spanStr.length() && index >= 1) {
+                    spanStr = matcherSearchText(context, spanStr, entry.getKey(), index - 1,
+                            index + name.length(), color, roomId);
+                    index = spanStr.toString().indexOf(name, index + name.length());
+                }
             }
         }
+        return spanStr;
+    }
+
+    public static SpannableString getATSpanChangeName(SpannableString spanStr,
+                                                      Map<String, String> mapContent){
+        if (mapContent == null || mapContent.isEmpty()) {
+            return spanStr;
+        }
+        String str=spanStr.toString();
+        for (Map.Entry<String, String> entry : mapContent.entrySet()) {
+            if ("0".equals(entry.getKey())){
+                continue;
+            }
+            String name = NameUtil.getName(entry.getKey());
+            str= str.replace(entry.getValue(),name);
+        }
+        spanStr=new SpannableString(str);
         return spanStr;
     }
 

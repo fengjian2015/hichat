@@ -1,6 +1,7 @@
 package com.wewin.hichat.model.db.entity;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Map;
 
@@ -33,6 +34,7 @@ public class ChatRoom implements Serializable {
     private int updateMark;//是否要更新
     private String unSyncMsgFirstId;//未同步的最早一条消息id
     private boolean checked;//编辑状态是否选中
+    private ArrayList<String> needDropMsgIdArray;
 
 
 
@@ -60,6 +62,14 @@ public class ChatRoom implements Serializable {
     public ChatRoom(String roomId, String roomType) {
         this.roomId = roomId;
         this.roomType = roomType;
+    }
+
+    public ArrayList<String> getNeedDropMsgIdArray() {
+        return needDropMsgIdArray;
+    }
+
+    public void setNeedDropMsgIdArray(ArrayList<String> needDropMsgIdArray) {
+        this.needDropMsgIdArray = needDropMsgIdArray;
     }
 
     public long getLastMsgTime() {

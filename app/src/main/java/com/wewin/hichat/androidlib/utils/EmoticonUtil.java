@@ -92,6 +92,9 @@ public class EmoticonUtil {
             if (matcher.start() < 0) {
                 continue;
             }
+            if (emoticonMap.get(key)==null){
+                continue;
+            }
             String value = emoticonMap.get(key).getId();
             if (TextUtils.isEmpty(value)) {
                 continue;
@@ -101,7 +104,39 @@ public class EmoticonUtil {
             // 通过上面匹配得到的字符串来生成图片资源id
             if (resId != 0) {
                 Drawable drawable = context.getResources().getDrawable(resId);
-                drawable.setBounds(0, 0, SystemUtil.dp2px(context, 26), SystemUtil.dp2px(context, 26));
+                drawable.setBounds(0, 0, SystemUtil.dp2px(context, 20), SystemUtil.dp2px(context, 20));
+                // 通过图片资源id来得到bitmap，用一个ImageSpan来包装
+                ImageSpan imageSpan = new ImageSpan(drawable, ImageSpan.ALIGN_BOTTOM);
+                // 计算该图片名字的长度，也就是要替换的字符串的长度
+                int end = matcher.start() + key.length();
+                // 将该图片替换字符串中规定的位置中
+                spanStr.setSpan(imageSpan, matcher.start(), end,
+                        Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+            }
+        }
+        return spanStr;
+    }
+
+    /**
+     * 匹配表情
+     */
+    public static SpannableString getEmoSpanStr(Context context, SpannableString spanStr,int size) {
+        Matcher matcher = emoPattern.matcher(spanStr);
+        while (matcher.find()) {
+            String key = matcher.group();
+            if (matcher.start() < 0) {
+                continue;
+            }
+            String value = emoticonMap.get(key).getId();
+            if (TextUtils.isEmpty(value)) {
+                continue;
+            }
+            int resId = context.getResources().getIdentifier(value, "drawable",
+                    context.getPackageName());
+            // 通过上面匹配得到的字符串来生成图片资源id
+            if (resId != 0) {
+                Drawable drawable = context.getResources().getDrawable(resId);
+                drawable.setBounds(0, 0, SystemUtil.dp2px(context, size), SystemUtil.dp2px(context, size));
                 // 通过图片资源id来得到bitmap，用一个ImageSpan来包装
                 ImageSpan imageSpan = new ImageSpan(drawable, ImageSpan.ALIGN_BOTTOM);
                 // 计算该图片名字的长度，也就是要替换的字符串的长度

@@ -226,6 +226,7 @@ public class ImgUtil {
             FileUtil.createDir(FileUtil.getSDCachePath(activity));
             cropOutputPath = FileUtil.getSDCachePath(activity)
                     + TimeUtil.getCurrentTime("yyyyMMdd_HHmmss") + ".jpg";
+            FileUtil.createFile(cropOutputPath);
             Intent intent = new Intent("com.android.camera.action.CROP");
 
             if (Build.VERSION.SDK_INT >= 24) {

@@ -32,7 +32,7 @@
         android:layout_width="wrap_content"
         android:layout_height="31dp"
         android:layout_marginRight="5dp"
-        android:background="@drawable/message_bg_white_right"
+        android:background="@drawable/message_bg_blue_right"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:layout_alignParentRight="true"

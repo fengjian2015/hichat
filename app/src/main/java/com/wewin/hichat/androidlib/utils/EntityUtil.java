@@ -35,6 +35,7 @@ public class EntityUtil {
             chatRoom.setUnreadNum(conversation.getUnreadNum());
             chatRoom.setUpdateMark(conversation.getUpdateMark());
             chatRoom.setUnSyncMsgFirstId(conversation.getUnSyncMsgFirstId());
+            chatRoom.setNeedDropMsgIdArray(conversation.getNeedDropMsgIdArray());
             roomList.add(chatRoom);
         }
         return roomList;

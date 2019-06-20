@@ -15,6 +15,10 @@ import com.alibaba.fastjson.JSON;
 import com.wewin.hichat.MainActivity;
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.event.EventMsg;
+import com.wewin.hichat.androidlib.event.EventTrans;
+import com.wewin.hichat.androidlib.rxjava.OnRxJavaProcessListener;
+import com.wewin.hichat.androidlib.rxjava.RxJavaObserver;
+import com.wewin.hichat.androidlib.rxjava.RxJavaScheduler;
 import com.wewin.hichat.androidlib.utils.EmoticonUtil;
 import com.wewin.hichat.androidlib.utils.EntityUtil;
 import com.wewin.hichat.androidlib.utils.HyperLinkUtil;
@@ -44,6 +48,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import io.reactivex.ObservableEmitter;
+
 
 /**
  * 主页-会话页
@@ -61,6 +67,7 @@ public class ConversationFragment extends BaseFragment {
     private ConversationListRcvAdapter rcvAdapter;
     private boolean isEditMode = false;
     private boolean isSelectAll = false;
+    private RefreshList mRefreshList;
 
 
     @Override
@@ -84,6 +91,7 @@ public class ConversationFragment extends BaseFragment {
 
     @Override
     protected void initViewsData() {
+        mRefreshList = new RefreshList();
         initRecyclerView();
         setViewByCache();
         //同步服务器会话列表
@@ -113,7 +121,7 @@ public class ConversationFragment extends BaseFragment {
                     cancelLl.setVisibility(View.VISIBLE);
                 }
                 rcvAdapter.setEditMode(isEditMode);
-                updateRcv();
+                updateRcv(false);
                 break;
 
             case R.id.ll_main_conversation_cancel_container:
@@ -125,14 +133,14 @@ public class ConversationFragment extends BaseFragment {
                     for (ChatRoom chatRoom : mRoomList) {
                         chatRoom.setChecked(true);
                     }
-                    updateRcv();
+                    updateRcv(false);
                     isSelectAll = true;
                     selectAllTv.setText(R.string.cancel_all);
                 } else {
                     for (ChatRoom chatRoom : mRoomList) {
                         chatRoom.setChecked(false);
                     }
-                    updateRcv();
+                    updateRcv(false);
                     isSelectAll = false;
                     selectAllTv.setText(R.string.select_all);
                 }
@@ -188,52 +196,74 @@ public class ConversationFragment extends BaseFragment {
                     }
                 } else {
                     mRoomList.get(position).setChecked(!mRoomList.get(position).isChecked());
-                    updateRcv();
+                    updateRcv(false);
                 }
             }
         });
     }
 
-    private void updateRcv() {
-        if (rcvAdapter != null) {
-            Collections.sort(mRoomList, new ChatRoom.TopComparator());
-            rcvAdapter.notifyDataSetChanged();
+    class RefreshList implements Runnable {
+        private boolean clear;
+        public void setClear(boolean clear){
+            this.clear=clear;
         }
-        if (mRoomList.size()<=0){
-            noDataConversationRl.setVisibility(View.VISIBLE);
-            editTv.setEnabled(false);
-            containerRcv.setVisibility(View.GONE);
-        }else {
-            noDataConversationRl.setVisibility(View.GONE);
-            editTv.setEnabled(true);
-            containerRcv.setVisibility(View.VISIBLE);
-        }
-        if (isEditMode) {
-            int checkedCount = 0;
-            int topMark = 0;
-            for (ChatRoom chatRoom : mRoomList) {
-                if (chatRoom.isChecked()) {
-                    checkedCount++;
-                    topMark = chatRoom.getTopMark();
+        @Override
+        public void run() {
+            synchronized (rcvAdapter) {
+                if (rcvAdapter != null&&clear) {
+                    mRoomList.clear();
+                    mRoomList.addAll(ChatRoomDao.getRoomList());
+                    Collections.sort(mRoomList, new ChatRoom.TopComparator());
                 }
-            }
-            if (checkedCount == 0) {
-                makeTopTv.setEnabled(false);
-                deleteTv.setEnabled(false);
+                containerRcv.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        rcvAdapter.notifyDataSetChanged();
+                        if (mRoomList.size()<=0){
+                            noDataConversationRl.setVisibility(View.VISIBLE);
+                            editTv.setEnabled(false);
+                            containerRcv.setVisibility(View.GONE);
+                        }else {
+                            noDataConversationRl.setVisibility(View.GONE);
+                            editTv.setEnabled(true);
+                            containerRcv.setVisibility(View.VISIBLE);
+                        }
+                        if (isEditMode) {
+                            int checkedCount = 0;
+                            int topMark = 0;
+                            for (ChatRoom chatRoom : mRoomList) {
+                                if (chatRoom.isChecked()) {
+                                    checkedCount++;
+                                    topMark = chatRoom.getTopMark();
+                                }
+                            }
+                            if (checkedCount == 0) {
+                                makeTopTv.setEnabled(false);
+                                deleteTv.setEnabled(false);
 
-            } else if (checkedCount == 1) {
-                makeTopTv.setEnabled(true);
-                deleteTv.setEnabled(true);
-                if (topMark == 1) {
-                    makeTopTv.setText(getString(R.string.cancel_make_top));
-                } else {
-                    makeTopTv.setText(getString(R.string.make_top));
-                }
-            } else {
-                makeTopTv.setEnabled(false);
-                deleteTv.setEnabled(true);
+                            } else if (checkedCount == 1) {
+                                makeTopTv.setEnabled(true);
+                                deleteTv.setEnabled(true);
+                                if (topMark == 1) {
+                                    makeTopTv.setText(getString(R.string.cancel_make_top));
+                                } else {
+                                    makeTopTv.setText(getString(R.string.make_top));
+                                }
+                            } else {
+                                makeTopTv.setEnabled(false);
+                                deleteTv.setEnabled(true);
+                            }
+                        }
+                    }
+                });
             }
         }
+    }
+
+
+    private void updateRcv(boolean clear) {
+        mRefreshList.setClear(clear);
+        mRefreshList.run();
     }
 
     private void setEditCancelView() {
@@ -250,13 +280,11 @@ public class ConversationFragment extends BaseFragment {
             }
         }
         rcvAdapter.setEditMode(isEditMode);
-        updateRcv();
+        updateRcv(false);
     }
 
     private void setViewByCache() {
-        mRoomList.clear();
-        mRoomList.addAll(ChatRoomDao.getRoomList());
-        updateRcv();
+        updateRcv(true);
         LogUtil.i("setViewByCache", ChatRoomDao.getRoomList());
     }
 
@@ -312,10 +340,10 @@ public class ConversationFragment extends BaseFragment {
         }
         String idStr = sb.toString().substring(0, sb.toString().length() - 1);
         HttpMessage.deleteMultiConversation(idStr,
-                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
+                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
-                        MessageDao.updateRoomShowMarkList(deleteList);
+                        MessageDao.deleteRoomMsgList(deleteList);
                         ChatRoomDao.deleteRoomList(deleteList);
                         setEditCancelView();
                         if (getHostActivity() instanceof MainActivity) {
@@ -330,7 +358,7 @@ public class ConversationFragment extends BaseFragment {
             return;
         }
         HttpContact.makeTopFriend(chatRoom.getRoomId(), topMark, FriendDao.findFriendshipMark(chatRoom.getRoomId()),
-                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
+                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         processMakeTopResult(chatRoom, topMark);
@@ -343,7 +371,7 @@ public class ConversationFragment extends BaseFragment {
             return;
         }
         HttpContact.makeTopGroup(chatRoom.getRoomId(), topMark,
-                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
+                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         processMakeTopResult(chatRoom, topMark);
@@ -356,9 +384,7 @@ public class ConversationFragment extends BaseFragment {
     public void onEventTrans(EventMsg msg) {
         switch (msg.getKey()) {
             case EventMsg.SOCKET_ON_MESSAGE:
-                mRoomList.clear();
-                mRoomList.addAll(ChatRoomDao.getRoomList());
-                updateRcv();
+                updateRcv(true);
                 if (getHostActivity() instanceof MainActivity) {
                     ((MainActivity) getHostActivity()).setUnreadNumView();
                 }
@@ -371,7 +397,7 @@ public class ConversationFragment extends BaseFragment {
             case EventMsg.CONTACT_FRIEND_NAME_REFRESH:
             case EventMsg.CONTACT_GROUP_INFO_REFRESH:
             case EventMsg.CONTACT_FRIEND_AGREE_REFRESH:
-                updateRcv();
+                updateRcv(false);
                 break;
 
             case EventMsg.CONTACT_DELETE_BY_OTHER:
@@ -383,38 +409,26 @@ public class ConversationFragment extends BaseFragment {
             case EventMsg.CONTACT_FRIEND_DELETE_REFRESH:
             case EventMsg.CONVERSATION_DELETE_ROOM:
             case EventMsg.CONVERSATION_DELETE_ALL_ROOM:
-            case EventMsg.CONVERSATION_SYNC_SERVER_LIST:
             case EventMsg.CONVERSATION_DELETE_MSG:
-                mRoomList.clear();
-                mRoomList.addAll(ChatRoomDao.getRoomList());
-                updateRcv();
+                updateRcv(true);
                 if (getHostActivity() instanceof MainActivity) {
                     ((MainActivity) getHostActivity()).setUnreadNumView();
                 }
                 break;
-
+            case EventMsg.CONVERSATION_SYNC_SERVER_LIST:
+                updateRcv(true);
+                if (getHostActivity() instanceof MainActivity) {
+                    ((MainActivity) getHostActivity()).setUnreadNumView();
+                }
+                break;
             case EventMsg.CONTACT_FRIEND_MAKE_TOP_REFRESH:
             case EventMsg.CONTACT_FRIEND_SHIELD_REFRESH:
             case EventMsg.CONTACT_GROUP_MAKE_TOP_REFRESH:
             case EventMsg.CONTACT_GROUP_SHIELD_REFRESH:
             case EventMsg.CONVERSATION_REFRESH_AT:
-                mRoomList.clear();
-                mRoomList.addAll(ChatRoomDao.getRoomList());
-                updateRcv();
-                break;
-
             case EventMsg.CONTACT_FRIEND_LIST_GET_REFRESH:
-                mRoomList.clear();
-                mRoomList.addAll(ChatRoomDao.getRoomList());
-                updateRcv();
-                LogUtil.i("CONTACT_FRIEND_LIST_GET_REFRESH", mRoomList);
-                break;
-
             case EventMsg.CONTACT_GROUP_LIST_GET_REFRESH:
-                mRoomList.clear();
-                mRoomList.addAll(ChatRoomDao.getRoomList());
-                updateRcv();
-                LogUtil.i("CONTACT_GROUP_LIST_GET_REFRESH", mRoomList);
+                updateRcv(true);
                 break;
 
             case EventMsg.CONVERSATION_UNREAD_NUM_REFRESH:
@@ -431,7 +445,7 @@ public class ConversationFragment extends BaseFragment {
                         ChatRoomDao.updateUnreadNum(roomData.getRoomId(), roomData.getRoomType(), 0);
                         ChatRoomDao.updateAtType(roomData.getRoomId(), roomData.getRoomType(),
                                 ChatMsg.TYPE_AT_NORMAL);
-                        updateRcv();
+                        updateRcv(false);
                         break;
                     }
                 }
@@ -442,9 +456,7 @@ public class ConversationFragment extends BaseFragment {
             case EventMsg.CONVERSATION_REFRESH_TYPE_AT_NORMAL:
                 ChatMsg chatMsg = (ChatMsg) msg.getData();
                 ChatRoomDao.updateAtType(chatMsg.getRoomId(),ChatRoom.TYPE_GROUP,ChatMsg.TYPE_AT_NORMAL);
-                mRoomList.clear();
-                mRoomList.addAll(ChatRoomDao.getRoomList());
-                updateRcv();
+                updateRcv(true);
                 break;
             default:
                 break;

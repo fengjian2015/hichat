@@ -184,7 +184,7 @@ public class RegisterPersonalInfoActivity extends BaseActivity {
 
     public void register(String nickname, String sign) {
         HttpLogin.register(code, sexType, nickname, password, phoneNum, sign,
-                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         if (data == null) {
@@ -219,7 +219,7 @@ public class RegisterPersonalInfoActivity extends BaseActivity {
 
     private void uploadPersonalAvatar(File file, String userId) {
         HttpMore.uploadPersonalAvatar(file, userId, "pass", "jpg",
-                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         if (data == null) {

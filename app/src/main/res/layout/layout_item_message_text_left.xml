@@ -15,14 +15,13 @@
         android:textColor="@color/gray_ac"
         android:gravity="center"
         android:paddingBottom="9dp"
-        android:visibility="gone"
         />
 
     <include layout="@layout/layout_item_message_extra_left"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@+id/tv_conversation_chat_left_content"
-        android:layout_marginLeft="-78dp"
+        android:layout_marginLeft="-75dp"
         android:layout_alignTop="@+id/tv_conversation_chat_left_content"
         android:layout_alignBottom="@+id/tv_conversation_chat_left_content"
         android:layout_below="@+id/tv_message_chat_date"
@@ -34,10 +33,20 @@
         android:layout_width="31dp"
         android:layout_height="31dp"
         android:layout_marginLeft="12dp"
-        android:layout_alignBottom="@+id/tv_conversation_chat_left_content"
+        android:layout_below="@+id/tv_message_chat_date"
         tools:src="@drawable/img_avatar_default"
         />
-
+    <!--名字-->
+    <TextView
+        android:id="@+id/tv_conversation_chat_left_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/font_size_11"
+        android:textColor="@color/gray_ac"
+        android:layout_marginLeft="52dp"
+        android:layout_below="@+id/tv_message_chat_date"
+        android:layout_marginBottom="5dp"
+        android:text="name"/>
     <!--文字内容-->
     <TextView
         android:id="@+id/tv_conversation_chat_left_content"
@@ -49,8 +58,8 @@
         android:textColor="@color/black_33"
         android:textSize="@dimen/font_size_15"
         tools:text="ContentContentContentContentContentContentContentContent"
-        android:layout_marginRight="78dp"
-        android:layout_below="@+id/tv_message_chat_date"
+        android:layout_marginRight="75dp"
+        android:layout_below="@+id/tv_conversation_chat_left_name"
         />
 
 </RelativeLayout>

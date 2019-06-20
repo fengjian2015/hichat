@@ -32,8 +32,11 @@ import com.wewin.hichat.model.db.entity.ChatRoom;
 import com.wewin.hichat.model.db.entity.FriendInfo;
 import com.wewin.hichat.model.db.entity.GroupInfo;
 import com.wewin.hichat.androidlib.impl.HttpCallBack;
+import com.wewin.hichat.model.db.entity.ImgUrl;
 import com.wewin.hichat.model.http.HttpContact;
+import com.wewin.hichat.view.album.ImgShowActivity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -45,7 +48,7 @@ public class GroupInfoActivity extends BaseActivity {
     private ImageView avatarIv, chatIv, makeTopIv, shieldIv, allowSearchIv, needVerifyIv,
             allowInviteIv, bannedSpeakIv, allowAddIv;
     private TextView nameTv, groupIdTv, descTv, nicknameTv, memberSumTv, clearConversationTv,
-            exitGroupTv;
+            exitGroupTv,announcementTv;
     private FrameLayout inviteNewMemberFl, checkMemberFl, announcementFl, makeTopFl, shieldFl,
             allowSearchFl, needVerifyFl, allowInviteFl, bannedSpeakFl, allowAddFl;
     private LinearLayout permissionContainerLl;
@@ -89,6 +92,7 @@ public class GroupInfoActivity extends BaseActivity {
         permissionContainerLl = findViewById(R.id.ll_contact_group_permission_container);
         allowAddFl = findViewById(R.id.fl_contact_group_info_allow_member_add);
         allowAddIv = findViewById(R.id.iv_contact_group_info_allow_member_add);
+        announcementTv=findViewById(R.id.tv_contact_group_info_group_announcement);
     }
 
     @Override
@@ -117,6 +121,7 @@ public class GroupInfoActivity extends BaseActivity {
         clearConversationTv.setOnClickListener(this);
         exitGroupTv.setOnClickListener(this);
         allowAddFl.setOnClickListener(this);
+        avatarIv.setOnClickListener(this);
     }
 
     @Override
@@ -214,6 +219,18 @@ public class GroupInfoActivity extends BaseActivity {
 
                 }
                 break;
+            case R.id.civ_contact_group_info_avatar:
+                //多选则跳转图片展示
+                Intent intent1 = new Intent(getHostActivity(), ImgShowActivity.class);
+                intent1.putExtra(ImgUtil.IMG_CLICK_POSITION, 0);
+                ArrayList<ImgUrl> mDataList = new ArrayList<>();
+                ImgUrl imgUrl = new ImgUrl(mGroupInfo.getGroupAvatar());
+                imgUrl.setFileName(mGroupInfo.getId()+mGroupInfo.getGroupName()+".jpg");
+                mDataList.add(imgUrl);
+                intent1.putExtra(ImgUtil.IMG_LIST_KEY, mDataList);
+                intent1.putExtra(ImgUtil.IMG_DONWLOAD, true);
+                startActivity(intent1);
+                break;
             default:
 
                 break;
@@ -237,7 +254,7 @@ public class GroupInfoActivity extends BaseActivity {
                     public void confirmClick() {
                         if (mGroupInfo != null && promptType == TYPE_PROMPT_CLEAR_CONVERSATION) {
                             ChatRoomDao.clearConversation(mGroupInfo.getId(), ChatRoom.TYPE_GROUP);
-                            MessageDao.updateShowMark(mGroupInfo.getId(), ChatRoom.TYPE_GROUP);
+                            MessageDao.deleteRoomMsg(mGroupInfo.getId(), ChatRoom.TYPE_GROUP);
                             EventTrans.post(EventMsg.CONVERSATION_CLEAR_REFRESH, mGroupInfo.getId());
 
                         } else if (mGroupInfo != null && promptType == TYPE_PROMPT_QUIT_GROUP) {
@@ -274,7 +291,7 @@ public class GroupInfoActivity extends BaseActivity {
     }
 
     private void getGroupInfo(final String groupId, final boolean needRefreshUI) {
-        HttpContact.getGroupInfo(groupId, new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+        HttpContact.getGroupInfo(groupId, new HttpCallBack(this, ClassUtil.classMethodName(),true) {
             @Override
             public void success(Object data, int count) {
                 if (data == null) {
@@ -300,7 +317,7 @@ public class GroupInfoActivity extends BaseActivity {
     private void editGroupPermission(String groupId, final int allowSearch, final int needVerify,
                                      final int allowInvite, final int banSpeak,final int addFriendMark) {
         HttpContact.editGroupPermission(groupId, -1, banSpeak, needVerify, allowInvite, allowSearch,addFriendMark,
-                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         if (banSpeak != -1) {
@@ -326,7 +343,7 @@ public class GroupInfoActivity extends BaseActivity {
     }
 
     private void makeTopGroup(final String groupId, final int topMark) {
-        HttpContact.makeTopGroup(groupId, topMark, new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+        HttpContact.makeTopGroup(groupId, topMark, new HttpCallBack(this, ClassUtil.classMethodName(),true) {
             @Override
             public void success(Object data, int count) {
                 if (mGroupInfo != null) {
@@ -341,7 +358,7 @@ public class GroupInfoActivity extends BaseActivity {
     }
 
     private void shieldGroupConversation(final String groupId, final int shieldMark) {
-        HttpContact.shieldGroupConversation(groupId, shieldMark, new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+        HttpContact.shieldGroupConversation(groupId, shieldMark, new HttpCallBack(this, ClassUtil.classMethodName(),true) {
             @Override
             public void success(Object data, int count) {
                 if (mGroupInfo != null) {
@@ -357,11 +374,11 @@ public class GroupInfoActivity extends BaseActivity {
     }
 
     private void quitDisbandGroup(final String groupId) {
-        HttpContact.disbandGroup(groupId, new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+        HttpContact.disbandGroup(groupId, new HttpCallBack(this, ClassUtil.classMethodName(),true) {
             @Override
             public void success(Object data, int count) {
                 ToastUtil.showShort(getAppContext(), R.string.commit_success);
-                MessageDao.updateShowMark(groupId, ChatRoom.TYPE_GROUP);
+                MessageDao.deleteRoomMsg(groupId, ChatRoom.TYPE_GROUP);
                 ChatRoomDao.deleteRoom(groupId, ChatRoom.TYPE_GROUP);
                 GroupDao.deleteGroup(groupId);
                 if (mGroupInfo.getGrade() == GroupInfo.TYPE_GRADE_OWNER) {
@@ -388,7 +405,7 @@ public class GroupInfoActivity extends BaseActivity {
             needVerifyIv.setSelected(false);
         }
         allowInviteIv.setSelected(TransUtil.intToBoolean(mGroupInfo.getInviteFlag()));
-        allowAddIv.setSelected(TransUtil.intToBoolean(mGroupInfo.getAddFriendMark()));
+        allowAddIv.setSelected(!TransUtil.intToBoolean(mGroupInfo.getAddFriendMark()));
         if (mGroupInfo.getInviteFlag() == 1) {
             inviteNewMemberFl.setVisibility(View.VISIBLE);
             if (!needRefreshUI) {
@@ -422,6 +439,7 @@ public class GroupInfoActivity extends BaseActivity {
             exitGroupTv.setText(R.string.quit_group);
             quitPromptStr = getString(R.string.prompt_quit_group_confirm);
         }
+        announcementTv.setText(mGroupInfo.getTitle());
         ImgUtil.load(getAppContext(), mGroupInfo.getGroupAvatar(), avatarIv,
                 R.drawable.img_avatar_group_default);
         nicknameTv.setText(mGroupInfo.getGroupName());
@@ -522,7 +540,16 @@ public class GroupInfoActivity extends BaseActivity {
                 }
                 setGroupPermissionView(true);
                 break;
-
+            case EventMsg.CONTACT_GROUP_ANNOUNCEMENT_REFRESH:
+                if (mGroupInfo.getId().equals(msg.getSecondData())){
+                    announcementTv.setText((String) msg.getData());
+                }
+                break;
+            case EventMsg.CONVERSATION_ADD_GROUP_POST:
+                //发布公告
+                if (ChatRoom.TYPE_GROUP.equals(ChatRoom.TYPE_GROUP) && mGroupInfo.getId().equals(msg.getData())) {
+                   announcementTv.setText((String) msg.getSecondData());
+                }
             default:
 
                 break;

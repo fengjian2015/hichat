@@ -7,10 +7,12 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.alibaba.fastjson.JSON;
+import com.wewin.hichat.androidlib.utils.ActivityUtil;
 import com.wewin.hichat.androidlib.utils.CommonUtil;
 import com.wewin.hichat.androidlib.utils.LogUtil;
 import com.wewin.hichat.androidlib.utils.ToastUtil;
 import com.wewin.hichat.component.constant.LoginCons;
+import com.wewin.hichat.component.dialog.LoadingProgressDialog;
 import com.wewin.hichat.model.db.entity.HttpResult;
 import com.wewin.hichat.view.login.LoginActivity;
 
@@ -24,25 +26,66 @@ import okhttp3.ResponseBody;
 /**
  * Created by Darren on 2018/12/18.
  */
-public class HttpCallBack implements Callback {
+public class HttpCallBack implements Callback ,LoadingProgressDialog.ProgressCancelListener{
 
     private String classMethodName;
     private Context context;
     private Handler handler;
     private final int CODE_COOKIE_INVALID = -7;
+    private LoadingProgressDialog progressDialog;
+    /**
+     * 是否需要显示默认Loading
+     */
+    private boolean showProgress = true;
 
     protected HttpCallBack(Context context, String classMethodName) {
         this.classMethodName = classMethodName;
         this.context = context;
         handler = new Handler();
+
+    }
+
+    protected HttpCallBack(Context context, String classMethodName,boolean showProgress) {
+        this.classMethodName = classMethodName;
+        this.context = context;
+        handler = new Handler();
+        this.showProgress=showProgress;
+        if (showProgress){
+            progressDialog = LoadingProgressDialog.createDialog(context);
+            progressDialog.setProgressCancelListener(this);
+            showProgressDialog();
+        }
     }
 
     protected HttpCallBack(String classMethodName) {
         this.classMethodName = classMethodName;
     }
 
+    protected HttpCallBack(String classMethodName,boolean showProgress) {
+        this.classMethodName = classMethodName;
+        this.showProgress=showProgress;
+        if (showProgress){
+            progressDialog = LoadingProgressDialog.createDialog(context);
+            progressDialog.setProgressCancelListener(this);
+            showProgressDialog();
+        }
+    }
+
+    private void showProgressDialog() {
+        if (showProgress && null != progressDialog && ActivityUtil.isActivityOnTop(context)) {
+            progressDialog.showDialog();
+        }
+    }
+
+    private void dismissProgressDialog() {
+        if (showProgress && null != progressDialog) {
+            progressDialog.hideDialog();
+        }
+    }
+
     @Override
     public void onFailure(@NonNull Call call, @NonNull final IOException e) {
+        dismissProgressDialog();
         LogUtil.i(classMethodName, e.getMessage());
         if (handler != null){
             handler.post(new Runnable() {
@@ -56,6 +99,7 @@ public class HttpCallBack implements Callback {
 
     @Override
     public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+        dismissProgressDialog();
         ResponseBody body = response.body();
         if (body != null) {
             String result = body.string();
@@ -144,4 +188,8 @@ public class HttpCallBack implements Callback {
         CommonUtil.clearDataByLogout(context);
     }
 
+    @Override
+    public void onCancelProgress() {
+
+    }
 }

@@ -20,7 +20,7 @@ import com.wewin.hichat.model.db.dao.UserDao;
 public class SQLiteHelper extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "HiChat.db"; //数据库名称
-    private static final int VERSION = 2; //版本
+    private static final int VERSION = 3; //版本
 
     public SQLiteHelper(Context context){
         super(context, DB_NAME, null, VERSION);
@@ -84,6 +84,18 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             + MessageDao.SHOW_MARK + " integer, "
             + MessageDao.FRIENDSHIP_MARK + " integer, "
             + MessageDao.DELETE_MARK + " integer, "
+            + MessageDao.REPLY_CONTENT + " varchar, "
+            + MessageDao.REPLY_CONTENT_TYPE + " integer, "
+            + MessageDao.REPLY_DOWNLOAD_PATH + " varchar, "
+            + MessageDao.REPLY_DURATION + " integer, "
+            + MessageDao.REPLY_FILE_LENGTH + " integer, "
+            + MessageDao.REPLY_FILE_NAME + " varchar, "
+            + MessageDao.REPLY_FILE_TYPE + " integer, "
+            + MessageDao.REPLY_FILE_ID + " varchar, "
+            + MessageDao.REPLY_SENDER_ID + " varchar, "
+            + MessageDao.REPLY_DOWNLOAD_STATE + " integer, "
+            + MessageDao.REPLY_SAVE_PATH + " varchar, "
+            + MessageDao.REPLY_TAPE_UNREAD_MARK + " integer, "
             + MessageDao.USER_ID + " varchar);";
 
     private final String TABLE_MESSAGE_SENDING = "create table "
@@ -122,6 +134,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             + MessageSendingDao.EMO_MARK + " integer, "
             + MessageSendingDao.PHONE_MARK + " integer, "
             + MessageSendingDao.URL_MARK + " integer, "
+            + MessageSendingDao.COMPRESS_PATH + " varchar, "
             + MessageSendingDao.USER_ID + " varchar);";
 
     private final String TABLE_CHAT_ROOM = "create table "
@@ -230,6 +243,23 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         switch (oldVersion) {
             case 1:
                 db.execSQL("ALTER TABLE "+MessageDao.TABLE_NAME +" ADD "+ MessageDao.DELETE_MARK+" INTEGER DEFAULT 0");
+            case 2:
+                //2019-06-18新增回复字段
+                db.execSQL("ALTER TABLE "+MessageDao.TABLE_NAME +" ADD "+ MessageDao.REPLY_CONTENT+" TEXT");
+                db.execSQL("ALTER TABLE "+MessageDao.TABLE_NAME +" ADD "+ MessageDao.REPLY_CONTENT_TYPE+" INTEGER DEFAULT 0");
+                db.execSQL("ALTER TABLE "+MessageDao.TABLE_NAME +" ADD "+ MessageDao.REPLY_DOWNLOAD_PATH+" TEXT");
+                db.execSQL("ALTER TABLE "+MessageDao.TABLE_NAME +" ADD "+ MessageDao.REPLY_DURATION+" INTEGER DEFAULT 0");
+                db.execSQL("ALTER TABLE "+MessageDao.TABLE_NAME +" ADD "+ MessageDao.REPLY_FILE_LENGTH+" INTEGER DEFAULT 0");
+                db.execSQL("ALTER TABLE "+MessageDao.TABLE_NAME +" ADD "+ MessageDao.REPLY_FILE_NAME+" TEXT");
+                db.execSQL("ALTER TABLE "+MessageDao.TABLE_NAME +" ADD "+ MessageDao.REPLY_FILE_TYPE+" INTEGER DEFAULT 0");
+                db.execSQL("ALTER TABLE "+MessageDao.TABLE_NAME +" ADD "+ MessageDao.REPLY_FILE_ID+" TEXT");
+                db.execSQL("ALTER TABLE "+MessageDao.TABLE_NAME +" ADD "+ MessageDao.REPLY_SENDER_ID+" TEXT");
+                db.execSQL("ALTER TABLE "+MessageDao.TABLE_NAME +" ADD "+ MessageDao.REPLY_DOWNLOAD_STATE+" INTEGER DEFAULT 0");
+                db.execSQL("ALTER TABLE "+MessageDao.TABLE_NAME +" ADD "+ MessageDao.REPLY_SAVE_PATH+" TEXT");
+                db.execSQL("ALTER TABLE "+MessageDao.TABLE_NAME +" ADD "+ MessageDao.REPLY_TAPE_UNREAD_MARK+" INTEGER DEFAULT 0");
+                //2019-06-20新增裁剪地址，用于重连后发送
+                db.execSQL("ALTER TABLE "+MessageSendingDao.TABLE_NAME +" ADD "+ MessageSendingDao.COMPRESS_PATH+" TEXT");
+
                 break;
             default:
                 break;

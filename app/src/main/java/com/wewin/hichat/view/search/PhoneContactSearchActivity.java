@@ -218,7 +218,7 @@ public class PhoneContactSearchActivity extends BaseActivity {
     }
 
     private void matchPhoneContact(String phoneStr) {
-        HttpContact.matchPhoneContact(phoneStr, new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+        HttpContact.matchPhoneContact(phoneStr, new HttpCallBack(this, ClassUtil.classMethodName(),true) {
             @Override
             public void success(Object data, int count) {
                 if (data == null) {

@@ -67,7 +67,7 @@ public class SearchFriendLvAdapter extends BaseSearchAdapter {
         if (TextUtils.isEmpty(friendNote)){
             iHolder.nameTv.setText(friendInfoList.get(position).getUsername());
         }else {
-            iHolder.nameTv.setText(friendInfoList.get(position).getFriendNote());
+            iHolder.nameTv.setText(friendInfoList.get(position).getFriendNote()+"("+friendInfoList.get(position).getUsername()+")");
         }
 
         if (checkVisible) {

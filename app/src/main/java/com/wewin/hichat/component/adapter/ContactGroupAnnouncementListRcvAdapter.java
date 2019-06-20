@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.utils.ImgUtil;
 import com.wewin.hichat.androidlib.utils.LogUtil;
+import com.wewin.hichat.androidlib.utils.NameUtil;
 import com.wewin.hichat.androidlib.utils.TimeUtil;
 import com.wewin.hichat.component.base.BaseRcvAdapter;
 import com.wewin.hichat.model.db.entity.Announcement;
@@ -68,8 +69,8 @@ public class ContactGroupAnnouncementListRcvAdapter extends BaseRcvAdapter {
             LoginUser account = announcementList.get(position).getAccount();
             if (account != null) {
                 ImgUtil.load(context, account.getAvatar(), iHolder.avatarIv);
-                iHolder.nameTv.setText(account.getUsername());
-                iHolder.timeTv.setText(account.getUsername() + "发表于" + TimeUtil.timestampToStr(
+                iHolder.nameTv.setText(NameUtil.getName(account.getId()));
+                iHolder.timeTv.setText(NameUtil.getName(account.getId()) + "发表于" + TimeUtil.timestampToStr(
                         announcementList.get(position).getPostTime(), "yyyy年MM月dd日"));
             }
             iHolder.titleTv.setText(announcementList.get(position).getTitle());

@@ -196,7 +196,7 @@ public class RegisterVerifyCodeActivity extends BaseActivity {
 
     private void getVerifyCode(String areaCode, String phoneNum, String type) {
         HttpLogin.getSms(areaCode.replace("+", ""), phoneNum, type,
-                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         if (data != null) {
@@ -209,7 +209,7 @@ public class RegisterVerifyCodeActivity extends BaseActivity {
 
     private void checkVerifyCode(final String areaCode, String verifyCode) {
         HttpLogin.checkVerifyCode(areaCode.replace("+", ""), verifyCode, phoneNum,
-                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         Intent intent = new Intent(getAppContext(), RegisterPasswordActivity.class);

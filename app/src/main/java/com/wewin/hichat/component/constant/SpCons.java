@@ -23,13 +23,17 @@ public class SpCons {
     public static final String SUBGROUP_LIST="subgroup_list";
     public static final String USER_RECORD="user_record";
     public static final String INVITE_TEMPLATE="invite_template";
+    public static final String DRAFT="draft";
+    public static final String DRAFT_EM_LIST="draft_em_list";
+    public static final String DRAFT_AT_MAP="draft_at_map";
+    public static final String DRAFT_REPLY="draft_reply";
     /**
      * 存储字符串sp
      * @param key
      * @param value
      */
     public static void setString(Context context,String key, String value) {
-        if(!ActivityUtil.isActivityOnTop(context)){
+        if(context==null){
             return;
         }
         SharedPreferences sp = context.getSharedPreferences(FILE_NAME, 0);
@@ -48,7 +52,7 @@ public class SpCons {
      * @return
      */
     public static String getString(Context context,String value) {
-        if(!ActivityUtil.isActivityOnTop(context)){
+        if(context==null){
             return "";
         }
         SharedPreferences sp = context.getSharedPreferences(FILE_NAME, 0);

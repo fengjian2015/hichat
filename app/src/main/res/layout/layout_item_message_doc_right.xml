@@ -37,7 +37,7 @@
         android:paddingEnd="15dp"
         android:layout_marginStart="78dp"
         android:layout_alignParentEnd="true"
-        android:background="@drawable/message_bg_white_right"
+        android:background="@drawable/message_bg_blue_right"
         android:layout_below="@+id/tv_message_chat_date"
         >
 

@@ -72,4 +72,15 @@ public class HttpMessage {
         map.put("sessionType", roomType);
         HttpUtil.post(HttpCons.PATH_MESSAGE_REMOVE_MESSAGE, map, httpCallBack);
     }
+
+    //获取需要删除的消息ID集合
+    public static void getDeleteMessageList(String conversationId, String conversationType,
+                                            String maxMsgId, String minMsgId,HttpCallBack httpCallBack){
+        Map<String, String> map = new HashMap<>(4);
+        map.put("conversationId", conversationId);
+        map.put("conversationType", conversationType);
+        map.put("maxMsgId", String.valueOf(maxMsgId));
+        map.put("minMsgId", String.valueOf(minMsgId));
+        HttpUtil.post(HttpCons.PATH_MESSAGE_GET_DELETE_LIST, map, httpCallBack);
+    }
 }

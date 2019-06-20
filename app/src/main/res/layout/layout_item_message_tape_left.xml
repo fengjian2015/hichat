@@ -34,9 +34,19 @@
         android:layout_height="31dp"
         android:layout_marginLeft="12dp"
         android:src="@drawable/img_avatar_default"
-        android:layout_alignBottom="@+id/ll_message_chat_voice_record_container_left"
+        android:layout_below="@+id/tv_message_chat_date"
         />
-
+    <!--名字-->
+    <TextView
+        android:id="@+id/tv_conversation_chat_left_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/font_size_11"
+        android:textColor="@color/gray_ac"
+        android:layout_marginLeft="52dp"
+        android:layout_below="@+id/tv_message_chat_date"
+        android:layout_marginBottom="5dp"
+        android:text="name"/>
     <!--录音-->
     <LinearLayout
         android:id="@+id/ll_message_chat_voice_record_container_left"
@@ -46,7 +56,7 @@
         android:background="@drawable/message_bg_white_left"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_below="@+id/tv_message_chat_date"
+        android:layout_below="@+id/tv_conversation_chat_left_name"
         >
 
         <ImageView

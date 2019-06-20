@@ -115,7 +115,7 @@ public class FriendSubgroupActivity extends BaseActivity {
 
     private void getFriendSubgroup() {
         HttpContact.getFriendSubgroup(SpCons.getUser(getAppContext()).getId(),
-                new HttpCallBack(getApplicationContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         if (data == null) {
@@ -143,7 +143,7 @@ public class FriendSubgroupActivity extends BaseActivity {
 
     private void moveFriendSubgroup(String friendId, String subgroupId) {
         HttpContact.moveFriendSubgroup(friendId, subgroupId,
-                new HttpCallBack(getApplicationContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         ToastUtil.showShort(getApplicationContext(), R.string.modify_success);

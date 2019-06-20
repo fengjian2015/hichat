@@ -125,7 +125,7 @@ public class GroupInfoEditActivity extends BaseActivity {
 
     private void modifyGroupInfo(final String groupName, final String introduce) {
         HttpContact.modifyGroupInfo(introduce, mGroupInfo.getId(), groupName, -1,
-                new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         ToastUtil.showShort(getApplicationContext(), R.string.modify_success);
@@ -169,7 +169,7 @@ public class GroupInfoEditActivity extends BaseActivity {
     }
 
     private void uploadGroupAvatar(File file) {
-        HttpContact.uploadGroupAvatar(file, mGroupInfo.getId(), "jpg", new HttpCallBack(getAppContext(), ClassUtil.classMethodName()) {
+        HttpContact.uploadGroupAvatar(file, mGroupInfo.getId(), "jpg", new HttpCallBack(this, ClassUtil.classMethodName(),true) {
             @Override
             public void success(Object data, int count) {
                 if (data == null) {

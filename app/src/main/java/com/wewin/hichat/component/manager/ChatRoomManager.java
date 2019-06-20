@@ -35,6 +35,7 @@ import com.wewin.hichat.model.db.entity.ChatRoom;
 import com.wewin.hichat.model.db.entity.FileInfo;
 import com.wewin.hichat.model.db.entity.FriendInfo;
 import com.wewin.hichat.model.db.entity.GroupInfo;
+import com.wewin.hichat.model.db.entity.ReplyMsgInfo;
 import com.wewin.hichat.model.db.entity.ServerConversation;
 import com.wewin.hichat.model.db.entity.Subgroup;
 import com.wewin.hichat.model.db.entity.VoiceCall;
@@ -99,7 +100,6 @@ public class ChatRoomManager {
             return;
         }
         Intent intent = new Intent(context, ChatRoomActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.putExtra(ContactCons.EXTRA_CONTACT_CHAT_ROOM, chatRoom);
         intent.putExtra(ContactCons.EXTRA_MESSAGE_CHAT_START_TIMESTAMP, startTimestamp);
         context.startActivity(intent);
@@ -118,7 +118,6 @@ public class ChatRoomManager {
         }
         ChatRoom chatRoom = packChatRoom(groupId, ChatRoom.TYPE_GROUP);
         Intent intent = new Intent(context, ChatRoomActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.putExtra(ContactCons.EXTRA_CONTACT_CHAT_ROOM, chatRoom);
         intent.putExtra(ContactCons.EXTRA_MESSAGE_CHAT_START_TIMESTAMP, startTimestamp);
         context.startActivity(intent);
@@ -200,47 +199,60 @@ public class ChatRoomManager {
      */
     public static ChatMsg packVoiceCallInviteMsg(ChatRoom chatRoom, String channel) {
         VoiceCall voiceCall = new VoiceCall(UserDao.user.getId(), channel, VoiceCall.INVITE, 0);
-        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_VOICE_CALL, "", null, voiceCall, null);
+        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_VOICE_CALL, "", null, voiceCall, null,null);
     }
 
     /**
      * 封装语音通话消息
      */
     public static ChatMsg packVoiceCallMsg(ChatRoom chatRoom, VoiceCall voiceCall) {
-        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_VOICE_CALL, "", null, voiceCall, null);
+        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_VOICE_CALL, "", null, voiceCall, null,null);
     }
 
     /**
      * 封装file消息
      */
     private static ChatMsg packFileMsg(ChatRoom chatRoom, FileInfo fileInfo) {
-        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_FILE, "", fileInfo, null, null);
+        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_FILE, "", fileInfo, null, null,null);
     }
 
     /**
      * 封装text消息
      */
-    public static ChatMsg packTextMsg(ChatRoom chatRoom, String contentStr) {
-        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_TEXT, contentStr, null, null, null);
+    public static ChatMsg packTextMsg(ChatRoom chatRoom, String contentStr, ReplyMsgInfo replyMsgInfo) {
+        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_TEXT, contentStr, null, null, null,replyMsgInfo);
     }
 
     /**
      * 封装@文字消息
      */
-    public static ChatMsg packTextMsg(ChatRoom chatRoom, String contentStr, String atMember) {
-        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_AT, contentStr, null, null, atMember);
+    public static ChatMsg packTextMsg(ChatRoom chatRoom, String contentStr, String atMember,ReplyMsgInfo replyMsgInfo) {
+        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_AT, contentStr, null, null, atMember,replyMsgInfo);
+    }
+
+    /**
+     * 封装回复消息消息
+     */
+    public static ChatMsg packReplyMsg(ChatRoom chatRoom, String contentStr, String atMember,ReplyMsgInfo replyMsgInfo) {
+        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_REPLY, contentStr, null, null, atMember,replyMsgInfo);
     }
 
     /**
      * 转发消息
      */
     public static ChatMsg packForwardMsg(ChatMsg chatMsg,String roomType,String roomId){
+        chatMsg.setMsgId(null);
         chatMsg.setRoomType(roomType);
         chatMsg.setRoomId(roomId);
         chatMsg.setSenderId(UserDao.user.getId());
         chatMsg.setCreateTimestamp(TimeUtil.getServerTimestamp());
         chatMsg.setLocalMsgId(UUIDUtil.get32UUID());
         chatMsg.setSendState(ChatMsg.TYPE_SENDING);
+        chatMsg.setAtFriendMap(null);
+        if (ChatMsg.TYPE_CONTENT_AT==chatMsg.getContentType()){
+            //@消息转发需要把消息改成文本消息
+            chatMsg.setContentType(ChatMsg.TYPE_CONTENT_TEXT);
+        }
         if (ChatRoom.TYPE_SINGLE.equals(roomType)) {
             chatMsg.setReceiverId(roomId);
             //非好友关系，则赋值senderInfo, receiverInfo
@@ -264,13 +276,22 @@ public class ChatRoomManager {
      * 封装发送的消息实体
      */
     private static ChatMsg packChatMsg(ChatRoom chatRoom, int contentType, String contentStr,
-                                       FileInfo fileInfo, VoiceCall voiceCall, String atMember) {
+                                       FileInfo fileInfo, VoiceCall voiceCall, String atMember,ReplyMsgInfo replyMsgInfo) {
         if (chatRoom == null) {
             return null;
         }
         ChatMsg chatMsg = new ChatMsg(chatRoom.getRoomId(), chatRoom.getRoomType(),
                 UserDao.user.getId(), contentType, contentStr, TimeUtil.getServerTimestamp());
-        if (contentType == ChatMsg.TYPE_CONTENT_TEXT || contentType == ChatMsg.TYPE_CONTENT_AT) {
+        if (replyMsgInfo!=null){
+            if (replyMsgInfo.getContentType()==ChatMsg.TYPE_CONTENT_AT
+                    ||replyMsgInfo.getContentType()==ChatMsg.TYPE_CONTENT_REPLY){
+                replyMsgInfo.setContentType(ChatMsg.TYPE_CONTENT_TEXT);
+            }
+            chatMsg.setReplyMsgInfo(replyMsgInfo);
+        }
+        if (contentType == ChatMsg.TYPE_CONTENT_TEXT
+                || contentType == ChatMsg.TYPE_CONTENT_AT
+                ||contentType==ChatMsg.TYPE_CONTENT_REPLY) {
             if (EmoticonUtil.isContainEmotion(contentStr)) {
                 chatMsg.setEmoMark(1);
             }
@@ -305,6 +326,7 @@ public class ChatRoomManager {
             chatMsg.setGroupId(chatRoom.getRoomId());
         }
         chatMsg.setLocalMsgId(UUIDUtil.get32UUID());
+//        chatMsg.setMsgId(UUIDUtil.get32UUID());
         chatMsg.setFileInfo(fileInfo);
         chatMsg.setVoiceCall(voiceCall);
         chatMsg.setSendState(ChatMsg.TYPE_SENDING);
@@ -420,6 +442,7 @@ public class ChatRoomManager {
         switch (receiveMsg.getContentType()) {
             case ChatMsg.TYPE_CONTENT_TEXT:
             case ChatMsg.TYPE_CONTENT_AT:
+            case ChatMsg.TYPE_CONTENT_REPLY:
                 receiveMsg.setContent(receiveMsg.getContent().trim());
                 if (EmoticonUtil.isContainEmotion(receiveMsg.getContent())) {
                     receiveMsg.setEmoMark(1);
@@ -497,7 +520,6 @@ public class ChatRoomManager {
                     EventTrans.post(EventMsg.MESSAGE_VOICE_CALL_REFRESH, voiceCall.getConnectState());
                 }
                 break;
-
             default:
                 break;
         }
@@ -548,13 +570,17 @@ public class ChatRoomManager {
         if (chatMsg.getFileInfo() == null) {
             return;
         }
+        uploadFile(context,chatMsg,fileInfo);
+    }
+
+    public static void uploadFile(Context context, final ChatMsg chatMsg, FileInfo fileInfo){
         ChatSocket.getInstance().send(chatMsg);
         String url=chatMsg.getFileInfo().getOriginPath();
         if (fileInfo.getFileType()==FileInfo.TYPE_IMG){
             url=chatMsg.getFileInfo().getCompressPath();
         }
         HttpContact.uploadFile(url, chatMsg.getFileInfo().getFileType(),
-                chatRoom.getRoomId(), chatRoom.getRoomType(), fileInfo.getDuration(), new HttpCallBack(context, ClassUtil.classMethodName()) {
+                chatMsg.getRoomId(), chatMsg.getRoomType(), fileInfo.getDuration(), new HttpCallBack(context, ClassUtil.classMethodName()) {
                     @Override
                     public void success(Object data, int count) {
                         if (data == null) {
@@ -727,7 +753,7 @@ public class ChatRoomManager {
         List<ServerConversation.UpdateConversation> updateList = serverConversation.getUpdateConversations();
         if (deleteList != null && !deleteList.isEmpty()) {
             for (ServerConversation.DeleteConversation deleteConversation : deleteList) {
-                MessageDao.updateShowMark(deleteConversation.getConversationId(),
+                MessageDao.deleteRoomMsg(deleteConversation.getConversationId(),
                         deleteConversation.getConversationType());
                 ChatRoomDao.deleteRoom(deleteConversation.getConversationId(),
                         deleteConversation.getConversationType());
@@ -740,20 +766,25 @@ public class ChatRoomManager {
                         && !"0".equals(room.getUnSyncMsgFirstId()) && room.getLastChatMsg() != null) {
                     room.getLastChatMsg().setUnSyncMsgFirstId(room.getUnSyncMsgFirstId());
                     if (room.getLastChatMsg().getContentType() == ChatMsg.TYPE_CONTENT_TEXT
-                            || room.getLastChatMsg().getContentType() == ChatMsg.TYPE_CONTENT_AT) {
-                        room.getLastChatMsg().setContent(room.getLastChatMsg().getContent().trim());
-                        if (EmoticonUtil.isContainEmotion(room.getLastChatMsg().getContent())) {
-                            room.getLastChatMsg().setEmoMark(1);
-                        }
-                        if (HyperLinkUtil.isContainPhone(room.getLastChatMsg().getContent())) {
-                            room.getLastChatMsg().setPhoneMark(1);
-                        }
-                        if (HyperLinkUtil.isContainUrl(room.getLastChatMsg().getContent())) {
-                            room.getLastChatMsg().setUrlMark(1);
+                            || room.getLastChatMsg().getContentType() == ChatMsg.TYPE_CONTENT_AT
+                            ||room.getLastChatMsg().getContentType() == ChatMsg.TYPE_CONTENT_REPLY) {
+                        String message=room.getLastChatMsg().getContent();
+                        if (!TextUtils.isEmpty(message)) {
+                            room.getLastChatMsg().setContent(room.getLastChatMsg().getContent().trim());
+                            if (EmoticonUtil.isContainEmotion(room.getLastChatMsg().getContent())) {
+                                room.getLastChatMsg().setEmoMark(1);
+                            }
+                            if (HyperLinkUtil.isContainPhone(room.getLastChatMsg().getContent())) {
+                                room.getLastChatMsg().setPhoneMark(1);
+                            }
+                            if (HyperLinkUtil.isContainUrl(room.getLastChatMsg().getContent())) {
+                                room.getLastChatMsg().setUrlMark(1);
+                            }
                         }
                     }
                 }
                 MessageDao.addMessage(room.getLastChatMsg());
+                MessageDao.deleteList(room.getNeedDropMsgIdArray());
                 checkRoomNameAvailable(room);
             }
             ChatRoomDao.addRoomList(updateRoomList);

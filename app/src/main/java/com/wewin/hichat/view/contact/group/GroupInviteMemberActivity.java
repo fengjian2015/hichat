@@ -216,7 +216,7 @@ public class GroupInviteMemberActivity extends BaseActivity {
     }
 
     private void getGroupInfo(final String groupId) {
-        HttpContact.getGroupInfo(groupId, new HttpCallBack(getApplicationContext(), ClassUtil.classMethodName()) {
+        HttpContact.getGroupInfo(groupId, new HttpCallBack(this, ClassUtil.classMethodName(),true) {
             @Override
             public void success(Object data, int count) {
                 if (data == null) {
@@ -260,7 +260,7 @@ public class GroupInviteMemberActivity extends BaseActivity {
 
     private void inviteGroupMember(String friendIdStr, String groupNum) {
         HttpContact.inviteGroupMember(friendIdStr, groupNum,
-                new HttpCallBack(getApplicationContext(), ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         ToastUtil.showShort(getApplicationContext(), R.string.invite_success);

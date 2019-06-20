@@ -4,18 +4,22 @@ import android.content.Context;
 import android.graphics.drawable.AnimationDrawable;
 import android.text.SpannableString;
 import android.text.TextUtils;
-import android.text.method.LinkMovementMethod;
+import android.view.View;
+import android.view.animation.AnimationUtils;
 
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.utils.EmoticonUtil;
 import com.wewin.hichat.androidlib.utils.FileUtil;
 import com.wewin.hichat.androidlib.utils.HyperLinkUtil;
 import com.wewin.hichat.androidlib.utils.ImgUtil;
+import com.wewin.hichat.androidlib.utils.NameUtil;
 import com.wewin.hichat.androidlib.utils.TimeUtil;
+import com.wewin.hichat.androidlib.widget.CustomLinkMovementMethod;
 import com.wewin.hichat.component.base.BaseMessageChatRcvAdapter;
 import com.wewin.hichat.model.db.entity.ChatMsg;
 import com.wewin.hichat.model.db.entity.ChatRoom;
 import com.wewin.hichat.model.db.entity.FileInfo;
+import com.wewin.hichat.model.db.entity.ReplyMsgInfo;
 import com.wewin.hichat.model.db.entity.VoiceCall;
 
 import java.util.List;
@@ -40,8 +44,16 @@ public class MessageChatRcvAdapter extends BaseMessageChatRcvAdapter {
         if (TextUtils.isEmpty(msgList.get(position).getContent())) {
             return;
         }
-        rightTextHolder.contentTv.setMovementMethod(LinkMovementMethod.getInstance());
+        rightTextHolder.contentTv.setMovementMethod(CustomLinkMovementMethod.getInstance());
         SpannableString spanStr = new SpannableString(msgList.get(position).getContent());
+
+        if (ChatMsg.TYPE_CONTENT_AT == msgList.get(position).getContentType()
+                && msgList.get(position).getAtFriendMap() != null
+                && !msgList.get(position).getAtFriendMap().isEmpty()
+                && ChatRoom.TYPE_GROUP.equals(msgList.get(position).getRoomType())) {
+            spanStr = HyperLinkUtil.getATSpanStr(context, spanStr, msgList.get(position).getAtFriendMap(),
+                    R.color.blue_main, msgList.get(position).getRoomId());
+        }
         if (msgList.get(position).getEmoMark() == 1) {
             spanStr = EmoticonUtil.getEmoSpanStr(context, spanStr);
         }
@@ -51,12 +63,7 @@ public class MessageChatRcvAdapter extends BaseMessageChatRcvAdapter {
         if (msgList.get(position).getUrlMark() == 1) {
             spanStr = HyperLinkUtil.getLinkSpanStr(context, spanStr, R.color.blue_main);
         }
-        if (ChatMsg.TYPE_CONTENT_AT == msgList.get(position).getContentType()
-                && msgList.get(position).getAtFriendMap() != null
-                && !msgList.get(position).getAtFriendMap().isEmpty()) {
-            spanStr = HyperLinkUtil.getATSpanStr(context, spanStr, msgList.get(position).getAtFriendMap(),
-                    R.color.blue_main,msgList.get(position).getRoomId());
-        }
+
         rightTextHolder.contentTv.setText(spanStr);
     }
 
@@ -160,6 +167,131 @@ public class MessageChatRcvAdapter extends BaseMessageChatRcvAdapter {
         }
     }
 
+    @Override
+    protected void setRightReplyHolder(RightReplyHolder mHolder, int position) {
+        ChatMsg chatMsg = msgList.get(position);
+        ReplyMsgInfo replyMsgInfo = chatMsg.getReplyMsgInfo();
+        FileInfo fileInfo = replyMsgInfo.getFileInfo();
+        mHolder.replyNameTv.setText(NameUtil.getName(replyMsgInfo.getSenderInfo().getId()));
+        mHolder.replyContentTv.setVisibility(View.VISIBLE);
+        //文本
+        mHolder.replyContentTv.setMovementMethod(CustomLinkMovementMethod.getInstance());
+        SpannableString spanStr = new SpannableString(msgList.get(position).getContent());
+        if (msgList.get(position).getAtFriendMap() != null
+                && !msgList.get(position).getAtFriendMap().isEmpty()
+                && ChatRoom.TYPE_GROUP.equals(msgList.get(position).getRoomType())) {
+            spanStr = HyperLinkUtil.getATSpanStr(context, spanStr, msgList.get(position).getAtFriendMap(),
+                    R.color.blue_main, msgList.get(position).getRoomId());
+        }
+        if (msgList.get(position).getEmoMark() == 1) {
+            spanStr = EmoticonUtil.getEmoSpanStr(context, spanStr);
+        }
+        if (msgList.get(position).getPhoneMark() == 1) {
+            spanStr = HyperLinkUtil.getPhoneSpanStr(context, spanStr, R.color.blue_main);
+        }
+        if (msgList.get(position).getUrlMark() == 1) {
+            spanStr = HyperLinkUtil.getLinkSpanStr(context, spanStr, R.color.blue_main);
+        }
+        mHolder.replyContentTv.setText(spanStr);
+        mHolder.replyStateIv.setVisibility(View.GONE);
+        mHolder.recordLl.setVisibility(View.GONE);
+        mHolder.replyTypeTv.setVisibility(View.VISIBLE);
+        mHolder.replyVideoIv.setVisibility(View.GONE);
+        if (fileInfo == null) {
+            //回复文本消息
+            mHolder.replyIv.setVisibility(View.GONE);
+            mHolder.replyTypeTv.setMovementMethod(CustomLinkMovementMethod.getInstance());
+            SpannableString replyStr = new SpannableString(replyMsgInfo.getContent());
+            replyStr = EmoticonUtil.getEmoSpanStr(context, replyStr);
+            replyStr = HyperLinkUtil.getPhoneSpanStr(context, replyStr, R.color.blue_main);
+            replyStr = HyperLinkUtil.getLinkSpanStr(context, replyStr, R.color.blue_main);
+            mHolder.replyTypeTv.setText(replyStr);
+        } else {
+            mHolder.replyIv.setVisibility(View.VISIBLE);
+            String filePath = "";
+            switch (fileInfo.getFileType()) {
+                case FileInfo.TYPE_IMG:
+                case FileInfo.TYPE_VIDEO:
+                    //回复图片
+                    if (!TextUtils.isEmpty(fileInfo.getOriginPath())) {
+                        filePath = fileInfo.getOriginPath();
+                    } else if (!TextUtils.isEmpty(fileInfo.getSavePath())) {
+                        filePath = fileInfo.getSavePath();
+                    } else if (!TextUtils.isEmpty(fileInfo.getDownloadPath())) {
+                        filePath = fileInfo.getDownloadPath();
+                    }
+                    ImgUtil.load(context, filePath, mHolder.replyIv, R.drawable.con_img_vertical);
+                    if (FileInfo.TYPE_VIDEO == fileInfo.getFileType()) {
+                        mHolder.replyTypeTv.setText(context.getString(R.string.video));
+                        mHolder.replyVideoIv.setVisibility(View.VISIBLE);
+                    } else {
+                        mHolder.replyTypeTv.setText(context.getString(R.string.image));
+                    }
+                    break;
+                case FileInfo.TYPE_DOC:
+                case FileInfo.TYPE_MUSIC:
+                    String nameStr = fileInfo.getFileName();
+                    String type = nameStr.substring(nameStr.lastIndexOf("."), nameStr.length());
+                    FileUtil.imageTypeView(type, mHolder.replyIv);
+                    if (fileInfo.getFileType() == FileInfo.TYPE_MUSIC) {
+                        mHolder.replyTypeTv.setText(context.getString(R.string.musicInfo));
+                    } else {
+                        mHolder.replyTypeTv.setText(context.getString(R.string.document));
+                    }
+                    //左侧 文档下载状态
+                    if (fileInfo.getDownloadState()==FileInfo.TYPE_DOWNLOAD_NOT){
+                        mHolder.replyStateIv.setVisibility(View.VISIBLE);
+                        mHolder.replyStateIv.setImageResource(R.drawable.file_download_black);
+                        mHolder.loadingIv.setVisibility(View.GONE);
+                        mHolder.loadingIv.clearAnimation();
+                    }else if(fileInfo.getDownloadState()==FileInfo.TYPE_DOWNLOADING){
+                        mHolder.replyStateIv.setVisibility(View.VISIBLE);
+                        mHolder.replyStateIv.setImageResource(R.drawable.file_download_off_black);
+                        mHolder.loadingIv.setVisibility(View.VISIBLE);
+                        mHolder.loadingIv.startAnimation(AnimationUtils.loadAnimation(context,
+                                R.anim.rotate360_anim));
+                    }else if(fileInfo.getDownloadState()==FileInfo.TYPE_DOWNLOAD_SUCCESS){
+                        mHolder.replyStateIv.setVisibility(View.GONE);
+                        mHolder.loadingIv.setVisibility(View.GONE);
+                        mHolder.loadingIv.clearAnimation();
+                    }else if(fileInfo.getDownloadState()==FileInfo.TYPE_DOWNLOAD_FAIL){
+                        mHolder.replyStateIv.setVisibility(View.VISIBLE);
+                        mHolder.replyStateIv.setImageResource(R.drawable.file_download_again_black);
+                        mHolder.loadingIv.setVisibility(View.GONE);
+                        mHolder.loadingIv.clearAnimation();
+                    }
+                    break;
+                case FileInfo.TYPE_TAPE_RECORD:
+                    mHolder.replyIv.setVisibility(View.GONE);
+                    mHolder.replyTypeTv.setVisibility(View.GONE);
+                    mHolder.recordLl.setVisibility(View.VISIBLE);
+                    String durationStr = TimeUtil.formatTimeStr(fileInfo.getDuration());
+                    mHolder.recordTimeTv.setText(durationStr);
+                    if (fileInfo.getTapePlayingMark() == 1) {
+                        mHolder.recordPlayIv.setImageResource(R.drawable.msg_btn_stop_white);
+                        mHolder.animIv.setImageResource(R.drawable.anim_tape_record_playing_white);
+                        AnimationDrawable animationDrawable = (AnimationDrawable) mHolder
+                                .animIv.getDrawable();
+                        animationDrawable.start();
+
+                    } else {
+                        mHolder.recordPlayIv.setImageResource(R.drawable.msg_btn_play_white);
+                        if (mHolder.animIv.getDrawable() instanceof AnimationDrawable) {
+                            AnimationDrawable animationDrawable = (AnimationDrawable) mHolder
+                                    .animIv.getDrawable();
+                            if (animationDrawable != null) {
+                                animationDrawable.stop();
+                            }
+                        }
+                        mHolder.animIv.setImageResource(R.drawable.voice_play_white_07);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
     //右侧录音
     @Override
     protected void setRightTapeHolder(RightTapeHolder rightTapeHolder, int position) {
@@ -192,8 +324,15 @@ public class MessageChatRcvAdapter extends BaseMessageChatRcvAdapter {
         if (TextUtils.isEmpty(msgList.get(position).getContent())) {
             return;
         }
-        leftTextHolder.contentTv.setMovementMethod(LinkMovementMethod.getInstance());
+        leftTextHolder.contentTv.setMovementMethod(CustomLinkMovementMethod.getInstance());
         SpannableString spanStr = new SpannableString(msgList.get(position).getContent());
+        if (ChatMsg.TYPE_CONTENT_AT == msgList.get(position).getContentType()
+                && msgList.get(position).getAtFriendMap() != null
+                && !msgList.get(position).getAtFriendMap().isEmpty()
+                && ChatRoom.TYPE_GROUP.equals(msgList.get(position).getRoomType())) {
+            spanStr = HyperLinkUtil.getATSpanStr(context, spanStr, msgList.get(position).getAtFriendMap(),
+                    R.color.blue_main, msgList.get(position).getRoomId());
+        }
         if (msgList.get(position).getEmoMark() == 1) {
             spanStr = EmoticonUtil.getEmoSpanStr(context, spanStr);
         }
@@ -202,12 +341,6 @@ public class MessageChatRcvAdapter extends BaseMessageChatRcvAdapter {
         }
         if (msgList.get(position).getUrlMark() == 1) {
             spanStr = HyperLinkUtil.getLinkSpanStr(context, spanStr, R.color.blue_main);
-        }
-        if (ChatMsg.TYPE_CONTENT_AT == msgList.get(position).getContentType()
-                && msgList.get(position).getAtFriendMap() != null
-                && !msgList.get(position).getAtFriendMap().isEmpty()) {
-            spanStr = HyperLinkUtil.getATSpanStr(context, spanStr, msgList.get(position).getAtFriendMap(),
-                    R.color.blue_main,msgList.get(position).getRoomId());
         }
         leftTextHolder.contentTv.setText(spanStr);
     }
@@ -339,5 +472,132 @@ public class MessageChatRcvAdapter extends BaseMessageChatRcvAdapter {
             leftTapeHolder.animIv.setImageResource(R.drawable.voice_play_07);
         }
     }
+
+    @Override
+    protected void setLeftReplyHolder(LeftReplyHolder mHolder, int position) {
+        ChatMsg chatMsg = msgList.get(position);
+        ReplyMsgInfo replyMsgInfo = chatMsg.getReplyMsgInfo();
+        FileInfo fileInfo = replyMsgInfo.getFileInfo();
+        mHolder.replyNameTv.setText(NameUtil.getName(replyMsgInfo.getSenderInfo().getId()));
+        mHolder.replyContentTv.setVisibility(View.VISIBLE);
+        //文本
+        mHolder.replyContentTv.setMovementMethod(CustomLinkMovementMethod.getInstance());
+        SpannableString spanStr = new SpannableString(msgList.get(position).getContent());
+        if ( msgList.get(position).getAtFriendMap() != null
+                && !msgList.get(position).getAtFriendMap().isEmpty()
+                && ChatRoom.TYPE_GROUP.equals(msgList.get(position).getRoomType())) {
+            spanStr = HyperLinkUtil.getATSpanStr(context, spanStr, msgList.get(position).getAtFriendMap(),
+                    R.color.blue_main, msgList.get(position).getRoomId());
+        }
+        if (msgList.get(position).getEmoMark() == 1) {
+            spanStr = EmoticonUtil.getEmoSpanStr(context, spanStr);
+        }
+        if (msgList.get(position).getPhoneMark() == 1) {
+            spanStr = HyperLinkUtil.getPhoneSpanStr(context, spanStr, R.color.blue_main);
+        }
+        if (msgList.get(position).getUrlMark() == 1) {
+            spanStr = HyperLinkUtil.getLinkSpanStr(context, spanStr, R.color.blue_main);
+        }
+
+        mHolder.replyContentTv.setText(spanStr);
+        mHolder.replyStateIv.setVisibility(View.GONE);
+        mHolder.recordLl.setVisibility(View.GONE);
+        mHolder.replyTypeTv.setVisibility(View.VISIBLE);
+        mHolder.replyVideoIv.setVisibility(View.GONE);
+        if (fileInfo == null) {
+            //回复文本消息
+            mHolder.replyIv.setVisibility(View.GONE);
+            mHolder.replyTypeTv.setMovementMethod(CustomLinkMovementMethod.getInstance());
+            SpannableString replyStr = new SpannableString(replyMsgInfo.getContent());
+            replyStr = EmoticonUtil.getEmoSpanStr(context, replyStr);
+            replyStr = HyperLinkUtil.getPhoneSpanStr(context, replyStr, R.color.blue_main);
+            replyStr = HyperLinkUtil.getLinkSpanStr(context, replyStr, R.color.blue_main);
+            mHolder.replyTypeTv.setText(replyStr);
+        } else {
+            mHolder.replyIv.setVisibility(View.VISIBLE);
+            String filePath = "";
+            switch (fileInfo.getFileType()) {
+                case FileInfo.TYPE_IMG:
+                case FileInfo.TYPE_VIDEO:
+                    //回复图片
+                    if (!TextUtils.isEmpty(fileInfo.getOriginPath())) {
+                        filePath = fileInfo.getOriginPath();
+                    } else if (!TextUtils.isEmpty(fileInfo.getSavePath())) {
+                        filePath = fileInfo.getSavePath();
+                    } else if (!TextUtils.isEmpty(fileInfo.getDownloadPath())) {
+                        filePath = fileInfo.getDownloadPath();
+                    }
+                    ImgUtil.load(context, filePath, mHolder.replyIv, R.drawable.con_img_vertical);
+                    if (FileInfo.TYPE_VIDEO == fileInfo.getFileType()) {
+                        mHolder.replyTypeTv.setText(context.getString(R.string.video));
+                        mHolder.replyVideoIv.setVisibility(View.VISIBLE);
+                    } else {
+                        mHolder.replyTypeTv.setText(context.getString(R.string.image));
+                    }
+                    break;
+                case FileInfo.TYPE_DOC:
+                case FileInfo.TYPE_MUSIC:
+                    String nameStr = fileInfo.getFileName();
+                    String type = nameStr.substring(nameStr.lastIndexOf("."), nameStr.length());
+                    FileUtil.imageTypeView(type, mHolder.replyIv);
+                    if (fileInfo.getFileType() == FileInfo.TYPE_MUSIC) {
+                        mHolder.replyTypeTv.setText(context.getString(R.string.musicInfo));
+                    } else {
+                        mHolder.replyTypeTv.setText(context.getString(R.string.document));
+                    }
+                    //左侧 文档下载状态
+                    if (fileInfo.getDownloadState()==FileInfo.TYPE_DOWNLOAD_NOT){
+                        mHolder.replyStateIv.setVisibility(View.VISIBLE);
+                        mHolder.replyStateIv.setImageResource(R.drawable.file_download_black);
+                        mHolder.loadingIv.setVisibility(View.GONE);
+                        mHolder.loadingIv.clearAnimation();
+                    }else if(fileInfo.getDownloadState()==FileInfo.TYPE_DOWNLOADING){
+                        mHolder.replyStateIv.setVisibility(View.VISIBLE);
+                        mHolder.replyStateIv.setImageResource(R.drawable.file_download_off_black);
+                        mHolder.loadingIv.setVisibility(View.VISIBLE);
+                        mHolder.loadingIv.startAnimation(AnimationUtils.loadAnimation(context,
+                                R.anim.rotate360_anim));
+                    }else if(fileInfo.getDownloadState()==FileInfo.TYPE_DOWNLOAD_SUCCESS){
+                        mHolder.replyStateIv.setVisibility(View.GONE);
+                        mHolder.loadingIv.setVisibility(View.GONE);
+                        mHolder.loadingIv.clearAnimation();
+                    }else if(fileInfo.getDownloadState()==FileInfo.TYPE_DOWNLOAD_FAIL){
+                        mHolder.replyStateIv.setVisibility(View.VISIBLE);
+                        mHolder.replyStateIv.setImageResource(R.drawable.file_download_again_black);
+                        mHolder.loadingIv.setVisibility(View.GONE);
+                        mHolder.loadingIv.clearAnimation();
+                    }
+                    break;
+                case FileInfo.TYPE_TAPE_RECORD:
+                    mHolder.replyIv.setVisibility(View.GONE);
+                    mHolder.replyTypeTv.setVisibility(View.GONE);
+                    mHolder.recordLl.setVisibility(View.VISIBLE);
+                    String durationStr = TimeUtil.formatTimeStr(fileInfo.getDuration());
+                    mHolder.recordTimeTv.setText(durationStr);
+                    if (fileInfo.getTapePlayingMark() == 1) {
+                        mHolder.recordPlayIv.setImageResource(R.drawable.msg_btn_stop_white);
+                        mHolder.animIv.setImageResource(R.drawable.anim_tape_record_playing_white);
+                        AnimationDrawable animationDrawable = (AnimationDrawable) mHolder
+                                .animIv.getDrawable();
+                        animationDrawable.start();
+
+                    } else {
+                        mHolder.recordPlayIv.setImageResource(R.drawable.msg_btn_play_white);
+                        if (mHolder.animIv.getDrawable() instanceof AnimationDrawable) {
+                            AnimationDrawable animationDrawable = (AnimationDrawable) mHolder
+                                    .animIv.getDrawable();
+                            if (animationDrawable != null) {
+                                animationDrawable.stop();
+                            }
+                        }
+                        mHolder.animIv.setImageResource(R.drawable.voice_play_white_07);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
 
 }

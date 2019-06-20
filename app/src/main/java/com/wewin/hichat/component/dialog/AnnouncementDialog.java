@@ -5,12 +5,14 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.support.annotation.NonNull;
+import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.wewin.hichat.R;
+import com.wewin.hichat.androidlib.widget.AlignTextView;
 
 /**
  * @author jason
@@ -26,8 +28,8 @@ public class AnnouncementDialog extends Dialog {
     public static class PromptBuilder{
 
         private AnnouncementDialog promptDialog;
-        private TextView contentTv, confirmTv,titleTv,nameTimeTv;
-        private ImageView cancelIv;
+        private TextView confirmTv,titleTv,nameTimeTv;
+        private AlignTextView contentTv;
         private Activity activity;
         private OnConfirmClickListener confirmClickListener;
         private OnCancelClickListener cancelClickListener;
@@ -39,23 +41,14 @@ public class AnnouncementDialog extends Dialog {
             promptDialog.addContentView(dialogView, new ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             contentTv = dialogView.findViewById(R.id.tv_dialog_prompt_content);
+            contentTv.setMovementMethod(ScrollingMovementMethod.getInstance());
             confirmTv = dialogView.findViewById(R.id.tv_dialog_prompt_confirm);
-            cancelIv=dialogView.findViewById(R.id.iv_dialog_cancel);
             titleTv=dialogView.findViewById(R.id.tv_dialog_prompt_title);
             nameTimeTv=dialogView.findViewById(R.id.tv_dialog_prompt_name_time);
             this.activity = activity;
         }
 
         public AnnouncementDialog create(){
-            cancelIv.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (promptDialog != null){
-                        promptDialog.dismiss();
-                    }
-                }
-            });
-
             confirmTv.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -124,6 +117,14 @@ public class AnnouncementDialog extends Dialog {
         public PromptBuilder setCancelableOnTouchOutside(boolean state){
             this.isCancelableOnTouchOutside = state;
             return this;
+        }
+
+        public boolean isShowing(){
+            return promptDialog.isShowing();
+        }
+
+        public void dismiss(){
+            promptDialog.dismiss();
         }
     }
 

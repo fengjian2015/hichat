@@ -102,14 +102,14 @@ public class AnnouncementModifyActivity extends BaseActivity {
 
     private void createAnnouncement(final String title, final String content) {
         HttpContact.createAnnouncement(SpCons.getUser(getAppContext()).getId(), content, mGroupInfo.getId(), title,
-                new HttpCallBack(this, ClassUtil.classMethodName()) {
+                new HttpCallBack(this, ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         ToastUtil.showShort(getApplicationContext(), R.string.commit_success);
                         announcement = new Announcement();
                         announcement.setTitle(title);
                         announcement.setContent(content);
-                        EventTrans.post(EventMsg.CONTACT_GROUP_ANNOUNCEMENT_REFRESH);
+                        EventTrans.post(EventMsg.CONTACT_GROUP_ANNOUNCEMENT_REFRESH,title,mGroupInfo.getId());
                         finish();
                     }
                 });

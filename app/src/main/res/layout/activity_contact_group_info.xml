@@ -226,7 +226,18 @@
                 android:layout_gravity="center_vertical"
                 android:layout_marginLeft="22dp"
                 />
-
+            <TextView
+                android:id="@+id/tv_contact_group_info_group_announcement"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginRight="42dp"
+                android:layout_marginLeft="110dp"
+                android:singleLine="true"
+                android:gravity="right|center_vertical"
+                android:textSize="@dimen/font_size_12"
+                android:textColor="@color/gray_be"
+                />
             <ImageView
                 android:layout_width="8dp"
                 android:layout_height="15dp"

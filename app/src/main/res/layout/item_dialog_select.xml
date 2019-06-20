@@ -12,7 +12,9 @@
         android:textSize="@dimen/font_size_16"
         android:textColor="@color/black_00"
         android:gravity="center"
+        android:ellipsize="middle"
         tools:text="title"
+        android:singleLine="true"
         />
 
 

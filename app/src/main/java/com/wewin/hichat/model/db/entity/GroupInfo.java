@@ -19,7 +19,7 @@ public class GroupInfo extends BaseSearchEntity implements Serializable {
     private String groupNum;
     private String description;
     private String groupMax;//群人数上限
-    private String lastAnnouncementContent;//最新群公告正文
+    private String title;//最新群公告正文
     private int topMark;//是否置顶
     private int shieldMark;//是否屏蔽
     private int searchFlag;//是否允许被搜索
@@ -56,12 +56,12 @@ public class GroupInfo extends BaseSearchEntity implements Serializable {
         this.grade = grade;
     }
 
-    public String getLastAnnouncementContent() {
-        return lastAnnouncementContent;
+    public String getTitle() {
+        return title;
     }
 
-    public void setLastAnnouncementContent(String lastAnnouncementContent) {
-        this.lastAnnouncementContent = lastAnnouncementContent;
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public String getGroupMax() {
@@ -178,7 +178,7 @@ public class GroupInfo extends BaseSearchEntity implements Serializable {
                 ", groupNum='" + groupNum + '\'' +
                 ", description='" + description + '\'' +
                 ", groupMax='" + groupMax + '\'' +
-                ", lastAnnouncementContent='" + lastAnnouncementContent + '\'' +
+                ", title='" + title + '\'' +
                 ", topMark=" + topMark +
                 ", shieldMark=" + shieldMark +
                 ", searchFlag=" + searchFlag +

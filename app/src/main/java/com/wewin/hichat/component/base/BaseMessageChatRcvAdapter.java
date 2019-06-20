@@ -13,10 +13,12 @@ import android.widget.TextView;
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.utils.ImgUtil;
 import com.wewin.hichat.androidlib.utils.LogUtil;
+import com.wewin.hichat.androidlib.utils.NameUtil;
 import com.wewin.hichat.androidlib.utils.TimeUtil;
 import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.component.dialog.ChatPopupWindow;
 import com.wewin.hichat.model.db.dao.ContactUserDao;
+import com.wewin.hichat.model.db.dao.FriendDao;
 import com.wewin.hichat.model.db.dao.UserDao;
 import com.wewin.hichat.model.db.entity.ChatMsg;
 import com.wewin.hichat.model.db.entity.ChatRoom;
@@ -45,6 +47,7 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
     private final int TYPE_RIGHT_FILE_VIDEO = 14;//视频
     private final int TYPE_RIGHT_FILE_DOC = 15;//文档+音乐
     private final int TYPE_RIGHT_FILE_TAPE = 16;//录音
+    private final int TYPE_RIGHT_REPLY = 17;//回复
     //左侧，对方
     private final int TYPE_LEFT_VERSION_NOT = 30;//版本不支持
     private final int TYPE_LEFT_TEXT_AT = 31;//文本+@
@@ -53,12 +56,13 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
     private final int TYPE_LEFT_FILE_VIDEO = 34;//视频
     private final int TYPE_LEFT_FILE_DOC = 35;//文档+音乐
     private final int TYPE_LEFT_FILE_TAPE = 36;//录音
+    private final int TYPE_LEFT_REPLY = 37;//回复
 
 
     public BaseMessageChatRcvAdapter(Context context, List<ChatMsg> msgList) {
         this.context = context;
         this.msgList = msgList;
-        chatPopupWindow=new ChatPopupWindow(context);
+        chatPopupWindow = new ChatPopupWindow(context);
     }
 
     //右侧自己 文字+@
@@ -77,6 +81,9 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
     protected abstract void setRightDocHolder(RightDocHolder rightDocHolder, int position);
 
     //右侧自己 录音
+    protected abstract void setRightReplyHolder(RightReplyHolder rightReplyHolder, int position);
+
+    //右侧自己 回复
     protected abstract void setRightTapeHolder(RightTapeHolder rightTapeHolder, int position);
 
     //左侧对方 文字+@
@@ -97,6 +104,8 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
     //左侧对方 录音
     protected abstract void setLeftTapeHolder(LeftTapeHolder leftTapeHolder, int position);
 
+    //左侧对方 回复
+    protected abstract void setLeftReplyHolder(LeftReplyHolder leftReplyHolder, int position);
 
     public interface OnMsgClickListener {
         void docClick(int position);//点击文档
@@ -109,6 +118,8 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
 
         void voiceCallClick();//点击语音通话
 
+        void replyClick(int position);//点击回复
+
         void avatarLeftClick(int position);//点击左侧头像
     }
 
@@ -116,48 +127,70 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
         this.msgClickListener = msgClickListener;
     }
 
-    public interface OmMsgLongClickListener{
+    public interface OmMsgLongClickListener {
         /**
          * 文本长按事件
+         *
          * @param position
          * @param view
          */
-        void textLongClick(int position,View view);
+        void textLongClick(int position, View view);
 
         /**
          * 语音通话长按事件
+         *
          * @param position
          * @param view
          */
-        void voiceCallLongClick(int position,View view);
+        void voiceCallLongClick(int position, View view);
 
         /**
          * 图片长按事件
+         *
          * @param position
          * @param view
          */
-        void imgLongClick(int position,View view);
+        void imgLongClick(int position, View view);
 
         /**
          * 视频长按事件
+         *
          * @param position
          * @param view
          */
-        void videoLongClick(int position,View view);
+        void videoLongClick(int position, View view);
 
         /**
          * 文档长按事件
+         *
          * @param position
          * @param view
          */
-        void docLongClick(int position,View view);
+        void docLongClick(int position, View view);
 
         /**
          * 录音长按事件
+         *
          * @param position
          * @param view
          */
-        void tapeRecordLongClick(int position,View view);
+        void tapeRecordLongClick(int position, View view);
+
+        /**
+         * 回复长按事件
+         *
+         * @param position
+         * @param view
+         */
+        void avatarLeftLongClick(int position, View view);
+
+        /**
+         * 左侧头像长按事件
+         *
+         * @param position
+         * @param view
+         */
+        void replyLongClick(int position, View view);
 
     }
 
@@ -197,6 +230,8 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
 
             case TYPE_RIGHT_FILE_TAPE:
                 return new RightTapeHolder(View.inflate(context, R.layout.layout_item_message_tape_right, null));
+            case TYPE_RIGHT_REPLY:
+                return new RightReplyHolder(View.inflate(context, R.layout.layout_item_message_reply_right, null));
 
             //左边
             case TYPE_LEFT_TEXT_AT:
@@ -217,6 +252,9 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
 
             case TYPE_LEFT_FILE_TAPE:
                 return new LeftTapeHolder(View.inflate(context, R.layout.layout_item_message_tape_left, null));
+
+            case TYPE_LEFT_REPLY:
+                return new LeftReplyHolder(View.inflate(context, R.layout.layout_item_message_reply_left, null));
 
             default:
                 return new LeftTextHolder(View.inflate(context, R.layout.layout_item_message_tape_left, null));
@@ -300,7 +338,7 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
                 textHolder.contentTv.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View v) {
-                        if(mOmMsgLongClickListener!=null) {
+                        if (mOmMsgLongClickListener != null) {
                             mOmMsgLongClickListener.textLongClick(position, textHolder.contentTv);
                         }
                         return true;
@@ -315,8 +353,8 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
                 ((RightCallHolder) holder).callLl.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View v) {
-                        if(mOmMsgLongClickListener!=null) {
-                            mOmMsgLongClickListener.voiceCallLongClick(position,  ((RightCallHolder) holder).callLl);
+                        if (mOmMsgLongClickListener != null) {
+                            mOmMsgLongClickListener.voiceCallLongClick(position, ((RightCallHolder) holder).callLl);
                         }
                         return true;
                     }
@@ -339,7 +377,7 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
                 ((RightImgHolder) holder).imgIv.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View v) {
-                        if(mOmMsgLongClickListener!=null) {
+                        if (mOmMsgLongClickListener != null) {
                             mOmMsgLongClickListener.imgLongClick(position, ((RightImgHolder) holder).imgIv);
                         }
                         return true;
@@ -364,7 +402,7 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
                     @Override
                     public boolean onLongClick(View v) {
                         if (mOmMsgLongClickListener != null) {
-                            mOmMsgLongClickListener.videoLongClick(position,((RightVideoHolder) holder).videoIv);
+                            mOmMsgLongClickListener.videoLongClick(position, ((RightVideoHolder) holder).videoIv);
                         }
                         return true;
                     }
@@ -388,7 +426,7 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
                     @Override
                     public boolean onLongClick(View v) {
                         if (mOmMsgLongClickListener != null) {
-                            mOmMsgLongClickListener.docLongClick(position,((RightDocHolder) holder).docRl);
+                            mOmMsgLongClickListener.docLongClick(position, ((RightDocHolder) holder).docRl);
                         }
                         return true;
                     }
@@ -413,7 +451,7 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
                     @Override
                     public boolean onLongClick(View v) {
                         if (mOmMsgLongClickListener != null) {
-                            mOmMsgLongClickListener.tapeRecordLongClick(position,tapeHolder.tapeLl);
+                            mOmMsgLongClickListener.tapeRecordLongClick(position, tapeHolder.tapeLl);
                         }
                         return true;
                     }
@@ -430,6 +468,48 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
                     tapeHolder.failTopIv.setVisibility(View.VISIBLE);
                     tapeHolder.failCenterIv.setVisibility(View.INVISIBLE);
                 }
+            } else if (holder instanceof RightReplyHolder) {
+                if (msgList.get(position).getReplyMsgInfo()==null){
+                    return;
+                }
+                //右侧回复消息
+                final RightReplyHolder replyHolder = (RightReplyHolder) holder;
+                setRightReplyHolder(replyHolder, position);
+                replyHolder.replyRl.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        if (mOmMsgLongClickListener != null) {
+                            mOmMsgLongClickListener.replyLongClick(position, replyHolder.replyRl);
+                        }
+                        return true;
+                    }
+                });
+                replyHolder.replyContentTv.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        if (mOmMsgLongClickListener != null) {
+                            mOmMsgLongClickListener.replyLongClick(position, replyHolder.replyRl);
+                        }
+                        return true;
+                    }
+                });
+                replyHolder.replyTypeTv.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        if (mOmMsgLongClickListener != null) {
+                            mOmMsgLongClickListener.replyLongClick(position, replyHolder.replyRl);
+                        }
+                        return true;
+                    }
+                });
+                replyHolder.replyRl.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (msgClickListener != null) {
+                            msgClickListener.replyClick(position);
+                        }
+                    }
+                });
             }
 
         } else if (holder instanceof LeftViewHolder) {
@@ -437,13 +517,22 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
             if (msgList.get(position) == null) {
                 return;
             }
-            LeftViewHolder leftHolder = (LeftViewHolder) holder;
+            final LeftViewHolder leftHolder = (LeftViewHolder) holder;
             leftHolder.avatarIv.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     if (msgClickListener != null) {
                         msgClickListener.avatarLeftClick(position);
                     }
+                }
+            });
+            leftHolder.avatarIv.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    if (mOmMsgLongClickListener!=null){
+                        mOmMsgLongClickListener.avatarLeftLongClick(position,leftHolder.avatarIv);
+                    }
+                    return true;
                 }
             });
             //左侧 日期
@@ -465,6 +554,13 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
                     String dateStr = TimeUtil.getFormatDate(msgList.get(position).getCreateTimestamp());
                     leftHolder.dateTv.setText(dateStr);
                 }
+            }
+            //左侧名字
+            if (ChatRoom.TYPE_GROUP.equals(msgList.get(position).getRoomType())) {
+                leftHolder.nameTv.setVisibility(View.VISIBLE);
+                leftHolder.nameTv.setText(NameUtil.getName(msgList.get(position).getSenderId()));
+            } else {
+                leftHolder.nameTv.setVisibility(View.GONE);
             }
             //左侧 头像
             if (TextUtils.isEmpty(friendAvatarUrl)
@@ -494,8 +590,8 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
                 ((LeftTextHolder) holder).contentTv.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View v) {
-                        if(mOmMsgLongClickListener!=null){
-                            mOmMsgLongClickListener.textLongClick(position,((LeftTextHolder) holder).contentTv);
+                        if (mOmMsgLongClickListener != null) {
+                            mOmMsgLongClickListener.textLongClick(position, ((LeftTextHolder) holder).contentTv);
                         }
                         return true;
                     }
@@ -510,8 +606,8 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
                 ((LeftCallHolder) holder).callLl.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View v) {
-                        if(mOmMsgLongClickListener!=null){
-                            mOmMsgLongClickListener.voiceCallLongClick(position,((LeftCallHolder) holder).callLl);
+                        if (mOmMsgLongClickListener != null) {
+                            mOmMsgLongClickListener.voiceCallLongClick(position, ((LeftCallHolder) holder).callLl);
                         }
                         return true;
                     }
@@ -534,8 +630,8 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
                 ((LeftImgHolder) holder).imgIv.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View v) {
-                        if(mOmMsgLongClickListener!=null){
-                            mOmMsgLongClickListener.imgLongClick(position,((LeftImgHolder) holder).imgIv);
+                        if (mOmMsgLongClickListener != null) {
+                            mOmMsgLongClickListener.imgLongClick(position, ((LeftImgHolder) holder).imgIv);
                         }
                         return true;
                     }
@@ -558,8 +654,8 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
                 ((LeftVideoHolder) holder).videoIv.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View v) {
-                        if(mOmMsgLongClickListener!=null){
-                            mOmMsgLongClickListener.videoLongClick(position,((LeftVideoHolder) holder).videoIv);
+                        if (mOmMsgLongClickListener != null) {
+                            mOmMsgLongClickListener.videoLongClick(position, ((LeftVideoHolder) holder).videoIv);
                         }
                         return true;
                     }
@@ -583,8 +679,8 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
                 docHolder.docRl.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View v) {
-                        if(mOmMsgLongClickListener!=null){
-                            mOmMsgLongClickListener.docLongClick(position,docHolder.docRl);
+                        if (mOmMsgLongClickListener != null) {
+                            mOmMsgLongClickListener.docLongClick(position, docHolder.docRl);
                         }
                         return true;
                     }
@@ -642,8 +738,8 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
                 tapeHolder.tapeLl.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View v) {
-                        if(mOmMsgLongClickListener!=null){
-                            mOmMsgLongClickListener.tapeRecordLongClick(position,tapeHolder.tapeLl);
+                        if (mOmMsgLongClickListener != null) {
+                            mOmMsgLongClickListener.tapeRecordLongClick(position, tapeHolder.tapeLl);
                         }
                         return true;
                     }
@@ -680,6 +776,49 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
                 } else {
                     tapeHolder.redPointIv.setVisibility(View.GONE);
                 }
+            }else if(holder instanceof LeftReplyHolder){
+                //左侧 回复
+                if (msgList.get(position).getReplyMsgInfo() == null) {
+                    return;
+                }
+
+                final LeftReplyHolder replyHolder = (LeftReplyHolder) holder;
+                setLeftReplyHolder(replyHolder, position);
+                replyHolder.replyRl.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        if (mOmMsgLongClickListener != null) {
+                            mOmMsgLongClickListener.replyLongClick(position, replyHolder.replyRl);
+                        }
+                        return true;
+                    }
+                });
+                replyHolder.replyRl.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (msgClickListener != null) {
+                            msgClickListener.replyClick(position);
+                        }
+                    }
+                });
+                replyHolder.replyContentTv.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        if (mOmMsgLongClickListener != null) {
+                            mOmMsgLongClickListener.replyLongClick(position, replyHolder.replyRl);
+                        }
+                        return true;
+                    }
+                });
+                replyHolder.replyTypeTv.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        if (mOmMsgLongClickListener != null) {
+                            mOmMsgLongClickListener.replyLongClick(position, replyHolder.replyRl);
+                        }
+                        return true;
+                    }
+                });
             }
         }
 //        long endTime = System.currentTimeMillis();
@@ -754,6 +893,12 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
                                 return TYPE_LEFT_VERSION_NOT;
                             }
                     }
+                }
+            case ChatMsg.TYPE_CONTENT_REPLY:
+                if (selfState) {
+                    return TYPE_RIGHT_REPLY;
+                } else {
+                    return TYPE_LEFT_REPLY;
                 }
             default:
                 if (selfState) {
@@ -832,6 +977,31 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
         }
     }
 
+    protected static class RightReplyHolder extends RightViewHolder {
+        public ImageView replyIv, animIv, recordLoadingIv, recordPlayIv,replyVideoIv,replyStateIv
+                ,loadingIv;
+        public TextView replyNameTv, recordTimeTv, replyTypeTv, replyContentTv;
+        public LinearLayout recordLl;
+        public RelativeLayout replyRl;
+
+        private RightReplyHolder(View itemView) {
+            super(itemView);
+            replyIv = itemView.findViewById(R.id.iv_message_chat_reply_img);
+            replyNameTv = itemView.findViewById(R.id.tv_message_chat_reply_name);
+            recordLl = itemView.findViewById(R.id.ll_message_chat_voice_record_container);
+            animIv = itemView.findViewById(R.id.iv_conversation_chat_tape_record_anim);
+            recordTimeTv = itemView.findViewById(R.id.tv_message_chat_voice_record_time);
+            recordLoadingIv = itemView.findViewById(R.id.iv_conversation_chat_tape_record_loading);
+            recordPlayIv = itemView.findViewById(R.id.iv_conversation_chat_tape_record_play);
+            replyTypeTv = itemView.findViewById(R.id.tv_message_chat_reply_type);
+            replyContentTv = itemView.findViewById(R.id.tv_message_chat_reply_content);
+            replyRl=itemView.findViewById(R.id.ll_message_chat_reply_container);
+            replyVideoIv=itemView.findViewById(R.id.iv_message_chat_reply_video);
+            replyStateIv=itemView.findViewById(R.id.iv_chat_file_download_state);
+            loadingIv = itemView.findViewById(R.id.iv_chat_text_msg_loading_left);
+        }
+    }
+
     protected static class LeftTextHolder extends LeftViewHolder {
         public TextView contentTv;
 
@@ -901,6 +1071,31 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
         }
     }
 
+    protected static class LeftReplyHolder extends LeftViewHolder {
+        public ImageView replyIv, animIv, recordLoadingIv, recordPlayIv,replyVideoIv,replyStateIv
+                ,loadingIv;
+        public TextView replyNameTv, recordTimeTv, replyTypeTv, replyContentTv;
+        public LinearLayout recordLl;
+        public RelativeLayout replyRl;
+
+        private LeftReplyHolder(View itemView) {
+            super(itemView);
+            replyIv = itemView.findViewById(R.id.iv_message_chat_reply_img);
+            replyNameTv = itemView.findViewById(R.id.tv_message_chat_reply_name);
+            recordLl = itemView.findViewById(R.id.ll_message_chat_voice_record_container);
+            animIv = itemView.findViewById(R.id.iv_conversation_chat_tape_record_anim);
+            recordTimeTv = itemView.findViewById(R.id.tv_message_chat_voice_record_time);
+            recordLoadingIv = itemView.findViewById(R.id.iv_conversation_chat_tape_record_loading);
+            recordPlayIv = itemView.findViewById(R.id.iv_conversation_chat_tape_record_play);
+            replyTypeTv = itemView.findViewById(R.id.tv_message_chat_reply_type);
+            replyContentTv = itemView.findViewById(R.id.tv_message_chat_reply_content);
+            replyRl=itemView.findViewById(R.id.ll_message_chat_reply_container);
+            replyVideoIv=itemView.findViewById(R.id.iv_message_chat_reply_video);
+            replyStateIv=itemView.findViewById(R.id.iv_chat_file_download_state);
+            loadingIv = itemView.findViewById(R.id.iv_chat_text_msg_loading_left);
+        }
+    }
+
     private static class RightViewHolder extends RecyclerView.ViewHolder {
         private TextView timeTv, dateTv;
         private ImageView sendingIv;
@@ -918,7 +1113,7 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
 
     private static class LeftViewHolder extends RecyclerView.ViewHolder {
         ImageView avatarIv, redPointIv, loadingIv;
-        private TextView timeTv, dateTv;
+        private TextView timeTv, dateTv, nameTv;
 
         private LeftViewHolder(View itemView) {
             super(itemView);
@@ -927,6 +1122,7 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
             loadingIv = itemView.findViewById(R.id.iv_chat_text_msg_loading_left);
             timeTv = itemView.findViewById(R.id.tv_conversation_chat_time_left);
             dateTv = itemView.findViewById(R.id.tv_message_chat_date);
+            nameTv = itemView.findViewById(R.id.tv_conversation_chat_left_name);
         }
     }
 

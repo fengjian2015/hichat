@@ -4,6 +4,7 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -11,12 +12,20 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.FutureTarget;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.wewin.hichat.MainActivity;
 import com.wewin.hichat.R;
+import com.wewin.hichat.androidlib.event.EventMsg;
+import com.wewin.hichat.androidlib.event.EventTrans;
 import com.wewin.hichat.androidlib.impl.CustomVpPageChangeListener;
+import com.wewin.hichat.androidlib.rxjava.OnRxJavaProcessListener;
+import com.wewin.hichat.androidlib.rxjava.RxJavaObserver;
+import com.wewin.hichat.androidlib.rxjava.RxJavaScheduler;
 import com.wewin.hichat.androidlib.utils.FileUtil;
 import com.wewin.hichat.androidlib.utils.HttpUtil;
 import com.wewin.hichat.androidlib.utils.ImgUtil;
@@ -25,10 +34,16 @@ import com.wewin.hichat.androidlib.utils.SystemUtil;
 import com.wewin.hichat.androidlib.utils.ToastUtil;
 import com.wewin.hichat.androidlib.widget.ZoomImageView;
 import com.wewin.hichat.component.base.BaseActivity;
+import com.wewin.hichat.component.manager.VoiceCallManager;
 import com.wewin.hichat.model.db.entity.ImgUrl;
 import com.wewin.hichat.view.album.adapter.ImgShowVpAdapter;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+
+import io.reactivex.ObservableEmitter;
 
 /**
  * 大图展示
@@ -90,9 +105,7 @@ public class ImgShowActivity extends BaseActivity {
             public void onClick(View view) {
                 int currentPosition = containerVp.getCurrentItem();
                 if (!TextUtils.isEmpty(imgList.get(currentPosition).getFileName())){
-                    downloadImg(imgList.get(currentPosition).getUrl(),
-                            FileUtil.getSDDownloadPath(getAppContext()),
-                            imgList.get(currentPosition).getFileName());
+                    getImgPathFromCache(imgList.get(currentPosition).getUrl(),FileUtil.getSDDownloadPath(getAppContext()), imgList.get(currentPosition).getFileName());
                 }
             }
         });
@@ -106,9 +119,8 @@ public class ImgShowActivity extends BaseActivity {
             }
         });
     }
-
+    List<View> viewList = new ArrayList<>();
     private void initViewPager() {
-        List<View> viewList = new ArrayList<>();
         for (int i = 0; i < imgList.size(); i++) {
             final View view = View.inflate(this, R.layout.item_album_img_match_parent, null);
             final ZoomImageView imageView = view.findViewById(R.id.iv_img_show);
@@ -128,6 +140,35 @@ public class ImgShowActivity extends BaseActivity {
         }
         containerVp.setAdapter(new ImgShowVpAdapter(viewList));
         containerVp.setCurrentItem(childPosition);
+    }
+
+    private File oldFile;
+    private void getImgPathFromCache(final String url, final String saveDir, final String fileName) {
+        RxJavaScheduler.execute(new OnRxJavaProcessListener() {
+            @Override
+            public void process(ObservableEmitter<Object> emitter) {
+                try {
+                    oldFile= Glide.with(ImgShowActivity.this)
+                            .asFile()
+                            .load(url)
+                            .submit()
+                            .get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+                Log.e("Tag", "path-->" + oldFile.getPath());
+                FileUtil.copyFile(oldFile.getPath(),saveDir+ fileName);
+            }
+        }, new RxJavaObserver<Object>() {
+            @Override
+            public void onComplete() {
+                super.onComplete();
+                SystemUtil.notifyMediaStoreRefresh(getAppContext(), saveDir + fileName);
+                ToastUtil.showShort(getAppContext(), R.string.has_download_into_album);
+            }
+        });
     }
 
     private void downloadImg(String downloadPath, final String saveDir, final String fileName){

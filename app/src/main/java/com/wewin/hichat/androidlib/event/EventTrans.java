@@ -1,5 +1,7 @@
 package com.wewin.hichat.androidlib.event;
 
+import android.os.Handler;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +14,7 @@ public class EventTrans {
 
     private static EventTrans manager;
     private List<OnEventTransListener> listenerList;
-
+    private Handler handler = new Handler();
     private EventTrans() {
         listenerList = new ArrayList<>();
     }
@@ -64,10 +66,15 @@ public class EventTrans {
         }
     }
 
-    private void postEvent(EventMsg msg) {
+    private void postEvent(final EventMsg msg) {
         synchronized (EventTrans.class) {
-            for (OnEventTransListener listener : listenerList) {
-                listener.onEventTrans(msg);
+            for (final OnEventTransListener listener : listenerList) {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        listener.onEventTrans(msg);
+                    }
+                });
             }
         }
     }

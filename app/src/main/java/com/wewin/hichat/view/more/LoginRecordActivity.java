@@ -52,7 +52,7 @@ public class LoginRecordActivity extends BaseActivity {
     }
 
     private void getLoginRecordList(){
-        HttpMore.getLoginRecord(new HttpCallBack(getAppContext(), ClassUtil.classMethodName()){
+        HttpMore.getLoginRecord(new HttpCallBack(this, ClassUtil.classMethodName(),true){
             @Override
             public void success(Object data, int count) {
                 if (data == null){

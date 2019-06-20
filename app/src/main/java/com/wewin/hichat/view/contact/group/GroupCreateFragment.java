@@ -258,7 +258,7 @@ public class GroupCreateFragment extends BaseFragment {
 
     private void createGroupCommit(String introduction, String name, String friendIdStr) {
         HttpContact.createGroup(introduction, groupLimit, name, SpCons.getUser(getHostActivity()).getId(),
-                verifyType, friendIdStr, new HttpCallBack(getActivity(), ClassUtil.classMethodName()) {
+                verifyType, friendIdStr, new HttpCallBack(getActivity(), ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         if (data == null) {
@@ -294,7 +294,7 @@ public class GroupCreateFragment extends BaseFragment {
 
     private void uploadGroupAvatar(final GroupInfo groupInfo, File file, String suffix) {
         HttpContact.uploadGroupAvatar(file, groupInfo.getId(), suffix,
-                new HttpCallBack(getActivity(), ClassUtil.classMethodName()) {
+                new HttpCallBack(getActivity(), ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         if (data == null) {

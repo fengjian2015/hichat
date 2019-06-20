@@ -1,6 +1,7 @@
 package com.wewin.hichat.component.adapter;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -60,7 +61,11 @@ public class ContactGroupMemberLvAdapter extends BaseSearchAdapter {
             setLetterVisible(iHolder.letterTv, position);
         }
         ImgUtil.load(context, memberList.get(position).getAvatar(), iHolder.avatarIv);
-        iHolder.nameTv.setText(memberList.get(position).getUsername());
+        String name=memberList.get(position).getFriendNote();
+        if (TextUtils.isEmpty(name)){
+            name=memberList.get(position).getUsername();
+        }
+        iHolder.nameTv.setText(name);
         if (memberList.get(position).getGrade() == 1) {
             iHolder.roleTv.setVisibility(View.VISIBLE);
             iHolder.roleTv.setText(R.string.manager);

@@ -132,7 +132,7 @@ public class GroupSearchFragment extends BaseFragment {
 
     private void searchGroup(int page, String groupNum) {
         HttpContact.searchGroup(page, groupNum,
-                new HttpCallBack(getActivity(), ClassUtil.classMethodName()) {
+                new HttpCallBack(getActivity(), ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         if (data == null) {
@@ -186,7 +186,7 @@ public class GroupSearchFragment extends BaseFragment {
 
     private void applyJoinGroup(String groupNum, String verifyStr) {
         HttpContact.applyJoinGroup(groupNum, verifyStr, SpCons.getUser(getHostActivity()).getId(),
-                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName()) {
+                new HttpCallBack(getHostActivity(), ClassUtil.classMethodName(),true) {
                     @Override
                     public void success(Object data, int count) {
                         if (data == null) {

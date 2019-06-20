@@ -3,6 +3,7 @@ package com.wewin.hichat.model.db.dao;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.text.TextUtils;
 
 import com.wewin.hichat.androidlib.manage.DbManager;
 import com.wewin.hichat.androidlib.utils.TransUtil;
@@ -84,6 +85,9 @@ public class GroupDao {
     public static GroupInfo getGroup(String groupId) {
         GroupInfo groupInfo = null;
         try {
+            if (TextUtils.isEmpty(groupId)){
+                return null;
+            }
             SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
             String sql = "select * from " + TABLE_NAME + " where " + GROUP_ID + " =? and "
                     + USER_ID + " =?";
