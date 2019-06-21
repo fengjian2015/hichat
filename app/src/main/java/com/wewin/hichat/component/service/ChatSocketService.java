@@ -48,6 +48,9 @@ public class ChatSocketService extends IntentService {
 
     }
 
+    /**
+     * 保护心跳正常，用于判断当前是否链接正常
+     */
     private void checkReceipt(){
         if (!SpCons.getLoginState(getApplicationContext())){
             return;

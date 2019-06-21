@@ -895,6 +895,7 @@ public abstract class BaseMessageChatRcvAdapter extends BaseRcvTopLoadAdapter {
                     }
                 }
             case ChatMsg.TYPE_CONTENT_REPLY:
+            case ChatMsg.TYPE_CONTENT_REPLY_AT:
                 if (selfState) {
                     return TYPE_RIGHT_REPLY;
                 } else {

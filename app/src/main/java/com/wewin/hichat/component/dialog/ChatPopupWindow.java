@@ -153,6 +153,7 @@ public class ChatPopupWindow extends PopupWindow {
                 }
                 break;
             case ChatMsg.TYPE_CONTENT_REPLY:
+            case ChatMsg.TYPE_CONTENT_REPLY_AT:
                 //回复
                 flCopy.setVisibility(View.VISIBLE);
                 flForward.setVisibility(View.VISIBLE);

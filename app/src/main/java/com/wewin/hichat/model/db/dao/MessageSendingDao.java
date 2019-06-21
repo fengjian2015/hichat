@@ -196,7 +196,7 @@ public class MessageSendingDao {
         values.put(CREATE_TIME, TimeUtil.timestampToStr(chatMsg.getCreateTimestamp()));
         values.put(REPLY_MSG_ID, chatMsg.getReplyMsgId());
         if ((chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_AT
-                ||chatMsg.getContentType()==ChatMsg.TYPE_CONTENT_REPLY)
+                ||chatMsg.getContentType()==ChatMsg.TYPE_CONTENT_REPLY_AT)
                 &&chatMsg.getAtFriendMap()!=null) {
             values.put(AT_FRIEND_MAP, JSON.toJSONString(chatMsg.getAtFriendMap()));
         } else if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_FILE

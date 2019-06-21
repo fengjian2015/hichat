@@ -63,6 +63,8 @@ public class EventMsg {
     public static final int CONVERSATION_REFRESH_DRAFT=65;
     //群组公告新增
     public static final int CONVERSATION_ADD_GROUP_POST=66;
+    //链接状态改变通知
+    public static final int SOCKET_RECONNECT_STATE=69;
 
     private int key;
     private Object data;

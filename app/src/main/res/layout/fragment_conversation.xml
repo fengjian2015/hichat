@@ -53,6 +53,7 @@
         </LinearLayout>
 
         <TextView
+            android:id="@+id/tv_conversation_new_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/conversation"

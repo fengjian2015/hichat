@@ -126,13 +126,13 @@ public class ChatRoomManager {
     /**
      * 获取房间,解析消息时创建的房间
      */
-    public static ChatRoom getChatRoom(ChatMsg chatMsg,boolean at) {
+    public static ChatRoom getChatRoom(ChatMsg chatMsg, boolean at) {
         ChatRoom chatRoom = packChatRoom(chatMsg.getRoomId(), chatMsg.getRoomType());
         if (chatRoom == null) {
             return null;
         }
         //处理@功能文本内容
-        if (chatMsg.getAtFriendMap() != null &&at) {
+        if (chatMsg.getAtFriendMap() != null && at) {
             if (chatMsg.getAtFriendMap().containsKey("0")) {
                 chatRoom.setAtType(ChatMsg.TYPE_AT_ALL);
             } else if (chatMsg.getAtFriendMap().containsKey(UserDao.user.getId())) {
@@ -199,48 +199,55 @@ public class ChatRoomManager {
      */
     public static ChatMsg packVoiceCallInviteMsg(ChatRoom chatRoom, String channel) {
         VoiceCall voiceCall = new VoiceCall(UserDao.user.getId(), channel, VoiceCall.INVITE, 0);
-        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_VOICE_CALL, "", null, voiceCall, null,null);
+        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_VOICE_CALL, "", null, voiceCall, null, null);
     }
 
     /**
      * 封装语音通话消息
      */
     public static ChatMsg packVoiceCallMsg(ChatRoom chatRoom, VoiceCall voiceCall) {
-        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_VOICE_CALL, "", null, voiceCall, null,null);
+        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_VOICE_CALL, "", null, voiceCall, null, null);
     }
 
     /**
      * 封装file消息
      */
     private static ChatMsg packFileMsg(ChatRoom chatRoom, FileInfo fileInfo) {
-        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_FILE, "", fileInfo, null, null,null);
+        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_FILE, "", fileInfo, null, null, null);
     }
 
     /**
      * 封装text消息
      */
     public static ChatMsg packTextMsg(ChatRoom chatRoom, String contentStr, ReplyMsgInfo replyMsgInfo) {
-        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_TEXT, contentStr, null, null, null,replyMsgInfo);
+        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_TEXT, contentStr, null, null, null, replyMsgInfo);
     }
 
     /**
      * 封装@文字消息
      */
-    public static ChatMsg packTextMsg(ChatRoom chatRoom, String contentStr, String atMember,ReplyMsgInfo replyMsgInfo) {
-        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_AT, contentStr, null, null, atMember,replyMsgInfo);
+    public static ChatMsg packTextMsg(ChatRoom chatRoom, String contentStr, String atMember, ReplyMsgInfo replyMsgInfo) {
+        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_AT, contentStr, null, null, atMember, replyMsgInfo);
     }
 
     /**
-     * 封装回复消息消息
+     * 封装回复文本消息
      */
-    public static ChatMsg packReplyMsg(ChatRoom chatRoom, String contentStr, String atMember,ReplyMsgInfo replyMsgInfo) {
-        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_REPLY, contentStr, null, null, atMember,replyMsgInfo);
+    public static ChatMsg packReplyMsg(ChatRoom chatRoom, String contentStr, ReplyMsgInfo replyMsgInfo) {
+        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_REPLY, contentStr, null, null, null, replyMsgInfo);
+    }
+
+    /**
+     * 封装回复@消息
+     */
+    public static ChatMsg packReplyMsg(ChatRoom chatRoom, String contentStr, String atMember, ReplyMsgInfo replyMsgInfo) {
+        return packChatMsg(chatRoom, ChatMsg.TYPE_CONTENT_REPLY_AT, contentStr, null, null, atMember, replyMsgInfo);
     }
 
     /**
      * 转发消息
      */
-    public static ChatMsg packForwardMsg(ChatMsg chatMsg,String roomType,String roomId){
+    public static ChatMsg packForwardMsg(ChatMsg chatMsg, String roomType, String roomId) {
         chatMsg.setMsgId(null);
         chatMsg.setRoomType(roomType);
         chatMsg.setRoomId(roomId);
@@ -249,9 +256,13 @@ public class ChatRoomManager {
         chatMsg.setLocalMsgId(UUIDUtil.get32UUID());
         chatMsg.setSendState(ChatMsg.TYPE_SENDING);
         chatMsg.setAtFriendMap(null);
-        if (ChatMsg.TYPE_CONTENT_AT==chatMsg.getContentType()){
+        if (ChatMsg.TYPE_CONTENT_AT == chatMsg.getContentType()) {
             //@消息转发需要把消息改成文本消息
             chatMsg.setContentType(ChatMsg.TYPE_CONTENT_TEXT);
+        }
+        if (ChatMsg.TYPE_CONTENT_REPLY_AT==chatMsg.getContentType()){
+            //@回复消息需要改成回复文本消息
+            chatMsg.setContentType(ChatMsg.TYPE_CONTENT_REPLY);
         }
         if (ChatRoom.TYPE_SINGLE.equals(roomType)) {
             chatMsg.setReceiverId(roomId);
@@ -266,7 +277,7 @@ public class ChatRoomManager {
                 FriendInfo receiverInfo = ContactUserDao.getContactUser(chatMsg.getReceiverId());
                 chatMsg.setReceiverInfo(receiverInfo);
             }
-        }else{
+        } else {
             chatMsg.setGroupId(roomId);
         }
         return chatMsg;
@@ -276,22 +287,24 @@ public class ChatRoomManager {
      * 封装发送的消息实体
      */
     private static ChatMsg packChatMsg(ChatRoom chatRoom, int contentType, String contentStr,
-                                       FileInfo fileInfo, VoiceCall voiceCall, String atMember,ReplyMsgInfo replyMsgInfo) {
+                                       FileInfo fileInfo, VoiceCall voiceCall, String atMember, ReplyMsgInfo replyMsgInfo) {
         if (chatRoom == null) {
             return null;
         }
         ChatMsg chatMsg = new ChatMsg(chatRoom.getRoomId(), chatRoom.getRoomType(),
                 UserDao.user.getId(), contentType, contentStr, TimeUtil.getServerTimestamp());
-        if (replyMsgInfo!=null){
-            if (replyMsgInfo.getContentType()==ChatMsg.TYPE_CONTENT_AT
-                    ||replyMsgInfo.getContentType()==ChatMsg.TYPE_CONTENT_REPLY){
+        if (replyMsgInfo != null) {
+            if (replyMsgInfo.getContentType() == ChatMsg.TYPE_CONTENT_AT
+                    || replyMsgInfo.getContentType() == ChatMsg.TYPE_CONTENT_REPLY
+                    || replyMsgInfo.getContentType() == ChatMsg.TYPE_CONTENT_REPLY_AT) {
                 replyMsgInfo.setContentType(ChatMsg.TYPE_CONTENT_TEXT);
             }
             chatMsg.setReplyMsgInfo(replyMsgInfo);
         }
         if (contentType == ChatMsg.TYPE_CONTENT_TEXT
                 || contentType == ChatMsg.TYPE_CONTENT_AT
-                ||contentType==ChatMsg.TYPE_CONTENT_REPLY) {
+                || contentType == ChatMsg.TYPE_CONTENT_REPLY
+                || contentType == ChatMsg.TYPE_CONTENT_REPLY_AT) {
             if (EmoticonUtil.isContainEmotion(contentStr)) {
                 chatMsg.setEmoMark(1);
             }
@@ -344,10 +357,10 @@ public class ChatRoomManager {
                 || chatMsg.getVoiceCall().getConnectState() == VoiceCall.BUSY)) {
             return;
         }
-        if (chatMsg.getVoiceCall()!=null){
-            ChatMsg chatMsg1=MessageDao.getVoiceCall(chatMsg.getVoiceCall().getChannel());
-            if (chatMsg1!=null){
-                LogUtil.e("走入删除操作"+chatMsg1.getVoiceCall().getChannel());
+        if (chatMsg.getVoiceCall() != null) {
+            ChatMsg chatMsg1 = MessageDao.getVoiceCall(chatMsg.getVoiceCall().getChannel());
+            if (chatMsg1 != null) {
+                LogUtil.e("走入删除操作" + chatMsg1.getVoiceCall().getChannel());
                 MessageDao.deleteVoiceChannel(chatMsg1.getVoiceCall().getChannel());
             }
         }
@@ -355,9 +368,9 @@ public class ChatRoomManager {
         ChatRoom chatRoom;
         if (isSend) {
             MessageSendingDao.addMessage(chatMsg);
-             chatRoom = ChatRoomManager.getChatRoom(chatMsg,false);
-        }else {
-             chatRoom = ChatRoomManager.getChatRoom(chatMsg,true);
+            chatRoom = ChatRoomManager.getChatRoom(chatMsg, false);
+        } else {
+            chatRoom = ChatRoomManager.getChatRoom(chatMsg, true);
         }
 
         if (chatRoom == null) {
@@ -443,6 +456,7 @@ public class ChatRoomManager {
             case ChatMsg.TYPE_CONTENT_TEXT:
             case ChatMsg.TYPE_CONTENT_AT:
             case ChatMsg.TYPE_CONTENT_REPLY:
+            case ChatMsg.TYPE_CONTENT_REPLY_AT:
                 receiveMsg.setContent(receiveMsg.getContent().trim());
                 if (EmoticonUtil.isContainEmotion(receiveMsg.getContent())) {
                     receiveMsg.setEmoMark(1);
@@ -570,14 +584,14 @@ public class ChatRoomManager {
         if (chatMsg.getFileInfo() == null) {
             return;
         }
-        uploadFile(context,chatMsg,fileInfo);
+        uploadFile(context, chatMsg, fileInfo);
     }
 
-    public static void uploadFile(Context context, final ChatMsg chatMsg, FileInfo fileInfo){
+    public static void uploadFile(Context context, final ChatMsg chatMsg, FileInfo fileInfo) {
         ChatSocket.getInstance().send(chatMsg);
-        String url=chatMsg.getFileInfo().getOriginPath();
-        if (fileInfo.getFileType()==FileInfo.TYPE_IMG){
-            url=chatMsg.getFileInfo().getCompressPath();
+        String url = chatMsg.getFileInfo().getOriginPath();
+        if (fileInfo.getFileType() == FileInfo.TYPE_IMG) {
+            url = chatMsg.getFileInfo().getCompressPath();
         }
         HttpContact.uploadFile(url, chatMsg.getFileInfo().getFileType(),
                 chatMsg.getRoomId(), chatMsg.getRoomType(), fileInfo.getDuration(), new HttpCallBack(context, ClassUtil.classMethodName()) {
@@ -767,8 +781,9 @@ public class ChatRoomManager {
                     room.getLastChatMsg().setUnSyncMsgFirstId(room.getUnSyncMsgFirstId());
                     if (room.getLastChatMsg().getContentType() == ChatMsg.TYPE_CONTENT_TEXT
                             || room.getLastChatMsg().getContentType() == ChatMsg.TYPE_CONTENT_AT
-                            ||room.getLastChatMsg().getContentType() == ChatMsg.TYPE_CONTENT_REPLY) {
-                        String message=room.getLastChatMsg().getContent();
+                            || room.getLastChatMsg().getContentType() == ChatMsg.TYPE_CONTENT_REPLY
+                            || room.getLastChatMsg().getContentType() == ChatMsg.TYPE_CONTENT_REPLY_AT) {
+                        String message = room.getLastChatMsg().getContent();
                         if (!TextUtils.isEmpty(message)) {
                             room.getLastChatMsg().setContent(room.getLastChatMsg().getContent().trim());
                             if (EmoticonUtil.isContainEmotion(room.getLastChatMsg().getContent())) {

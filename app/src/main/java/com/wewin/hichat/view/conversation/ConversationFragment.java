@@ -42,6 +42,7 @@ import com.wewin.hichat.model.db.entity.ServerConversation.DeleteConversation;
 import com.wewin.hichat.model.db.entity.ServerConversation.UpdateConversation;
 import com.wewin.hichat.model.http.HttpContact;
 import com.wewin.hichat.model.http.HttpMessage;
+import com.wewin.hichat.model.socket.ChatSocket;
 import com.wewin.hichat.view.search.ChatRecordSearchActivity;
 
 import java.util.ArrayList;
@@ -57,7 +58,7 @@ import io.reactivex.ObservableEmitter;
  */
 public class ConversationFragment extends BaseFragment {
 
-    private TextView editTv, selectAllTv, makeTopTv, deleteTv;
+    private TextView editTv, selectAllTv, makeTopTv, deleteTv,titleTv;
     private ImageView newMsgIv;
     private LinearLayout cancelLl;
     private FrameLayout searchFl;
@@ -87,6 +88,7 @@ public class ConversationFragment extends BaseFragment {
         cancelLl = parentView.findViewById(R.id.ll_main_conversation_cancel_container);
         searchFl = parentView.findViewById(R.id.fl_conversation_search);
         noDataConversationRl=parentView.findViewById(R.id.rl_conversation_no_data);
+        titleTv=parentView.findViewById(R.id.tv_conversation_new_title);
     }
 
     @Override
@@ -96,6 +98,7 @@ public class ConversationFragment extends BaseFragment {
         setViewByCache();
         //同步服务器会话列表
         ChatRoomManager.syncServerConversationList();
+        reconnectView();
     }
 
     @Override
@@ -200,6 +203,24 @@ public class ConversationFragment extends BaseFragment {
                 }
             }
         });
+    }
+
+    private void reconnectView(){
+       int type= ChatSocket.getInstance().getReconnectType();
+       switch (type){
+           case ChatSocket.TYPE_RECONNECT_NOT:
+               titleTv.setText("未连接");
+               break;
+           case ChatSocket.TYPE_RECONNECTING:
+               titleTv.setText("链接中...");
+               break;
+           case ChatSocket.TYPE_RECONNECT_SUCCESS:
+               titleTv.setText(getString(R.string.conversation));
+               break;
+           case ChatSocket.TYPE_RECONNECT_FAILURE:
+               titleTv.setText("链接中...");
+               break;
+       }
     }
 
     class RefreshList implements Runnable {
@@ -457,6 +478,10 @@ public class ConversationFragment extends BaseFragment {
                 ChatMsg chatMsg = (ChatMsg) msg.getData();
                 ChatRoomDao.updateAtType(chatMsg.getRoomId(),ChatRoom.TYPE_GROUP,ChatMsg.TYPE_AT_NORMAL);
                 updateRcv(true);
+                break;
+
+            case EventMsg.SOCKET_RECONNECT_STATE:
+                reconnectView();
                 break;
             default:
                 break;

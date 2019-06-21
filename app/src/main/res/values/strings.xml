@@ -317,4 +317,6 @@
     <string name="local_delete">仅本地删除</string>
     <string name="been_banned_forwarding">已被禁言或被拉黑，无法转发！</string>
     <string name="draft">[草稿]</string>
+    <string name="has_been_blacked_out">已被拉黑，无法回复</string>
+    <string name="has_been_banned">已被禁言，无法回复</string>
 </resources>

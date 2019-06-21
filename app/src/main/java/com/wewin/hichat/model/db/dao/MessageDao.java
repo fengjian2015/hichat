@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.text.TextUtils;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.wewin.hichat.androidlib.manage.DbManager;
@@ -16,6 +17,7 @@ import com.wewin.hichat.model.db.entity.FileInfo;
 import com.wewin.hichat.model.db.entity.FriendInfo;
 import com.wewin.hichat.model.db.entity.ReplyMsgInfo;
 import com.wewin.hichat.model.db.entity.VoiceCall;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -68,18 +70,18 @@ public class MessageDao {
     public static final String FRIENDSHIP_MARK = "friendship_mark";
     public static final String DELETE_MARK = "delete_mark";
     //2019/06/18新增回复的对象字段
-    public static final String REPLY_CONTENT="reply_content";
-    public static final String REPLY_CONTENT_TYPE="reply_content_type";
-    public static final String REPLY_DOWNLOAD_PATH="reply_download_path";
-    public static final String REPLY_DURATION="reply_duration";
-    public static final String REPLY_FILE_LENGTH="reply_file_length";
-    public static final String REPLY_FILE_NAME="reply_file_name";
-    public static final String REPLY_FILE_TYPE="reply_file_type";
-    public static final String REPLY_FILE_ID="reply_file_id";
-    public static final String REPLY_SENDER_ID="reply_sender_id";
-    public static final String REPLY_DOWNLOAD_STATE="reply_download_state";
-    public static final String REPLY_SAVE_PATH="reply_save_path";
-    public static final String REPLY_TAPE_UNREAD_MARK="reply_tape_unread_mark";
+    public static final String REPLY_CONTENT = "reply_content";
+    public static final String REPLY_CONTENT_TYPE = "reply_content_type";
+    public static final String REPLY_DOWNLOAD_PATH = "reply_download_path";
+    public static final String REPLY_DURATION = "reply_duration";
+    public static final String REPLY_FILE_LENGTH = "reply_file_length";
+    public static final String REPLY_FILE_NAME = "reply_file_name";
+    public static final String REPLY_FILE_TYPE = "reply_file_type";
+    public static final String REPLY_FILE_ID = "reply_file_id";
+    public static final String REPLY_SENDER_ID = "reply_sender_id";
+    public static final String REPLY_DOWNLOAD_STATE = "reply_download_state";
+    public static final String REPLY_SAVE_PATH = "reply_save_path";
+    public static final String REPLY_TAPE_UNREAD_MARK = "reply_tape_unread_mark";
 
     private static final int PAGE_SIZE = 60;//每页分页条数
 
@@ -99,9 +101,9 @@ public class MessageDao {
         try {
             String whereSql = MSG_ID + " =? and " + USER_ID + " =?";
             for (ChatMsg chatMsg : msgList) {
-                ChatMsg oldChatMsg=getMessage(chatMsg.getMsgId(),chatMsg.getLocalMsgId());
+                ChatMsg oldChatMsg = getMessage(chatMsg.getMsgId(), chatMsg.getLocalMsgId());
                 if (oldChatMsg != null) {
-                    chatMsg=saveLocChat(chatMsg,oldChatMsg);
+                    chatMsg = saveLocChat(chatMsg, oldChatMsg);
                     db.update(TABLE_NAME, packContentValue(chatMsg), whereSql,
                             new String[]{chatMsg.getMsgId(), UserDao.user.getId()});
                 } else {
@@ -126,7 +128,7 @@ public class MessageDao {
             SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
             if (UserDao.user != null) {
                 String sql = "select * from ( select * from " + TABLE_NAME + " where " + USER_ID +
-                        " = ? and " + ROOM_ID + " = ? and " +DELETE_MARK+" = 0 and " + SHOW_MARK + " = 1 and " + ROOM_TYPE +
+                        " = ? and " + ROOM_ID + " = ? and " + DELETE_MARK + " = 0 and " + SHOW_MARK + " = 1 and " + ROOM_TYPE +
                         " = ? and " + CREATE_TIMESTAMP + " < ? order by " + CREATE_TIMESTAMP +
                         " desc limit ? ) order by " + CREATE_TIMESTAMP;
                 Cursor cursor = db.rawQuery(sql, new String[]{UserDao.user.getId(), roomId, roomType,
@@ -152,8 +154,8 @@ public class MessageDao {
         try {
             SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
             if (UserDao.user != null) {
-                String sql = "select * from "+TABLE_NAME+" where "+ USER_ID +
-                        " = ? and " + ROOM_ID + " = ? and " +DELETE_MARK+" = 0 and " + SHOW_MARK + " = 1 and " + ROOM_TYPE +
+                String sql = "select * from " + TABLE_NAME + " where " + USER_ID +
+                        " = ? and " + ROOM_ID + " = ? and " + DELETE_MARK + " = 0 and " + SHOW_MARK + " = 1 and " + ROOM_TYPE +
                         " = ? and " + CREATE_TIMESTAMP + " <= ? order by " + CREATE_TIMESTAMP;
                 Cursor cursor = db.rawQuery(sql, new String[]{UserDao.user.getId(), roomId, roomType, startTimestamp + ""});
                 if (cursor != null) {
@@ -179,7 +181,7 @@ public class MessageDao {
             SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
             if (UserDao.user != null) {
                 String sql = "select * from " + TABLE_NAME + " where " + USER_ID + " = ? and " + ROOM_ID +
-                        " = ? and " + SHOW_MARK + " = 1 and "+ DELETE_MARK+" = 0 and " + ROOM_TYPE + " = ? and " + CREATE_TIMESTAMP +
+                        " = ? and " + SHOW_MARK + " = 1 and " + DELETE_MARK + " = 0 and " + ROOM_TYPE + " = ? and " + CREATE_TIMESTAMP +
                         " >= ? order by " + CREATE_TIMESTAMP;
                 Cursor cursor = db.rawQuery(sql, new String[]{UserDao.user.getId(), roomId, roomType,
                         startTimestamp + ""});
@@ -202,7 +204,7 @@ public class MessageDao {
         try {
             SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
             if (UserDao.user != null) {
-                String sql = "select * from " + TABLE_NAME + " where " +DELETE_MARK +" = 0 and "+ USER_ID + " = ? and (" +
+                String sql = "select * from " + TABLE_NAME + " where " + DELETE_MARK + " = 0 and " + USER_ID + " = ? and (" +
                         CONTENT_TYPE + " =? or " + CONTENT_TYPE + " =?) and " + SHOW_MARK + " = 1 and " + CONTENT
                         + " like ? order by " + ROOM_ID + ", " + CREATE_TIMESTAMP + " desc";
                 Cursor cursor = db.rawQuery(sql, new String[]{UserDao.user.getId(),
@@ -223,7 +225,7 @@ public class MessageDao {
     }
 
 
-    public static ChatMsg getMessage(String msgId,String localMsgId) {
+    public static ChatMsg getMessage(String msgId, String localMsgId) {
         ChatMsg chatMsg = null;
         try {
             SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
@@ -232,8 +234,8 @@ public class MessageDao {
             if (TextUtils.isEmpty(msgId)) {
                 sql = "select * from " + TABLE_NAME + " where " + LOCAL_MSG_ID + " = ? and " + USER_ID + " = ?";
                 cursor = db.rawQuery(sql, new String[]{localMsgId, UserDao.user.getId()});
-            }else {
-                sql = "select * from " + TABLE_NAME + " where " + MSG_ID + " = ? and "  + USER_ID + " = ?";
+            } else {
+                sql = "select * from " + TABLE_NAME + " where " + MSG_ID + " = ? and " + USER_ID + " = ?";
                 cursor = db.rawQuery(sql, new String[]{msgId, UserDao.user.getId()});
             }
 
@@ -275,7 +277,7 @@ public class MessageDao {
         try {
             SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
             String sql = "select * from " + TABLE_NAME + " where " + ROOM_ID + " = ? and " +
-                    ROOM_TYPE + " =? and " + SHOW_MARK + " = 1 and " + DELETE_MARK + " = 0 and "+ USER_ID + " = ? order by " +
+                    ROOM_TYPE + " =? and " + SHOW_MARK + " = 1 and " + DELETE_MARK + " = 0 and " + USER_ID + " = ? order by " +
                     CREATE_TIMESTAMP + " desc";
             Cursor cursor = db.rawQuery(sql, new String[]{roomId, roomType, UserDao.user.getId()});
             if (cursor != null) {
@@ -460,7 +462,7 @@ public class MessageDao {
             SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
             String sql = "select * from " + TABLE_NAME + " where "
                     + ROOM_ID + " = ? and " + ROOM_TYPE + " = ? and " + USER_ID + " =? and "
-                    + SHOW_MARK + " = 1 and "+DELETE_MARK+" = 0";
+                    + SHOW_MARK + " = 1 and " + DELETE_MARK + " = 0";
             Cursor cursor = db.rawQuery(sql, new String[]{roomId, type, UserDao.user.getId()});
             if (cursor != null) {
                 count = cursor.getCount();
@@ -474,14 +476,14 @@ public class MessageDao {
     }
 
     public static boolean findMsg(String msgId) {
-        boolean find=false;
+        boolean find = false;
         try {
             SQLiteDatabase db = DbManager.getInstance().openDatabase(false);
-            String sql = "select * from " + TABLE_NAME + " where " + USER_ID + " =? and "+MSG_ID+" = ?";
-            Cursor cursor = db.rawQuery(sql, new String[]{UserDao.user.getId(),msgId});
+            String sql = "select * from " + TABLE_NAME + " where " + USER_ID + " =? and " + MSG_ID + " = ?";
+            Cursor cursor = db.rawQuery(sql, new String[]{UserDao.user.getId(), msgId});
             if (cursor != null) {
                 if (cursor.getCount() > 0 && cursor.moveToNext()) {
-                    find=true;
+                    find = true;
                 }
                 cursor.close();
             }
@@ -505,8 +507,8 @@ public class MessageDao {
     public static void deleteVoiceChannel(String voiceChannel) {
         try {
             SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
-            String sql = "delete from " + TABLE_NAME + " where " + USER_ID + " = ? and "+VOICE_CHANNEL+" = ?";
-            db.execSQL(sql, new String[]{UserDao.user.getId(),voiceChannel});
+            String sql = "delete from " + TABLE_NAME + " where " + USER_ID + " = ? and " + VOICE_CHANNEL + " = ?";
+            db.execSQL(sql, new String[]{UserDao.user.getId(), voiceChannel});
             DbManager.getInstance().closeDatabase();
         } catch (Exception e) {
             e.printStackTrace();
@@ -516,8 +518,8 @@ public class MessageDao {
     public static void deleteSingle(String msgId) {
         try {
             SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
-            String sql = "update " + TABLE_NAME + " set " + DELETE_MARK + " = 1 where " + USER_ID + " = ? and "+MSG_ID+" = ?";
-            db.execSQL(sql, new String[]{UserDao.user.getId(),msgId});
+            String sql = "update " + TABLE_NAME + " set " + DELETE_MARK + " = 1 where " + USER_ID + " = ? and " + MSG_ID + " = ?";
+            db.execSQL(sql, new String[]{UserDao.user.getId(), msgId});
             DbManager.getInstance().closeDatabase();
         } catch (Exception e) {
             e.printStackTrace();
@@ -525,13 +527,13 @@ public class MessageDao {
     }
 
     public static void deleteList(List<String> msgIdList) {
-        if (msgIdList==null){
+        if (msgIdList == null) {
             return;
         }
         SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
         db.beginTransaction();
         try {
-            String sql = "update " + TABLE_NAME + " set " + DELETE_MARK + " = 1 where " + USER_ID + " = ? and "+MSG_ID+" = ?";
+            String sql = "update " + TABLE_NAME + " set " + DELETE_MARK + " = 1 where " + USER_ID + " = ? and " + MSG_ID + " = ?";
             for (String msgId : msgIdList) {
                 if (findMsg(msgId)) {
                     db.execSQL(sql, new String[]{UserDao.user.getId(), msgId});
@@ -546,13 +548,13 @@ public class MessageDao {
         }
     }
 
-    public static void deleteRoomMsg(String roomId,String roomType) {
+    public static void deleteRoomMsg(String roomId, String roomType) {
         SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
         db.beginTransaction();
         try {
-            String sql = "update " + TABLE_NAME + " set " + DELETE_MARK + " = 1 where " + USER_ID + " = ? and "+ROOM_ID +
-                    " =? and " + ROOM_TYPE+" = ?";
-                db.execSQL(sql, new String[]{UserDao.user.getId(), roomId,roomType});
+            String sql = "update " + TABLE_NAME + " set " + DELETE_MARK + " = 1 where " + USER_ID + " = ? and " + ROOM_ID +
+                    " =? and " + ROOM_TYPE + " = ?";
+            db.execSQL(sql, new String[]{UserDao.user.getId(), roomId, roomType});
             db.setTransactionSuccessful();
         } catch (Exception e) {
             e.printStackTrace();
@@ -563,16 +565,16 @@ public class MessageDao {
     }
 
     public static void deleteRoomMsgList(List<ChatRoom> msgIdList) {
-        if (msgIdList==null){
+        if (msgIdList == null) {
             return;
         }
         SQLiteDatabase db = DbManager.getInstance().openDatabase(true);
         db.beginTransaction();
         try {
-            String sql = "update " + TABLE_NAME + " set " + DELETE_MARK + " = 1 where " + USER_ID + " = ? and "+ROOM_ID +
-                    " =? and " + ROOM_TYPE+" = ?";
+            String sql = "update " + TABLE_NAME + " set " + DELETE_MARK + " = 1 where " + USER_ID + " = ? and " + ROOM_ID +
+                    " =? and " + ROOM_TYPE + " = ?";
             for (ChatRoom chatRoom : msgIdList) {
-                db.execSQL(sql, new String[]{UserDao.user.getId(), chatRoom.getRoomId(),chatRoom.getRoomType()});
+                db.execSQL(sql, new String[]{UserDao.user.getId(), chatRoom.getRoomId(), chatRoom.getRoomType()});
             }
             db.setTransactionSuccessful();
         } catch (Exception e) {
@@ -589,7 +591,7 @@ public class MessageDao {
         db.beginTransaction();
         try {
             String sql = "update " + TABLE_NAME + " set " + DELETE_MARK + " = 1 where " + USER_ID + " = ?";
-                db.execSQL(sql, new String[]{UserDao.user.getId()});
+            db.execSQL(sql, new String[]{UserDao.user.getId()});
             db.setTransactionSuccessful();
         } catch (Exception e) {
             e.printStackTrace();
@@ -637,8 +639,9 @@ public class MessageDao {
             voiceCall.setConnectState(cursor.getInt(cursor.getColumnIndex(VOICE_CONNECT_STATE)));
             voiceCall.setDuration(cursor.getLong(cursor.getColumnIndex(DURATION)));
             chatMsg.setVoiceCall(voiceCall);
-        }else if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY){
-            ReplyMsgInfo replyMsgInfo=new ReplyMsgInfo();
+        } else if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY
+                || chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY_AT) {
+            ReplyMsgInfo replyMsgInfo = new ReplyMsgInfo();
             replyMsgInfo.setContent(cursor.getString(cursor.getColumnIndex(REPLY_CONTENT)));
             replyMsgInfo.setContentType(cursor.getInt(cursor.getColumnIndex(REPLY_CONTENT_TYPE)));
             if (replyMsgInfo.getContentType() == ChatMsg.TYPE_CONTENT_FILE) {
@@ -664,7 +667,7 @@ public class MessageDao {
             chatMsg.setSenderInfo(sender);
         }
         String receiverName = cursor.getString(cursor.getColumnIndex(RECEIVER_NAME));
-        if (!TextUtils.isEmpty(receiverName)){
+        if (!TextUtils.isEmpty(receiverName)) {
             FriendInfo receiver = new FriendInfo();
             receiver.setUsername(receiverName);
             receiver.setAvatar(cursor.getString(cursor.getColumnIndex(RECEIVER_AVATAR)));
@@ -700,8 +703,8 @@ public class MessageDao {
         values.put(REPLY_MSG_ID, chatMsg.getReplyMsgId());
         values.put(UN_SYNC_MSG_ID, chatMsg.getUnSyncMsgFirstId());
         if ((chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_AT
-                ||chatMsg.getContentType()==ChatMsg.TYPE_CONTENT_REPLY)
-                &&chatMsg.getAtFriendMap()!=null) {
+                || chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY_AT)
+                && chatMsg.getAtFriendMap() != null) {
             values.put(AT_FRIEND_MAP, JSON.toJSONString(chatMsg.getAtFriendMap()));
         } else if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_FILE
                 && chatMsg.getFileInfo() != null) {
@@ -727,7 +730,7 @@ public class MessageDao {
             values.put(SENDER_NAME, chatMsg.getSenderInfo().getUsername());
             values.put(SENDER_AVATAR, chatMsg.getSenderInfo().getAvatar());
         }
-        if (chatMsg.getReceiverInfo() != null){
+        if (chatMsg.getReceiverInfo() != null) {
             values.put(RECEIVER_NAME, chatMsg.getReceiverInfo().getUsername());
             values.put(RECEIVER_AVATAR, chatMsg.getReceiverInfo().getAvatar());
         }
@@ -742,24 +745,25 @@ public class MessageDao {
         values.put(URL_MARK, chatMsg.getUrlMark());
         values.put(SHOW_MARK, 1);
         values.put(USER_ID, UserDao.user.getId());
-        values.put(DELETE_MARK,chatMsg.getDeleteMark());
-        if (chatMsg.getReplyMsgInfo()!=null
-                &&chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY) {
+        values.put(DELETE_MARK, chatMsg.getDeleteMark());
+        if (chatMsg.getReplyMsgInfo() != null
+                && (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY
+                ||chatMsg.getContentType()==ChatMsg.TYPE_CONTENT_REPLY_AT)) {
             values.put(REPLY_CONTENT, chatMsg.getReplyMsgInfo().getContent());
             values.put(REPLY_CONTENT_TYPE, chatMsg.getReplyMsgInfo().getContentType());
-            if (chatMsg.getReplyMsgInfo().getFileInfo()!=null
-                    &&chatMsg.getReplyMsgInfo().getContentType() == ChatMsg.TYPE_CONTENT_FILE) {
+            if (chatMsg.getReplyMsgInfo().getFileInfo() != null
+                    && chatMsg.getReplyMsgInfo().getContentType() == ChatMsg.TYPE_CONTENT_FILE) {
                 values.put(REPLY_DOWNLOAD_PATH, chatMsg.getReplyMsgInfo().getFileInfo().getDownloadPath());
                 values.put(REPLY_DURATION, chatMsg.getReplyMsgInfo().getFileInfo().getDuration());
                 values.put(REPLY_FILE_LENGTH, chatMsg.getReplyMsgInfo().getFileInfo().getFileLength());
                 values.put(REPLY_FILE_NAME, chatMsg.getReplyMsgInfo().getFileInfo().getFileName());
                 values.put(REPLY_FILE_TYPE, chatMsg.getReplyMsgInfo().getFileInfo().getFileType());
                 values.put(REPLY_FILE_ID, chatMsg.getReplyMsgInfo().getFileInfo().getId());
-                values.put(REPLY_DOWNLOAD_STATE,chatMsg.getReplyMsgInfo().getFileInfo().getDownloadState());
-                values.put(REPLY_SAVE_PATH,chatMsg.getReplyMsgInfo().getFileInfo().getSavePath());
-                values.put(REPLY_TAPE_UNREAD_MARK,chatMsg.getReplyMsgInfo().getFileInfo().getTapeUnreadMark());
+                values.put(REPLY_DOWNLOAD_STATE, chatMsg.getReplyMsgInfo().getFileInfo().getDownloadState());
+                values.put(REPLY_SAVE_PATH, chatMsg.getReplyMsgInfo().getFileInfo().getSavePath());
+                values.put(REPLY_TAPE_UNREAD_MARK, chatMsg.getReplyMsgInfo().getFileInfo().getTapeUnreadMark());
             }
-            if (chatMsg.getReplyMsgInfo().getSenderInfo()!=null) {
+            if (chatMsg.getReplyMsgInfo().getSenderInfo() != null) {
                 values.put(REPLY_SENDER_ID, chatMsg.getReplyMsgInfo().getSenderInfo().getId());
             }
         }
@@ -769,7 +773,7 @@ public class MessageDao {
     /**
      * 需要使用本地存储的数据
      */
-    private static ChatMsg saveLocChat(ChatMsg chatMsg,ChatMsg oldChatMsg){
+    private static ChatMsg saveLocChat(ChatMsg chatMsg, ChatMsg oldChatMsg) {
         chatMsg.setDeleteMark(oldChatMsg.getDeleteMark());
         chatMsg.setShowMark(oldChatMsg.getShowMark());
         chatMsg.setEmoMark(oldChatMsg.getEmoMark());

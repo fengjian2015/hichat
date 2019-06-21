@@ -624,11 +624,15 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
                 }
             }
             String atContent = JSONObject.toJSONString(atMap);
-            if (replyMsgInfo != null) {
-                ChatSocket.getInstance().send(ChatRoomManager.packReplyMsg(mChatRoom, messageStr, atContent, replyMsgInfo));
-            } else {
-                if (atMap == null || atMap.size() <= 0) {
+            if (atMap == null || atMap.size() <= 0) {
+                if (replyMsgInfo != null) {
+                    ChatSocket.getInstance().send(ChatRoomManager.packReplyMsg(mChatRoom, messageStr, replyMsgInfo));
+                } else {
                     ChatSocket.getInstance().send(ChatRoomManager.packTextMsg(mChatRoom, messageStr, replyMsgInfo));
+                }
+            } else {
+                if (replyMsgInfo != null) {
+                    ChatSocket.getInstance().send(ChatRoomManager.packReplyMsg(mChatRoom, messageStr, atContent, replyMsgInfo));
                 } else {
                     ChatSocket.getInstance().send(ChatRoomManager.packTextMsg(mChatRoom, messageStr, atContent, replyMsgInfo));
                 }
@@ -1214,7 +1218,7 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
                     imgClickPosition = imgUrlList.indexOf(imgUrl);
                 }
             }
-            if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY
+            if ((chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY || chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY_AT)
                     && chatMsg.getReplyMsgInfo() != null
                     && chatMsg.getReplyMsgInfo().getFileInfo() != null
                     && chatMsg.getReplyMsgInfo().getFileInfo().getFileType() == FileInfo.TYPE_IMG
@@ -1361,7 +1365,9 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
             return;
         }
         final FileInfo fileInfo;
-        if (chatMsg.getReplyMsgInfo() != null && chatMsg.getReplyMsgInfo().getFileInfo() != null && chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY) {
+        if (chatMsg.getReplyMsgInfo() != null
+                && chatMsg.getReplyMsgInfo().getFileInfo() != null
+                && (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY || chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY_AT)) {
             fileInfo = chatMsg.getReplyMsgInfo().getFileInfo();
         } else if (chatMsg.getFileInfo() != null) {
             fileInfo = chatMsg.getFileInfo();
@@ -1384,8 +1390,8 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
                     && msg.getFileInfo().getFileType() == FileInfo.TYPE_TAPE_RECORD) {
                 msg.getFileInfo().setTapePlayingMark(0);
             }
-            if (msg.getReplyMsgInfo() != null
-                    && msg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY
+            if ((msg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY || msg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY_AT)
+                    && msg.getReplyMsgInfo() != null
                     && msg.getReplyMsgInfo().getFileInfo() != null
                     && msg.getReplyMsgInfo().getFileInfo().getFileType() == FileInfo.TYPE_TAPE_RECORD) {
                 msg.getReplyMsgInfo().getFileInfo().setTapePlayingMark(0);
@@ -1435,7 +1441,7 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
             return;
         }
         final FileInfo fileInfo;
-        if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY
+        if ((chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY || chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY_AT)
                 && chatMsg.getReplyMsgInfo() != null
                 && chatMsg.getReplyMsgInfo().getFileInfo() != null) {
             fileInfo = chatMsg.getReplyMsgInfo().getFileInfo();
@@ -1446,7 +1452,7 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
         }
         fileInfo.setDownloadState(FileInfo.TYPE_DOWNLOADING);
         updateRcv();
-        if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY) {
+        if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY || chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY_AT) {
             MessageDao.updateReplyFileInfo(chatMsg.getLocalMsgId(), fileInfo);
         } else {
             MessageDao.updateFileInfo(chatMsg.getLocalMsgId(), fileInfo);
@@ -1475,7 +1481,7 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
                                 @Override
                                 public void run() {
                                     updateRcv();
-                                    if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY) {
+                                    if ((chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY || chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY_AT)) {
                                         setMessageRead(chatMsg.getMsgId(), ChatMsg.TYPE_READ_NORMAL, false);
                                     } else {
                                         setMessageRead(chatMsg.getMsgId(), ChatMsg.TYPE_READ_TAPE, false);
@@ -1483,7 +1489,7 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
                                 }
                             });
                         }
-                        if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY) {
+                        if ((chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY || chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY_AT)) {
                             MessageDao.updateReplyFileInfo(chatMsg.getLocalMsgId(), fileInfo);
                         } else {
                             MessageDao.updateFileInfo(chatMsg.getLocalMsgId(), fileInfo);
@@ -1499,7 +1505,7 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
                     public void onDownloadFailed() {
                         LogUtil.i("downloadFile Failure");
                         fileInfo.setDownloadState(FileInfo.TYPE_DOWNLOAD_FAIL);
-                        if (chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY) {
+                        if ((chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY || chatMsg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY_AT)) {
                             MessageDao.updateReplyFileInfo(chatMsg.getLocalMsgId(), fileInfo);
                         } else {
                             MessageDao.updateFileInfo(chatMsg.getLocalMsgId(), fileInfo);
@@ -1664,7 +1670,8 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
             msg.setSendState(ChatMsg.TYPE_SEND_SUCCESS);
             if (ChatMsg.TYPE_CONTENT_TEXT == msg.getContentType()
                     || ChatMsg.TYPE_CONTENT_AT == msg.getContentType()
-                    || ChatMsg.TYPE_CONTENT_REPLY == msg.getContentType()) {
+                    || ChatMsg.TYPE_CONTENT_REPLY == msg.getContentType()
+                    || msg.getContentType() == ChatMsg.TYPE_CONTENT_REPLY_AT) {
                 if (EmoticonUtil.isContainEmotion(msg.getContent())) {
                     msg.setEmoMark(1);
                 }
@@ -1677,9 +1684,9 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
             }
         }
         //避免获取的msgid为空，发送中和发送失败的都为空，msgId之后成功后的消息才会有
-        for (int i=backMsgList.size()-1;i>=0;i--){
-            if (backMsgList.get(i).getMsgId()!=null){
-                pageEarliestMsgId =backMsgList.get(i).getMsgId() ;
+        for (int i = backMsgList.size() - 1; i >= 0; i--) {
+            if (backMsgList.get(i).getMsgId() != null) {
+                pageEarliestMsgId = backMsgList.get(i).getMsgId();
                 break;
             }
         }
@@ -1751,9 +1758,9 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
         }
         if (TextUtils.isEmpty(mNotesMsgId)) {
             //避免获取的msgid为空，发送中和发送失败的都为空，msgId之后成功后的消息才会有
-            for (int i=mChatMsgList.size()-1;i>=0;i--){
-                if (mChatMsgList.get(i).getMsgId()!=null){
-                    mNotesMsgId =mChatMsgList.get(i).getMsgId() ;
+            for (int i = mChatMsgList.size() - 1; i >= 0; i--) {
+                if (mChatMsgList.get(i).getMsgId() != null) {
+                    mNotesMsgId = mChatMsgList.get(i).getMsgId();
                     break;
                 }
             }
@@ -1822,7 +1829,7 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
      * 设置消息已读
      */
     private void setMessageRead(String msgId, int readType, final boolean isNeedRefresh) {
-        if (msgId==null){
+        if (msgId == null) {
             //这里说明最新一条消息是本地的失败消息或者发送中的消息
             return;
         }
@@ -2365,6 +2372,16 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
 
     @Override
     public void reply(ChatMsg chatMsg) {
+        if (mChatRoom.getGroupGrade() == GroupInfo.TYPE_GRADE_NORMAL
+                && mChatRoom.getGroupSpeakMark() == 0
+                && ChatRoom.TYPE_GROUP.equals(mChatRoom.getRoomType())) {
+            ToastUtil.showShort(this,getString(R.string.has_been_banned));
+            return;
+        } else if (ChatRoom.TYPE_SINGLE.equals(mChatRoom.getRoomType())
+                && mChatRoom.getBlackMark() == 1) {
+            ToastUtil.showShort(this,getString(R.string.has_been_blacked_out));
+            return;
+        }
         if (replyMsgInfo == null) {
             replyMsgInfo = new ReplyMsgInfo();
         }
@@ -2383,7 +2400,8 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
     private void replyView() {
         if (replyMsgInfo.getContentType() == ChatMsg.TYPE_CONTENT_TEXT
                 || replyMsgInfo.getContentType() == ChatMsg.TYPE_CONTENT_AT
-                || replyMsgInfo.getContentType() == ChatMsg.TYPE_CONTENT_REPLY) {
+                || replyMsgInfo.getContentType() == ChatMsg.TYPE_CONTENT_REPLY
+                || replyMsgInfo.getContentType() == ChatMsg.TYPE_CONTENT_REPLY_AT) {
             replyIv.setVisibility(View.GONE);
             replyContentTv.setText(replyMsgInfo.getContent());
         } else {

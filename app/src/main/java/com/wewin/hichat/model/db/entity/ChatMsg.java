@@ -18,7 +18,8 @@ public class ChatMsg implements Serializable {
     public static final int TYPE_CONTENT_VOICE_CALL = 1;//语音通话
     public static final int TYPE_CONTENT_FILE = 2;//文件图片
     public static final int TYPE_CONTENT_AT = 3;//@
-    public static final int TYPE_CONTENT_REPLY = 4;//回复消息
+    public static final int TYPE_CONTENT_REPLY = 4;//回复消息文本
+    public static final int TYPE_CONTENT_REPLY_AT=5;//回复消息带有@标志
 
     public static final int TYPE_SEND_FAIL = -1;//发送失败
     public static final int TYPE_SENDING = 0;//发送中
@@ -40,7 +41,7 @@ public class ChatMsg implements Serializable {
     private String senderId;//发送者id
     private String receiverId;//接收者id
     private String groupId;//群id
-    private int contentType;//0文本; 1语音通话; 2文件图片; 3@; 4回复消息
+    private int contentType;//0文本; 1语音通话; 2文件图片; 3@; 4回复消息; 5回复消息带有@标志
     private String content;//消息内容
     private String contentDesc;//版本不支持时的提示内容
     private long createTimestamp;//消息生成时间戳

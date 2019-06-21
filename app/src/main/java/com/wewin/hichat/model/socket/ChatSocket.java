@@ -83,10 +83,10 @@ public class ChatSocket {
      */
     private boolean receipt = false;
     private NotificationUtil notificationUtil;
-    private final int TYPE_RECONNECT_NOT = 0;//未进行重连
-    private final int TYPE_RECONNECTING = 1;//重连中
-    private final int TYPE_RECONNECT_SUCCESS = 2;//重连成功
-    private final int TYPE_RECONNECT_FAILURE = 3;//重连失败
+    public static final int TYPE_RECONNECT_NOT = 0;//未进行重连
+    public static final int TYPE_RECONNECTING = 1;//重连中
+    public static final int TYPE_RECONNECT_SUCCESS = 2;//重连成功
+    public static final int TYPE_RECONNECT_FAILURE = 3;//重连失败
     private int reconnectType = TYPE_RECONNECT_NOT;//0非重连；1重连中；2重连成功；3重连失败；
     private Context mContext;
 
@@ -162,6 +162,12 @@ public class ChatSocket {
         }
         init(mContext);
         reconnectType = TYPE_RECONNECTING;
+        EventTrans.post(EventMsg.SOCKET_RECONNECT_STATE);
+
+    }
+
+    public int getReconnectType(){
+        return reconnectType;
     }
 
     public boolean isConnectState() {
@@ -206,9 +212,10 @@ public class ChatSocket {
                 resendMsgList();
                 //socket重连成功后，同步服务器会话列表
                 if (reconnectType == TYPE_RECONNECTING) {
-                    reconnectType = TYPE_RECONNECT_SUCCESS;
                     ChatRoomManager.syncServerConversationList();
                 }
+                reconnectType = TYPE_RECONNECT_SUCCESS;
+                EventTrans.post(EventMsg.SOCKET_RECONNECT_STATE);
             }
 
             @Override
@@ -247,6 +254,7 @@ public class ChatSocket {
                 if (code != CODE_CLOSE_NORMALLY) {
                     connectState = false;
                     reconnectType = TYPE_RECONNECT_FAILURE;
+                    EventTrans.post(EventMsg.SOCKET_RECONNECT_STATE);
                 }
             }
 
@@ -257,6 +265,7 @@ public class ChatSocket {
                 if (code != CODE_CLOSE_NORMALLY) {
                     connectState = false;
                     reconnectType = TYPE_RECONNECT_FAILURE;
+                    EventTrans.post(EventMsg.SOCKET_RECONNECT_STATE);
                 }
             }
 
@@ -266,6 +275,7 @@ public class ChatSocket {
                 LogUtil.i("webSocket onFailure", "t: " + t);
                 connectState = false;
                 reconnectType = TYPE_RECONNECT_FAILURE;
+                EventTrans.post(EventMsg.SOCKET_RECONNECT_STATE);
             }
         });
     }
@@ -929,9 +939,6 @@ public class ChatSocket {
 
         } else if (lastMsg.getContentType() == ChatMsg.TYPE_CONTENT_VOICE_CALL) {
             notificationUtil.setContent(title, "[" + mContext.getString(R.string.voice_calls) + "]");
-        } else if (lastMsg.getContentType() == ChatMsg.TYPE_CONTENT_AT) {
-            notificationUtil.setContent(title, EmoticonUtil.getEmoSpanStr(mContext,
-                    new SpannableString(lastMsg.getContent())));
         } else if (!TextUtils.isEmpty(lastMsg.getContent())) {
             notificationUtil.setContent(title, EmoticonUtil.getEmoSpanStr(mContext,
                     new SpannableString(lastMsg.getContent())));
