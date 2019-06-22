@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.Space;
 import android.widget.TextView;
 
+import com.umeng.commonsdk.debug.E;
 import com.wewin.hichat.R;
 import com.wewin.hichat.androidlib.utils.HyperLinkUtil;
 import com.wewin.hichat.androidlib.utils.NameUtil;
@@ -38,6 +39,7 @@ public class ConversationListRcvAdapter extends BaseRcvAdapter {
     private Context context;
     private List<ChatRoom> roomList;
     private boolean isEditMode;
+    private final int MAX_CONTENT=100;
 
     public ConversationListRcvAdapter(Context context, List<ChatRoom> roomList) {
         this.context = context;
@@ -245,8 +247,12 @@ public class ConversationListRcvAdapter extends BaseRcvAdapter {
                         if (TextUtils.isEmpty(lastMsg.getContent())){
                             spanStr = new SpannableString("");
                         }else {
-                            //后面加空格，避免全是表情时排版出问题
-                            spanStr = new SpannableString(lastMsg.getContent()+"  ");
+                            //后面加空格，避免全是表情时排版出问题,截取100个字符，过度的字符会消耗性能,若碰到显示不全的，可以适当增加
+                            if (lastMsg.getContent().length()>MAX_CONTENT){
+                                spanStr = new SpannableString( lastMsg.getContent().substring(0,MAX_CONTENT)+"  ");
+                            }else {
+                                spanStr = new SpannableString(lastMsg.getContent() + "  ");
+                            }
                         }
                         spanStr=HyperLinkUtil.getATSpanChangeName(spanStr,lastMsg.getAtFriendMap());
                         if (lastMsg.getEmoMark() == 1) {

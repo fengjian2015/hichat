@@ -6,6 +6,7 @@ import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
+import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -111,6 +112,7 @@ import com.wewin.hichat.view.contact.group.GroupInviteMemberActivity;
 
 import java.io.File;
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -179,6 +181,7 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
      * 长按消息弹窗，选择复制转发回复删除
      */
     private ChatPopupWindow chatPopupWindow;
+    private Handler mHandler=new Handler();
 
 
     //录音计时器
@@ -677,9 +680,9 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
 
             if (beforeList != null) {
                 if (rcvAdapter.getTopPullViewVisible()) {
-                    layoutManager.scrollToPositionWithOffset(beforeList.size() + 1, 0);
+                    scrollToPositionWithOffset(beforeList.size()+1,0);
                 } else {
-                    layoutManager.scrollToPositionWithOffset(beforeList.size(), 0);
+                    scrollToPositionWithOffset(beforeList.size(),0);
                 }
             } else {
                 layoutManager.scrollToPositionWithOffset(1, 0);
@@ -701,9 +704,9 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
                 mChatMsgList.addAll(dataList);
                 updateRcv();
                 if (rcvAdapter.getTopPullViewVisible()) {
-                    layoutManager.scrollToPositionWithOffset(mChatMsgList.size(), 0);
+                    scrollToPositionWithOffset(mChatMsgList.size(),0);
                 } else {
-                    layoutManager.scrollToPositionWithOffset(mChatMsgList.size() - 1, 0);
+                    scrollToPositionWithOffset(mChatMsgList.size() - 1,0);
                 }
                 if (isLoadLocalData) {
                     oldServerMsgDelete();
@@ -714,6 +717,16 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
                 getServerMsgList(1, "0");
             }
         }
+    }
+
+
+    /**
+     * 这里加上延时处理一遍，以防处理表情时，控件高度变化导致无法定位准确
+     * @param position
+     * @param offset
+     */
+    private void scrollToPositionWithOffset(final int position, final int offset){
+        layoutManager.scrollToPositionWithOffset(position, offset);
     }
 
     private void setRoomTypeView() {
@@ -943,12 +956,14 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
         });
     }
 
+
+
     private void initRecyclerView() {
         rcvAdapter = new MessageChatRcvAdapter(this, mChatMsgList);
         layoutManager = new MyLinearLayoutManager(getAppContext());
         containerRcv.setLayoutManager(layoutManager);
         containerRcv.setAdapter(rcvAdapter);
-
+        setManFlingVelocity();
         containerRcv.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
@@ -987,9 +1002,9 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
                     mChatMsgList.addAll(0, dataList);
                     updateRcv();
                     if (rcvAdapter.getTopPullViewVisible()) {
-                        layoutManager.scrollToPositionWithOffset(dataList.size() + 1, topLoadLastOffset);
+                        scrollToPositionWithOffset(dataList.size()+1,topLoadLastOffset);
                     } else {
-                        layoutManager.scrollToPositionWithOffset(dataList.size(), topLoadLastOffset);
+                        scrollToPositionWithOffset(dataList.size(),topLoadLastOffset);
                     }
                     oldServerMsgDelete();
                 }
@@ -1137,6 +1152,18 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
         });
     }
 
+    /**
+     * 控制滑动速率
+     */
+    private void setManFlingVelocity(){
+        try {
+            Field field=containerRcv.getClass().getDeclaredField("mMaxFlingVelocity");
+            field.setAccessible(true);
+            field.set(containerRcv,6000);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 
     /**
      * 点击打开录音文件
@@ -1654,9 +1681,9 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
                 mChatMsgList.clear();
                 mChatMsgList.addAll(cacheList);
                 if (rcvAdapter.getTopPullViewVisible()) {
-                    layoutManager.scrollToPositionWithOffset(mChatMsgList.size(), 0);
+                    scrollToPositionWithOffset(mChatMsgList.size(),0);
                 } else {
-                    layoutManager.scrollToPositionWithOffset(mChatMsgList.size() - 1, 0);
+                    scrollToPositionWithOffset(mChatMsgList.size()-1,0);
                 }
             }
             MessageDao.removeUnSyncMsgId(mChatRoom, MessageDao.getMinMsgId(mChatRoom));
@@ -1736,16 +1763,16 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
 //        Collections.sort(mChatMsgList, new ChatMsg.TimeRiseComparator());
         updateRcv();
         if (firstMark == 1) {
-            layoutManager.scrollToPositionWithOffset(rcvAdapter.getItemCount() - 1, 0);
+            scrollToPositionWithOffset(rcvAdapter.getItemCount() - 1, 0);
             if (backMsgList.size() > 0) {
                 String lastId = backMsgList.get(0).getMsgId();
                 setMessageRead(lastId, ChatMsg.TYPE_READ_NORMAL, true);
             }
         } else {
             if (rcvAdapter.getTopPullViewVisible()) {
-                layoutManager.scrollToPositionWithOffset(backMsgList.size() + 1, topLoadLastOffset);
+                scrollToPositionWithOffset(backMsgList.size() + 1, topLoadLastOffset);
             } else {
-                layoutManager.scrollToPositionWithOffset(backMsgList.size(), topLoadLastOffset);
+                scrollToPositionWithOffset(backMsgList.size() , topLoadLastOffset);
             }
         }
         oldServerMsgDelete();
@@ -2058,9 +2085,9 @@ public class ChatRoomActivity extends BaseActivity implements ChatPopupWindow.On
                         rcvAdapter.notifyItemInserted(mChatMsgList.indexOf(chatMsg) + 1);
                     }
                     if (containerRcv.canScrollVertically(1) && UserDao.user.getId().equals(chatMsg.getSenderId())) {
-                        layoutManager.scrollToPositionWithOffset(rcvAdapter.getItemCount() - 1, 0);
+                        scrollToPositionWithOffset(rcvAdapter.getItemCount() - 1, 0);
                     } else if (!containerRcv.canScrollVertically(1)) {
-                        layoutManager.scrollToPositionWithOffset(rcvAdapter.getItemCount() - 1, 0);
+                        scrollToPositionWithOffset(rcvAdapter.getItemCount() - 1, 0);
                     }
                     boolean isTopPullAvailable = MessageDao.getCount(mChatRoom.getRoomId(),
                             mChatRoom.getRoomType()) > mChatMsgList.size() || isNeedGetServerMsg;

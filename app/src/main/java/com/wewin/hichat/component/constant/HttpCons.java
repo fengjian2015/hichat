@@ -11,17 +11,17 @@ import com.wewin.hichat.MainApplication;
 public class HttpCons {
     //服务器地址
     //jack
-//    private static final String SERVER_HTTP = MainApplication.IS_DEBUG?"http://10.5.90.116:8084/": "https://gateway.sousoutalk.com/";
-//    private static final String SERVER_SOCKET = MainApplication.IS_DEBUG?"ws://10.5.90.116:8085/":"wss://ws.sousoutalk.com/";
-//    private static final String SERVER_HTML = MainApplication.IS_DEBUG?"https://web.wewein18.com/":"https://web.sousoutalk.com/";
+    private static final String SERVER_HTTP = MainApplication.IS_DEBUG?"http://10.5.90.116:8084/": "https://gateway.sousoutalk.com/";
+    private static final String SERVER_SOCKET = MainApplication.IS_DEBUG?"ws://10.5.90.116:8085/":"wss://ws.sousoutalk.com/";
+    private static final String SERVER_HTML = MainApplication.IS_DEBUG?"https://web.wewein18.com/":"https://web.sousoutalk.com/";
     //william
 //    private static final String SERVER_HTTP = MainApplication.IS_DEBUG?"http://10.5.90.15:8084/": "https://gateway.sousoutalk.com/";
 //    private static final String SERVER_SOCKET = MainApplication.IS_DEBUG?"ws://10.5.90.15:8085/":"wss://ws.sousoutalk.com/";
 //    private static final String SERVER_HTML = MainApplication.IS_DEBUG?"https://web.wewein18.com/":"https://web.sousoutalk.com/";
     //测试环境
-    private static final String SERVER_HTTP = MainApplication.IS_DEBUG?"https://gateway.wewein18.com/": "https://gateway.sousoutalk.com/";
-    private static final String SERVER_SOCKET = MainApplication.IS_DEBUG?"wss://ws.wewein18.com/":"wss://ws.sousoutalk.com/";
-    private static final String SERVER_HTML = MainApplication.IS_DEBUG?"https://web.wewein18.com/":"https://web.sousoutalk.com/";
+//    private static final String SERVER_HTTP = MainApplication.IS_DEBUG?"https://gateway.wewein18.com/": "https://gateway.sousoutalk.com/";
+//    private static final String SERVER_SOCKET = MainApplication.IS_DEBUG?"wss://ws.wewein18.com/":"wss://ws.sousoutalk.com/";
+//    private static final String SERVER_HTML = MainApplication.IS_DEBUG?"https://web.wewein18.com/":"https://web.sousoutalk.com/";
 
     //webSocket
     public static final String SOCKET_IM = SERVER_SOCKET + "im";

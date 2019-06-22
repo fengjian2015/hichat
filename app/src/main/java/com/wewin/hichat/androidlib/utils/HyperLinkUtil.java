@@ -9,20 +9,31 @@ import android.text.Spanned;
 import android.text.TextPaint;
 import android.text.style.ClickableSpan;
 import android.view.View;
+import android.widget.TextView;
 
 import com.wewin.hichat.R;
+import com.wewin.hichat.androidlib.event.EventMsg;
+import com.wewin.hichat.androidlib.event.EventTrans;
+import com.wewin.hichat.androidlib.rxjava.OnRxJavaProcessListener;
+import com.wewin.hichat.androidlib.rxjava.RxJavaObserver;
+import com.wewin.hichat.androidlib.rxjava.RxJavaScheduler;
+import com.wewin.hichat.androidlib.threadpool.SingleThreadPool;
 import com.wewin.hichat.component.constant.ContactCons;
 import com.wewin.hichat.component.constant.SpCons;
 import com.wewin.hichat.component.manager.ChatRoomManager;
 import com.wewin.hichat.model.db.dao.FriendDao;
 import com.wewin.hichat.model.db.dao.GroupDao;
+import com.wewin.hichat.model.db.entity.ChatMsg;
 import com.wewin.hichat.model.db.entity.ChatRoom;
 import com.wewin.hichat.view.contact.friend.FriendInfoActivity;
 import com.wewin.hichat.view.conversation.ChatRoomActivity;
 import com.wewin.hichat.view.conversation.DocViewActivity;
+
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import io.reactivex.ObservableEmitter;
 
 /**
  * @author Jason
@@ -32,6 +43,50 @@ public class HyperLinkUtil {
 
     private static Pattern linkPattern = getUrlPattern();
     private static Pattern phonePattern = getPhonePattern();
+
+    /**
+     * 这里处理有问题，界面抖动和定位底部出现明显区别，暂时隐藏子线程加载，ChatRoomActivity.setManFlingVelocity()添加此方法缓解快速滑动造成卡顿问题
+     */
+    public static void setSpanStr(final Context context, final TextView textView, final ChatMsg chatMsg, final String  content, final boolean atMark,boolean replyMark) {
+//        textView.setText(content);
+        final SpannableString[] spanStr = {new SpannableString(content)};
+//        RxJavaScheduler.execute(new OnRxJavaProcessListener() {
+//            @Override
+//            public void process(ObservableEmitter<Object> emitter) {
+                if (textView != null && chatMsg != null && chatMsg.getContent() != null) {
+
+                    if (atMark
+                            &&chatMsg.getAtFriendMap() != null
+                            && !chatMsg.getAtFriendMap().isEmpty()
+                            && ChatRoom.TYPE_GROUP.equals(chatMsg.getRoomType())) {
+                        spanStr[0] = HyperLinkUtil.getATSpanStr(context, spanStr[0], chatMsg.getAtFriendMap(),
+                                R.color.blue_main, chatMsg.getRoomId());
+                    }
+                    if (replyMark) {
+                        spanStr[0] = EmoticonUtil.getEmoSpanStr(context, spanStr[0]);
+                        spanStr[0] = HyperLinkUtil.getPhoneSpanStr(context, spanStr[0], R.color.blue_main);
+                        spanStr[0] = HyperLinkUtil.getLinkSpanStr(context, spanStr[0], R.color.blue_main);
+                    }else {
+                        if (chatMsg.getEmoMark()==1){
+                            spanStr[0] = EmoticonUtil.getEmoSpanStr(context, spanStr[0]);
+                        }
+                        if (chatMsg.getPhoneMark()==1){
+                            spanStr[0] = HyperLinkUtil.getPhoneSpanStr(context, spanStr[0], R.color.blue_main);
+                        }
+                        if (chatMsg.getUrlMark()==1){
+                            spanStr[0] = HyperLinkUtil.getLinkSpanStr(context, spanStr[0], R.color.blue_main);
+                        }
+                    }
+                }
+//            }
+//        }, new RxJavaObserver<Object>() {
+//            @Override
+//            public void onComplete() {
+                textView.setText(spanStr[0]);
+//            }
+//        });
+
+    }
 
     /**
      * 匹配网址更改颜色和跳转
@@ -103,17 +158,17 @@ public class HyperLinkUtil {
      * 匹配必须放最前面，因为需要更改文本
      */
     public static SpannableString getATSpanStr(Context context, SpannableString spanStr,
-                                               Map<String, String> mapContent, int color,String roomId) {
+                                               Map<String, String> mapContent, int color, String roomId) {
         if (mapContent == null || mapContent.isEmpty()) {
             return spanStr;
         }
-        spanStr= getATSpanChangeName(spanStr,mapContent);
+        spanStr = getATSpanChangeName(spanStr, mapContent);
         for (Map.Entry<String, String> entry : mapContent.entrySet()) {
             String name;
             if ("0".equals(entry.getKey())) {
-                name=entry.getValue();
-            }else {
-                name=NameUtil.getName(entry.getKey());
+                name = entry.getValue();
+            } else {
+                name = NameUtil.getName(entry.getKey());
             }
             int index = spanStr.toString().indexOf(name);
             if (index >= 1) {
@@ -128,19 +183,19 @@ public class HyperLinkUtil {
     }
 
     public static SpannableString getATSpanChangeName(SpannableString spanStr,
-                                                      Map<String, String> mapContent){
+                                                      Map<String, String> mapContent) {
         if (mapContent == null || mapContent.isEmpty()) {
             return spanStr;
         }
-        String str=spanStr.toString();
+        String str = spanStr.toString();
         for (Map.Entry<String, String> entry : mapContent.entrySet()) {
-            if ("0".equals(entry.getKey())){
+            if ("0".equals(entry.getKey())) {
                 continue;
             }
             String name = NameUtil.getName(entry.getKey());
-            str= str.replace(entry.getValue(),name);
+            str = str.replace(entry.getValue(), name);
         }
-        spanStr=new SpannableString(str);
+        spanStr = new SpannableString(str);
         return spanStr;
     }
 
@@ -162,8 +217,8 @@ public class HyperLinkUtil {
                 if ("0".equals(id) || SpCons.getUser(context).getId().equals(id)) {
                     return;
                 }
-                if(roomId!=null&&GroupDao.getAddMark(roomId)==0&&FriendDao.findFriendshipMark(id)!=1){
-                    ToastUtil.showShort(context,context.getString(R.string.allow_add_prompt));
+                if (roomId != null && GroupDao.getAddMark(roomId) == 0 && FriendDao.findFriendshipMark(id) != 1) {
+                    ToastUtil.showShort(context, context.getString(R.string.allow_add_prompt));
                     return;
                 }
                 Intent intent = new Intent(context, FriendInfoActivity.class);

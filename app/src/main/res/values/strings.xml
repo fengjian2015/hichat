@@ -319,4 +319,6 @@
     <string name="draft">[草稿]</string>
     <string name="has_been_blacked_out">已被拉黑，无法回复</string>
     <string name="has_been_banned">已被禁言，无法回复</string>
+    <string name="not_connected">未连接</string>
+    <string name="connecting_link">连接中···</string>
 </resources>

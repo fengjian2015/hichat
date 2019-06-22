@@ -25,22 +25,24 @@
         android:layout_alignBottom="@+id/ll_message_chat_reply_container"
         android:layout_toStartOf="@+id/ll_message_chat_reply_container"
         android:layout_below="@+id/tv_message_chat_date"
+        android:layout_marginRight="-90dp"
         />
 
     <!--回复-->
     <RelativeLayout
         android:id="@+id/ll_message_chat_reply_container"
-        android:layout_width="207dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginRight="5dp"
         android:background="@drawable/message_bg_blue_right"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/tv_message_chat_date"
+        android:layout_marginLeft="90dp"
         >
 
         <RelativeLayout
             android:id="@+id/rl_message_chat_reply_content"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/corner_gray_8"
             android:padding="5dp"
@@ -145,7 +147,7 @@
                 </LinearLayout>
                 <TextView
                     android:id="@+id/tv_message_chat_reply_type"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="@dimen/font_size_14"
                     android:textColor="@color/black_00"

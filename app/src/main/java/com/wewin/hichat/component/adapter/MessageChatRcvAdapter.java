@@ -2,13 +2,10 @@ package com.wewin.hichat.component.adapter;
 
 import android.content.Context;
 import android.graphics.drawable.AnimationDrawable;
-import android.text.SpannableString;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.animation.AnimationUtils;
-
 import com.wewin.hichat.R;
-import com.wewin.hichat.androidlib.utils.EmoticonUtil;
 import com.wewin.hichat.androidlib.utils.FileUtil;
 import com.wewin.hichat.androidlib.utils.HyperLinkUtil;
 import com.wewin.hichat.androidlib.utils.ImgUtil;
@@ -17,7 +14,6 @@ import com.wewin.hichat.androidlib.utils.TimeUtil;
 import com.wewin.hichat.androidlib.widget.CustomLinkMovementMethod;
 import com.wewin.hichat.component.base.BaseMessageChatRcvAdapter;
 import com.wewin.hichat.model.db.entity.ChatMsg;
-import com.wewin.hichat.model.db.entity.ChatRoom;
 import com.wewin.hichat.model.db.entity.FileInfo;
 import com.wewin.hichat.model.db.entity.ReplyMsgInfo;
 import com.wewin.hichat.model.db.entity.VoiceCall;
@@ -45,26 +41,8 @@ public class MessageChatRcvAdapter extends BaseMessageChatRcvAdapter {
             return;
         }
         rightTextHolder.contentTv.setMovementMethod(CustomLinkMovementMethod.getInstance());
-        SpannableString spanStr = new SpannableString(msgList.get(position).getContent());
+        HyperLinkUtil.setSpanStr(context,rightTextHolder.contentTv,msgList.get(position),msgList.get(position).getContent(),true,true);
 
-        if (ChatMsg.TYPE_CONTENT_AT == msgList.get(position).getContentType()
-                && msgList.get(position).getAtFriendMap() != null
-                && !msgList.get(position).getAtFriendMap().isEmpty()
-                && ChatRoom.TYPE_GROUP.equals(msgList.get(position).getRoomType())) {
-            spanStr = HyperLinkUtil.getATSpanStr(context, spanStr, msgList.get(position).getAtFriendMap(),
-                    R.color.blue_main, msgList.get(position).getRoomId());
-        }
-        if (msgList.get(position).getEmoMark() == 1) {
-            spanStr = EmoticonUtil.getEmoSpanStr(context, spanStr);
-        }
-        if (msgList.get(position).getPhoneMark() == 1) {
-            spanStr = HyperLinkUtil.getPhoneSpanStr(context, spanStr, R.color.blue_main);
-        }
-        if (msgList.get(position).getUrlMark() == 1) {
-            spanStr = HyperLinkUtil.getLinkSpanStr(context, spanStr, R.color.blue_main);
-        }
-
-        rightTextHolder.contentTv.setText(spanStr);
     }
 
     //右侧语音通话
@@ -176,23 +154,8 @@ public class MessageChatRcvAdapter extends BaseMessageChatRcvAdapter {
         mHolder.replyContentTv.setVisibility(View.VISIBLE);
         //文本
         mHolder.replyContentTv.setMovementMethod(CustomLinkMovementMethod.getInstance());
-        SpannableString spanStr = new SpannableString(msgList.get(position).getContent());
-        if (msgList.get(position).getAtFriendMap() != null
-                && !msgList.get(position).getAtFriendMap().isEmpty()
-                && ChatRoom.TYPE_GROUP.equals(msgList.get(position).getRoomType())) {
-            spanStr = HyperLinkUtil.getATSpanStr(context, spanStr, msgList.get(position).getAtFriendMap(),
-                    R.color.blue_main, msgList.get(position).getRoomId());
-        }
-        if (msgList.get(position).getEmoMark() == 1) {
-            spanStr = EmoticonUtil.getEmoSpanStr(context, spanStr);
-        }
-        if (msgList.get(position).getPhoneMark() == 1) {
-            spanStr = HyperLinkUtil.getPhoneSpanStr(context, spanStr, R.color.blue_main);
-        }
-        if (msgList.get(position).getUrlMark() == 1) {
-            spanStr = HyperLinkUtil.getLinkSpanStr(context, spanStr, R.color.blue_main);
-        }
-        mHolder.replyContentTv.setText(spanStr);
+        HyperLinkUtil.setSpanStr(context,mHolder.replyContentTv,chatMsg,chatMsg.getContent(),true,true);
+
         mHolder.replyStateIv.setVisibility(View.GONE);
         mHolder.recordLl.setVisibility(View.GONE);
         mHolder.replyTypeTv.setVisibility(View.VISIBLE);
@@ -201,11 +164,8 @@ public class MessageChatRcvAdapter extends BaseMessageChatRcvAdapter {
             //回复文本消息
             mHolder.replyIv.setVisibility(View.GONE);
             mHolder.replyTypeTv.setMovementMethod(CustomLinkMovementMethod.getInstance());
-            SpannableString replyStr = new SpannableString(replyMsgInfo.getContent());
-            replyStr = EmoticonUtil.getEmoSpanStr(context, replyStr);
-            replyStr = HyperLinkUtil.getPhoneSpanStr(context, replyStr, R.color.blue_main);
-            replyStr = HyperLinkUtil.getLinkSpanStr(context, replyStr, R.color.blue_main);
-            mHolder.replyTypeTv.setText(replyStr);
+            HyperLinkUtil.setSpanStr(context,mHolder.replyTypeTv,chatMsg,replyMsgInfo.getContent(),false,false);
+
         } else {
             mHolder.replyIv.setVisibility(View.VISIBLE);
             String filePath = "";
@@ -325,24 +285,7 @@ public class MessageChatRcvAdapter extends BaseMessageChatRcvAdapter {
             return;
         }
         leftTextHolder.contentTv.setMovementMethod(CustomLinkMovementMethod.getInstance());
-        SpannableString spanStr = new SpannableString(msgList.get(position).getContent());
-        if (ChatMsg.TYPE_CONTENT_AT == msgList.get(position).getContentType()
-                && msgList.get(position).getAtFriendMap() != null
-                && !msgList.get(position).getAtFriendMap().isEmpty()
-                && ChatRoom.TYPE_GROUP.equals(msgList.get(position).getRoomType())) {
-            spanStr = HyperLinkUtil.getATSpanStr(context, spanStr, msgList.get(position).getAtFriendMap(),
-                    R.color.blue_main, msgList.get(position).getRoomId());
-        }
-        if (msgList.get(position).getEmoMark() == 1) {
-            spanStr = EmoticonUtil.getEmoSpanStr(context, spanStr);
-        }
-        if (msgList.get(position).getPhoneMark() == 1) {
-            spanStr = HyperLinkUtil.getPhoneSpanStr(context, spanStr, R.color.blue_main);
-        }
-        if (msgList.get(position).getUrlMark() == 1) {
-            spanStr = HyperLinkUtil.getLinkSpanStr(context, spanStr, R.color.blue_main);
-        }
-        leftTextHolder.contentTv.setText(spanStr);
+        HyperLinkUtil.setSpanStr(context,leftTextHolder.contentTv,msgList.get(position),msgList.get(position).getContent(),true,true);
     }
 
     //左侧语音通话
@@ -473,6 +416,7 @@ public class MessageChatRcvAdapter extends BaseMessageChatRcvAdapter {
         }
     }
 
+    // TODO: 2019/6/21 这里需要优化，左右两边布局都需要，滑动会卡顿，包括几个文件类型的消息
     @Override
     protected void setLeftReplyHolder(LeftReplyHolder mHolder, int position) {
         ChatMsg chatMsg = msgList.get(position);
@@ -482,24 +426,8 @@ public class MessageChatRcvAdapter extends BaseMessageChatRcvAdapter {
         mHolder.replyContentTv.setVisibility(View.VISIBLE);
         //文本
         mHolder.replyContentTv.setMovementMethod(CustomLinkMovementMethod.getInstance());
-        SpannableString spanStr = new SpannableString(msgList.get(position).getContent());
-        if ( msgList.get(position).getAtFriendMap() != null
-                && !msgList.get(position).getAtFriendMap().isEmpty()
-                && ChatRoom.TYPE_GROUP.equals(msgList.get(position).getRoomType())) {
-            spanStr = HyperLinkUtil.getATSpanStr(context, spanStr, msgList.get(position).getAtFriendMap(),
-                    R.color.blue_main, msgList.get(position).getRoomId());
-        }
-        if (msgList.get(position).getEmoMark() == 1) {
-            spanStr = EmoticonUtil.getEmoSpanStr(context, spanStr);
-        }
-        if (msgList.get(position).getPhoneMark() == 1) {
-            spanStr = HyperLinkUtil.getPhoneSpanStr(context, spanStr, R.color.blue_main);
-        }
-        if (msgList.get(position).getUrlMark() == 1) {
-            spanStr = HyperLinkUtil.getLinkSpanStr(context, spanStr, R.color.blue_main);
-        }
+        HyperLinkUtil.setSpanStr(context,mHolder.replyContentTv,chatMsg,chatMsg.getContent(),true,true);
 
-        mHolder.replyContentTv.setText(spanStr);
         mHolder.replyStateIv.setVisibility(View.GONE);
         mHolder.recordLl.setVisibility(View.GONE);
         mHolder.replyTypeTv.setVisibility(View.VISIBLE);
@@ -508,11 +436,8 @@ public class MessageChatRcvAdapter extends BaseMessageChatRcvAdapter {
             //回复文本消息
             mHolder.replyIv.setVisibility(View.GONE);
             mHolder.replyTypeTv.setMovementMethod(CustomLinkMovementMethod.getInstance());
-            SpannableString replyStr = new SpannableString(replyMsgInfo.getContent());
-            replyStr = EmoticonUtil.getEmoSpanStr(context, replyStr);
-            replyStr = HyperLinkUtil.getPhoneSpanStr(context, replyStr, R.color.blue_main);
-            replyStr = HyperLinkUtil.getLinkSpanStr(context, replyStr, R.color.blue_main);
-            mHolder.replyTypeTv.setText(replyStr);
+            HyperLinkUtil.setSpanStr(context,mHolder.replyTypeTv,chatMsg,replyMsgInfo.getContent(),false,false);
+
         } else {
             mHolder.replyIv.setVisibility(View.VISIBLE);
             String filePath = "";

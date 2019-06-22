@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -59,6 +60,7 @@ import io.reactivex.ObservableEmitter;
 public class ConversationFragment extends BaseFragment {
 
     private TextView editTv, selectAllTv, makeTopTv, deleteTv,titleTv;
+    private ProgressBar linkPb;
     private ImageView newMsgIv;
     private LinearLayout cancelLl;
     private FrameLayout searchFl;
@@ -89,6 +91,7 @@ public class ConversationFragment extends BaseFragment {
         searchFl = parentView.findViewById(R.id.fl_conversation_search);
         noDataConversationRl=parentView.findViewById(R.id.rl_conversation_no_data);
         titleTv=parentView.findViewById(R.id.tv_conversation_new_title);
+        linkPb=parentView.findViewById(R.id.pb_link);
     }
 
     @Override
@@ -209,16 +212,17 @@ public class ConversationFragment extends BaseFragment {
        int type= ChatSocket.getInstance().getReconnectType();
        switch (type){
            case ChatSocket.TYPE_RECONNECT_NOT:
-               titleTv.setText("未连接");
+               titleTv.setText(getString(R.string.not_connected));
+               linkPb.setVisibility(View.GONE);
                break;
            case ChatSocket.TYPE_RECONNECTING:
-               titleTv.setText("链接中...");
+           case ChatSocket.TYPE_RECONNECT_FAILURE:
+               titleTv.setText(getString(R.string.connecting_link));
+               linkPb.setVisibility(View.VISIBLE);
                break;
            case ChatSocket.TYPE_RECONNECT_SUCCESS:
                titleTv.setText(getString(R.string.conversation));
-               break;
-           case ChatSocket.TYPE_RECONNECT_FAILURE:
-               titleTv.setText("链接中...");
+               linkPb.setVisibility(View.GONE);
                break;
        }
     }

@@ -51,14 +51,22 @@
                 />
 
         </LinearLayout>
-
+        <ProgressBar
+            android:id="@+id/pb_link"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:indeterminate="true"
+            android:indeterminateDrawable="@drawable/anim_link_progress"
+            android:layout_gravity="center"
+            android:layout_marginRight="50dp"
+            />
         <TextView
             android:id="@+id/tv_conversation_new_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/conversation"
             android:textSize="@dimen/font_size_16"
-            android:textColor="@color/black_00"
+            android:textColor="@color/blue_main"
             android:layout_gravity="center"
             android:textStyle="bold"
             />
